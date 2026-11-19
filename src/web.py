@@ -1,0 +1,2440 @@
+# -*- coding: utf-8 -*-
+"""music3 Web 服务：可视化界面 + JSON API（供 AI/脚本调用）。
+
+启动: python -X utf8 -m src.web
+默认: http://127.0.0.1:8420
+
+API:
+  GET  /api/search?q=晴天&sources=qq,netease&limit=15
+  GET  /api/get?q=晴天 周杰伦&n=1&sources=qq
+  GET  /api/stat
+  POST /api/batch   body: {"keywords": ["a","b"], "n": 1}
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import threading
+import time
+
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    __package__ = "src"
+
+import logging
+
+logging.getLogger("musicdl").setLevel(logging.WARNING)
+
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlparse
+
+from src import router, library, downloader
+from src.models import norm
+
+HOST = "127.0.0.1"
+PORT = 8420
+
+PAGE = r"""<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d11">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>music3 · 三源音乐</title>
+<style>
+:root{
+  --bg:#0b0d11; --panel:#13161d; --panel2:#181c25; --line:#232833;
+  --fg:#e8eaf0; --dim:#8b93a5; --acc:#4ea1ff; --acc2:#7c5cff;
+  --ok:#3ecf8e; --warn:#e0b350; --bad:#ff6b6b; --radius:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--fg);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:1180px;margin:0 auto;padding:16px 14px 40px}
+
+/* 顶栏 */
+header{display:flex;align-items:center;gap:10px;padding:6px 0 14px}
+.logo{
+  width:34px;height:34px;border-radius:10px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:700;color:#fff;
+}
+.hd h1{font-size:17px;margin:0;letter-spacing:.2px}
+.hd .sub{color:var(--dim);font-size:11.5px;margin-top:1px}
+
+/* 标签 */
+.tabs{display:flex;gap:3px;background:var(--panel);padding:3px;border-radius:10px;margin-bottom:14px}
+.tab{
+  flex:1;text-align:center;padding:8px 6px;border-radius:8px;cursor:pointer;
+  color:var(--dim);font-size:13px;transition:.15s;user-select:none;white-space:nowrap;
+}
+.tab.on{background:var(--panel2);color:var(--fg);font-weight:600;box-shadow:0 1px 3px #0006}
+.pane{display:none}.pane.on{display:block}
+
+/* 输入条 */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+input[type=text],input[type=number]{
+  flex:1;min-width:170px;background:var(--panel);border:1px solid var(--line);
+  color:var(--fg);padding:11px 13px;border-radius:10px;font-size:14px;outline:none;transition:.15s;
+}
+input[type=text]:focus{border-color:var(--acc);background:var(--panel2)}
+input::placeholder{color:#5a6274}
+button{
+  background:var(--acc);border:0;color:#06121f;font-weight:600;
+  padding:11px 17px;border-radius:10px;cursor:pointer;font-size:13.5px;transition:.15s;
+  flex:0 0 auto;
+}
+button:hover:not(:disabled){filter:brightness(1.1)}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.4;cursor:default}
+button.ghost{background:var(--panel);color:var(--fg);border:1px solid var(--line);font-weight:500}
+button.ghost:hover:not(:disabled){border-color:var(--acc);color:var(--acc)}
+button.danger{background:#2a1416;color:#ff9b9b;border:1px solid #4a2024;font-weight:500}
+button.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+label.chk{color:var(--dim);font-size:12px;display:flex;gap:5px;align-items:center;cursor:pointer;user-select:none}
+input[type=checkbox],input[type=radio]{accent-color:var(--acc);cursor:pointer}
+
+/* 提示 */
+.msg{
+  margin:10px 0;color:var(--dim);font-size:12px;white-space:pre-wrap;
+  font-family:ui-monospace,Consolas,monospace;max-height:150px;overflow:auto;
+  padding:9px 11px;background:var(--panel);border-radius:9px;border-left:2px solid var(--line);
+}
+.msg:empty{display:none}
+.msg.ok{border-left-color:var(--ok);color:#a9e8c8}
+.msg.bad{border-left-color:var(--bad);color:#ffb3b3}
+
+/* 表格 */
+.tablewrap{background:var(--panel);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:500;font-size:11.5px;background:var(--panel2);position:sticky;top:0;z-index:1}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#171b24}
+tbody tr.playing td{background:#12243a}
+.sc{font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px}
+.sc.hi{color:var(--ok)}.sc.mid{color:var(--warn)}.sc.lo{color:#5a6274}
+.src{font-size:10.5px;padding:2px 7px;border-radius:99px;background:#1d222c;color:var(--dim);white-space:nowrap}
+.src.qq{color:#3ecf8e;background:#0f2a20}
+.src.netease{color:#ff8f8f;background:#2a1519}
+.src.bilibili{color:#7cc4ff;background:#0f1f2e}
+.mono{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--dim);word-break:break-all}
+.n{color:var(--dim);font-size:11px}
+
+/* 分类片 */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+/* 页头右侧按钮 */
+.hdr-right{margin-left:auto;display:flex;gap:7px;align-items:center;flex:0 0 auto}
+.star-btn{
+  border-color:#d9a441 !important;color:#f0c25c !important;
+  background:rgba(217,164,65,.10) !important;
+}
+.star-btn:hover{background:rgba(217,164,65,.22) !important}
+/* 关于弹窗 */
+.modal{
+  position:fixed;inset:0;z-index:300;display:none;
+  background:rgba(0,0,0,.62);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal.on{display:flex}
+.mbox{
+  background:linear-gradient(160deg,#151922,#1a1f2b);
+  border:1px solid var(--line);border-radius:16px;
+  width:100%;max-width:440px;max-height:86vh;overflow-y:auto;
+  padding:26px 24px 20px;position:relative;
+  box-shadow:0 24px 64px rgba(0,0,0,.6);
+  animation:mIn .18s ease;
+}
+@keyframes mIn{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.mclose{
+  position:absolute;top:12px;right:12px;width:28px;height:28px;
+  border-radius:8px;border:0;background:#232936;color:var(--dim);
+  cursor:pointer;font-size:15px;line-height:1;
+}
+.mclose:hover{background:#2d3546;color:var(--fg)}
+.mlogo{
+  width:52px;height:52px;border-radius:14px;margin:0 auto 14px;
+  background:linear-gradient(135deg,#4ea1ff,#7c5cff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;color:#0b0d11;font-weight:700;
+}
+.mtitle{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}
+.mver{text-align:center;font-size:11.5px;color:var(--dim);margin-bottom:18px}
+.mrow{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:#11151d;border:1px solid var(--line);border-radius:10px;
+  margin-bottom:8px;
+}
+.mrow .mk{font-size:11.5px;color:var(--dim);width:52px;flex:0 0 auto}
+.mrow .mv{font-size:13px;flex:1;min-width:0;word-break:break-all}
+.mrow .mv b{color:var(--acc);font-weight:600}
+.copybtn{
+  border:0;background:#232936;color:var(--dim);border-radius:6px;
+  padding:4px 9px;font-size:11px;cursor:pointer;flex:0 0 auto;
+}
+.copybtn:hover{background:#2d3546;color:var(--fg)}
+.mstar{
+  display:block;text-align:center;margin:16px 0 10px;padding:12px;
+  background:linear-gradient(135deg,rgba(240,194,92,.16),rgba(217,164,65,.08));
+  border:1px solid rgba(217,164,65,.42);border-radius:11px;
+  color:#f0c25c;text-decoration:none;font-size:13.5px;font-weight:600;
+  transition:.15s;
+}
+.mstar:hover{background:linear-gradient(135deg,rgba(240,194,92,.26),rgba(217,164,65,.14));transform:translateY(-1px)}
+.mnote{
+  font-size:11.5px;color:var(--dim);line-height:1.8;text-align:center;
+  margin-top:12px;padding-top:14px;border-top:1px solid var(--line);
+}
+.mactions{display:flex;gap:8px;margin-top:14px}
+.mactions button{flex:1}
+.chip{
+  padding:7px 14px;background:var(--panel);border:1px solid var(--line);
+  border-radius:99px;cursor:pointer;font-size:12.5px;transition:.15s;user-select:none;
+}
+.chip:hover{border-color:var(--acc)}
+.chip.on{background:#12243a;border-color:var(--acc);color:var(--acc);font-weight:600}
+/* 视图切换 */
+.vtog{display:flex;gap:2px;background:var(--panel);padding:2px;border-radius:8px;margin-left:auto}
+.vtog span{padding:5px 11px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--dim)}
+.vtog span.on{background:var(--panel2);color:var(--fg);font-weight:600}
+/* 列表视图 */
+.listview{background:var(--panel);border-radius:var(--radius);overflow:hidden}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line)}
+.lrow:hover{background:#171b24}
+.lrow.on{background:#12243a}
+.lrow:last-child{border-bottom:0}
+.lcov{
+  width:38px;height:38px;border-radius:7px;flex:0 0 auto;overflow:hidden;
+  background:linear-gradient(135deg,#1d222c,#2a3140);
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.lcov img{width:100%;height:100%;object-fit:cover}
+.ltxt{flex:1;min-width:0}
+.lt1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt2{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsz{font-size:11px;color:var(--dim);flex:0 0 auto}
+/* 统计卡片 */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.statcard{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;
+}
+.statcard .k{font-size:11px;color:var(--dim);margin-bottom:6px}
+.statcard .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.statcard .u{font-size:11px;color:var(--dim);margin-left:2px;-webkit-text-fill-color:var(--dim)}
+
+/* 播放器 */
+.player{
+  position:fixed;left:0;right:0;bottom:0;z-index:100;
+  background:rgba(19,22,29,.97);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+  display:none;gap:12px;align-items:center;
+}
+.player.on{display:flex}
+.pcov{
+  width:46px;height:46px;border-radius:9px;flex:0 0 auto;
+  background:linear-gradient(135deg,#1d222c,#2a3140);
+  display:flex;align-items:center;justify-content:center;
+  font-size:19px;overflow:hidden;
+}
+.pcov img{width:100%;height:100%;object-fit:cover}
+.pinfo{flex:1;min-width:0}
+.ptitle{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.partist{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbtns{display:flex;gap:7px;flex:0 0 auto}
+.pbtn{
+  width:38px;height:38px;border-radius:50%;background:var(--panel2);
+  border:1px solid var(--line);color:var(--fg);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.pbtn.main{background:var(--acc);color:#06121f;border:0;width:44px;height:44px;font-size:17px}
+.pbar{
+  position:absolute;left:0;right:0;top:-1px;height:2px;background:#232833;cursor:pointer;
+}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .1s linear}
+.playicon{font-size:15px}
+/* 波形层：铺在播放器背景，不挡交互 */
+.pwave{
+  position:absolute;left:0;right:0;bottom:0;width:100%;height:44px;
+  opacity:.35;pointer-events:none;display:block;
+}
+.player{overflow:hidden}
+/* 播放列表抽屉 */
+.plist{
+  position:fixed;right:0;top:0;bottom:0;width:340px;max-width:88vw;z-index:200;
+  background:rgba(17,20,26,.98);backdrop-filter:blur(16px);
+  border-left:1px solid var(--line);
+  transform:translateX(100%);transition:transform .22s ease;
+  display:flex;flex-direction:column;
+}
+.plist.on{transform:translateX(0)}
+.plhead{
+  display:flex;align-items:center;gap:8px;padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+}
+.plhead b{font-size:14px;flex:1}
+.plbody{flex:1;overflow-y:auto;padding:6px 0}
+.plitem{
+  display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;
+  border-left:3px solid transparent;transition:.12s;position:relative;
+}
+.plitem:hover{background:#171b24}
+.plitem.on{background:#12243a;border-left-color:var(--acc)}
+.plitem.drag{opacity:.4}
+.plitem.over{border-top:2px solid var(--acc)}
+.plitem .idx{width:22px;color:var(--dim);font-size:11px;text-align:right;flex:0 0 auto}
+.plitem .txt{flex:1;min-width:0}
+.plitem .t1{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plitem .t2{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plitem .del{color:var(--dim);font-size:14px;padding:0 4px;flex:0 0 auto}
+.plitem .del:hover{color:var(--bad)}
+.plmask{
+  position:fixed;inset:0;background:#0008;z-index:199;display:none;
+}
+.plmask.on{display:block}
+@media (max-width:640px){
+  .plist{width:100%;max-width:100%}
+}
+/* 歌词面板 */
+.lyrics{
+  position:fixed;inset:0;z-index:210;display:none;
+  background:rgba(11,13,17,.97);backdrop-filter:blur(20px);
+}
+.lyrics.on{display:flex;flex-direction:column}
+.lyhead{
+  display:flex;align-items:center;gap:10px;padding:14px 16px;
+  border-bottom:1px solid var(--line);
+}
+.lyhead b{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lybody{
+  flex:1;overflow-y:auto;padding:38vh 20px;
+  scroll-behavior:smooth;text-align:center;
+}
+.lyline{
+  font-size:16px;line-height:2.4;color:#6a7285;transition:.22s;
+  padding:3px 0;cursor:pointer;border-radius:6px;
+}
+.lyline:hover{color:var(--dim)}
+.lyline.cur{color:var(--fg);font-weight:600;font-size:18px;transform:scale(1.03)}
+.lyline.near{color:#98a1b4}
+.lyempty{color:var(--dim);text-align:center;padding-top:20vh;font-size:13px}
+/* 快捷键提示 */
+.kbd{
+  display:inline-block;padding:1px 6px;background:#1b2029;border:1px solid var(--line);
+  border-radius:4px;font-size:10.5px;font-family:ui-monospace,monospace;color:var(--dim);
+}
+/* 音量条 */
+.pvol{
+  width:0;overflow:hidden;transition:width .18s,opacity .18s;opacity:0;
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;
+}
+.player:hover .pvol,.pvol.on{width:92px;opacity:1}
+.pvol input{width:74px;accent-color:var(--acc);cursor:pointer}
+/* 均衡器面板 */
+.eqpanel{
+  position:fixed;right:0;top:0;bottom:0;width:400px;max-width:94vw;z-index:205;
+  background:rgba(17,20,26,.985);backdrop-filter:blur(16px);
+  border-left:1px solid var(--line);transform:translateX(100%);
+  transition:transform .22s ease;display:flex;flex-direction:column;
+}
+.eqpanel.on{transform:translateX(0)}
+.eqhead{display:flex;align-items:center;gap:8px;padding:14px;border-bottom:1px solid var(--line)}
+.eqhead b{flex:1;font-size:14px}
+.eqbody{flex:1;overflow-y:auto;padding:16px}
+.eqpresets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.eqpresets span{
+  padding:6px 13px;background:var(--panel);border:1px solid var(--line);
+  border-radius:99px;cursor:pointer;font-size:12px;transition:.15s;
+}
+.eqpresets span:hover{border-color:var(--acc);color:var(--acc)}
+.eqsliders{display:flex;gap:6px;justify-content:space-between;align-items:flex-end;height:190px}
+.eqcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.eqslider{
+  -webkit-appearance:none;writing-mode:vertical-lr;direction:rtl;
+  width:26px;height:150px;background:#1b2029;border-radius:99px;
+  accent-color:var(--acc);cursor:ns-resize;outline:none;
+}
+.eqlabels{display:flex;gap:6px;justify-content:space-between;margin-top:10px;font-size:10px;color:var(--dim);text-align:center}
+.eqlabels span{flex:1}
+.eqlabels b{color:var(--acc);font-weight:600}
+
+/* 进度卡 */
+.jobcard{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:10px;
+}
+.jobhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.jobtitle{font-size:13px;font-weight:600}
+.pbar2{height:6px;background:#1b2029;border-radius:99px;overflow:hidden}
+.pbar2 i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--ok));transition:width .25s}
+.jobmeta{display:flex;gap:12px;margin-top:7px;font-size:11.5px;color:var(--dim)}
+.jobmeta b{color:var(--fg);font-weight:600}
+.joblog{
+  margin-top:8px;max-height:150px;overflow:auto;font-family:ui-monospace,Consolas,monospace;
+  font-size:11px;color:var(--dim);background:#0e1116;padding:8px 10px;border-radius:8px;
+  white-space:pre-wrap;line-height:1.5;
+}
+
+/* 网格卡（曲库） */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.card{
+  background:var(--panel);border-radius:var(--radius);overflow:hidden;
+  cursor:pointer;transition:.15s;border:1px solid transparent;
+}
+.card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.card.on{border-color:var(--acc);box-shadow:0 0 0 2px #4ea1ff33}
+.cardcov{
+  aspect-ratio:1;background:linear-gradient(135deg,#1d222c,#2a3140);
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+}
+.cardcov img{width:100%;height:100%;object-fit:cover}
+.cardbody{padding:8px 9px 10px}
+.cardtitle{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cardartist{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+
+/* 移动端 */
+@media (max-width:640px){
+  .wrap{padding:12px 10px 30px}
+  .hd h1{font-size:15px}
+  .tab{font-size:12px;padding:8px 4px}
+  input[type=text]{min-width:120px;padding:10px 11px;font-size:13.5px}
+  button{padding:10px 13px;font-size:13px}
+  th:nth-child(3),td:nth-child(3){display:none}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .pcov{width:40px;height:40px}
+  .ptitle{font-size:12px}
+}
+</style></head><body>
+<div class="wrap">
+<header>
+  <div class="logo">♪</div>
+  <div class="hd"><h1>music3</h1><div class="sub">B站 / 网易云 / QQ音乐 · 打分去重</div></div>
+  <div class="hdr-right">
+    <button class="ghost sm star-btn" id="btnstar" title="给作者点个 Star">⭐ Star</button>
+    <button class="ghost sm" id="btnabout" title="关于本工具">关于</button>
+  </div>
+</header>
+
+<!-- 关于弹窗 -->
+<div class="modal" id="aboutmodal">
+  <div class="mbox">
+    <button class="mclose" id="mclose">✕</button>
+    <div class="mlogo">♪</div>
+    <div class="mtitle">music3 · 三源音乐工具</div>
+    <div class="mver">B站 / 网易云 / QQ音乐 · 统一搜索 · 打分去重 · v1.0.0</div>
+
+    <div class="mrow">
+      <span class="mk">作者</span>
+      <span class="mv"><b>最中幻想</b></span>
+    </div>
+    <div class="mrow">
+      <span class="mk">微信</span>
+      <span class="mv" id="wxid">andyloveanny</span>
+      <button class="copybtn" data-copy="andyloveanny">复制</button>
+    </div>
+    <div class="mrow">
+      <span class="mk">仓库</span>
+      <span class="mv" id="repo">github.com/qingshanjiluo/music3</span>
+      <button class="copybtn" data-copy="https://github.com/qingshanjiluo/music3">复制</button>
+    </div>
+
+    <a class="mstar" id="gostar" href="https://github.com/qingshanjiluo/music3" target="_blank" rel="noopener">
+      ⭐ 点个 Star 支持一下
+    </a>
+
+    <div class="mactions">
+      <button class="ghost sm" id="openrepo">打开仓库</button>
+      <button class="ghost sm" id="copywx">复制微信号</button>
+    </div>
+
+    <div class="mnote">
+      这个工具从第一行代码到 46 条踩坑记录都是实打实趟出来的。<br>
+      觉得有用就点个 ⭐ Star，这是最直接的鼓励。<br>
+      有问题、提需求、聊实现，加微信 <b style="color:var(--acc)">andyloveanny</b>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab on" data-p="s">搜索</div>
+  <div class="tab" data-p="b">曲库</div>
+  <div class="tab" data-p="h">历史</div>
+  <div class="tab" data-p="st">统计</div>
+  <div class="tab" data-p="q">批量</div>
+  <div class="tab" data-p="d">清理</div>
+</div>
+
+<!-- ========== 搜索 ========== -->
+<div class="pane on" id="p-s">
+  <div class="bar">
+    <input type="text" id="q" placeholder="歌名 歌手，如：晴天 周杰伦" autofocus>
+    <button id="go">搜索</button>
+  </div>
+  <div class="bar">
+    <label class="chk"><input type="checkbox" id="bili" checked> 含B站</label>
+    <label class="chk"><input type="checkbox" id="force"> 忽略查重</label>
+    <button class="ghost sm" id="top1">只下第一首</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="tablewrap">
+  <table><thead><tr>
+    <th style="width:36px">#</th><th style="width:52px">分</th><th style="width:52px">时长</th>
+    <th style="width:76px">来源</th><th>标题</th><th style="width:56px">操作</th>
+  </tr></thead><tbody id="tb"></tbody></table>
+  </div>
+</div>
+
+<!-- ========== 曲库 ========== -->
+<div class="pane" id="p-b">
+  <div class="bar">
+    <input type="text" id="fq" placeholder="在曲库中查找…">
+    <button id="fgo">查找</button>
+    <button class="ghost" id="reload">刷新</button>
+    <div class="vtog">
+      <span class="on" data-v="grid">网格</span>
+      <span data-v="list">列表</span>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="msg" id="bmsg"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ========== 历史 ========== -->
+<div class="pane" id="p-h">
+  <div class="bar">
+    <button class="ghost" id="hreload">刷新</button>
+    <button class="danger sm" id="hclear">清空历史</button>
+    <span class="n" id="hcount"></span>
+  </div>
+  <div class="msg" id="hmsg"></div>
+  <table><thead><tr>
+    <th style="width:36px">#</th><th>标题</th><th style="width:120px">歌手</th>
+    <th style="width:130px">时间</th><th style="width:56px">操作</th>
+  </tr></thead><tbody id="htb"></tbody></table>
+</div>
+
+<!-- ========== 统计 ========== -->
+<div class="pane" id="p-st">
+  <div class="bar">
+    <button class="ghost" id="streload">刷新</button>
+    <button class="danger sm" id="stclear">清空统计</button>
+    <span class="n">播满 30 秒才计一次</span>
+  </div>
+  <div class="msg" id="stmsg"></div>
+  <div class="statgrid" id="stcards"></div>
+  <div class="bar" style="margin-top:14px">
+    <div class="vtog">
+      <span class="on" data-sv="count">按次数</span>
+      <span data-sv="seconds">按时长</span>
+    </div>
+  </div>
+  <div class="chips" id="sttabs"></div>
+  <div class="tablewrap">
+  <table><thead><tr>
+    <th style="width:36px">#</th><th>曲目</th><th style="width:80px">次数</th>
+    <th style="width:86px">时长</th><th style="width:56px">操作</th>
+  </tr></thead><tbody id="sttb"></tbody></table>
+  </div>
+</div>
+
+<!-- ========== 批量 ========== -->
+<div class="pane" id="p-q">
+  <div class="bar">
+    <input type="text" id="bkws" placeholder="多行关键词，逗号或换行分隔" style="min-height:74px;resize:vertical">
+  </div>
+  <div class="bar">
+    <label class="chk">每词下载 <input type="number" id="bn" value="1" min="1" max="10" style="width:56px;flex:0 0 auto;padding:6px 8px"> 首</label>
+    <label class="chk">并发 <input type="number" id="bw" value="3" min="1" max="8" style="width:52px;flex:0 0 auto;padding:6px 8px"> 线程</label>
+    <label class="chk"><input type="checkbox" id="bbili"> 含B站</label>
+    <button id="bstart">开始下载</button>
+    <button class="ghost" id="bstop">停止</button>
+  </div>
+  <div id="jobbox"></div>
+</div>
+
+<!-- ========== 清理 ========== -->
+<div class="pane" id="p-d">
+  <div class="bar">
+    <button id="hscan">健康检查</button>
+    <label class="chk"><input type="checkbox" id="hdeep"> 读 ID3（准但慢）</label>
+    <button class="ghost" id="hfixcover" title="对「无封面」列表逐首联网补">补封面</button>
+  </div>
+  <div class="msg" id="hmsg2"></div>
+  <div id="hresult"></div>
+
+  <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+    <b style="font-size:13px">查重</b>
+  </div>
+  <div class="bar">
+    <button id="scan">扫描重复</button>
+    <label class="chk"><input type="radio" name="by" value="name" checked> 按名</label>
+    <label class="chk"><input type="radio" name="by" value="hash"> 按内容</label>
+  </div>
+  <div class="msg" id="dmsg"></div>
+  <div id="dlist"></div>
+
+  <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+    <b style="font-size:13px">维护守护</b>
+  </div>
+  <div class="bar">
+    <button id="mtrun">跑一轮</button>
+    <button class="ghost" id="mtstat">看状态</button>
+    <button class="ghost" id="mtlog">看日志</button>
+    <button class="danger sm" id="mtreset">重置断点</button>
+  </div>
+  <div class="bar">
+    <label class="chk">每轮 <input type="number" id="mtbatch" value="20" min="1" max="100" style="width:56px;flex:0 0 auto;padding:6px 8px"> 首</label>
+    <label class="chk"><input type="checkbox" id="mtlyric" checked> 补歌词</label>
+    <label class="chk"><input type="checkbox" id="mtcover" checked> 补封面</label>
+    <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
+  </div>
+  <div class="msg" id="mtmsg"></div>
+  <div id="mtresult"></div>
+
+  <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+    <b style="font-size:13px">导出</b>
+  </div>
+  <div class="bar">
+    <button class="ghost" onclick="doExport('m3u8','lib')">曲库 m3u8</button>
+    <button class="ghost" onclick="doExport('csv','lib')">曲库 CSV</button>
+    <button class="ghost" onclick="doExport('json','lib')">曲库 JSON</button>
+    <button class="ghost" onclick="doExport('index','lib')">全库索引(快)</button>
+    <button class="ghost" onclick="doExport('index','lib',0)">全库索引(含时长)</button>
+  </div>
+  <div class="bar">
+    <button class="ghost" onclick="doExport('m3u8','playlist')">当前播放列表 m3u8</button>
+  </div>
+  <div class="n">m3u8 通用（foobar2000 / VLC / 手机播放器）；CSV 带 UTF-8 BOM，Excel 直接开不乱码；「快」不读 ID3 时长约 3s，「含时长」全量解析约 2min</div>
+</div>
+
+</div>
+
+<!-- 播放器 -->
+<div class="player" id="player">
+  <canvas class="pwave" id="pwave" width="600" height="44"></canvas>
+  <div class="pbar" id="pbar"><i></i></div>
+  <div class="pcov" id="pcov">♪</div>
+  <div class="pinfo">
+    <div class="ptitle" id="ptitle">未播放</div>
+    <div class="partist" id="partist"></div>
+  </div>
+  <div class="pbtns">
+    <div class="pvol" id="pvolBox"><input type="range" id="pvol" min="0" max="100" value="100"></div>
+    <div class="pbtn" id="peq" title="均衡器">EQ</div>
+    <div class="pbtn" id="plyr" title="歌词">词</div>
+    <div class="pbtn" id="plopen" title="播放列表">☰</div>
+    <div class="pbtn" id="prate" title="播放速度">1x</div>
+    <div class="pbtn" id="pmode" title="播放模式">🔁</div>
+    <div class="pbtn" id="pprev" title="上一首">⏮</div>
+    <div class="pbtn main" id="ptoggle">▶</div>
+    <div class="pbtn" id="pnext" title="下一首">⏭</div>
+    <div class="pbtn" id="pclose">✕</div>
+  </div>
+</div>
+<audio id="audio" preload="none" crossorigin="anonymous"></audio>
+
+<!-- 均衡器面板 -->
+<div class="eqpanel" id="eqpanel">
+  <div class="eqhead">
+    <b>均衡器</b>
+    <label class="chk"><input type="checkbox" id="eqoff"> 旁通</label>
+    <button class="ghost sm" id="eqclose">✕</button>
+  </div>
+  <div class="eqbody">
+    <div class="eqpresets">
+      <span onclick="eqSetPreset('flat')">平直</span>
+      <span onclick="eqSetPreset('pop')">流行</span>
+      <span onclick="eqSetPreset('rock')">摇滚</span>
+      <span onclick="eqSetPreset('vocal')">人声</span>
+      <span onclick="eqSetPreset('bass')">重低音</span>
+      <span onclick="eqSetPreset('treble')">高音</span>
+    </div>
+    <div class="eqsliders" id="eqsliders"></div>
+    <div class="eqlabels" id="eqlabels"></div>
+    <div class="n" style="margin-top:18px;line-height:1.7">
+      拖动竖条调各频段增益（-12 ~ +12 dB）。<br>
+      设置自动保存，切页面不丢。<br>
+      旁通时全部归零但不丢配置。
+    </div>
+  </div>
+</div>
+
+<!-- 歌词全屏面板 -->
+<div class="lyrics" id="lyrics">
+  <div class="lyhead">
+    <b id="lytitle">歌词</b>
+    <span class="n">点歌词可跳转 · 滚轮调速 · <span class="kbd">Esc</span> 关闭</span>
+    <button class="ghost sm" id="lyclose">✕</button>
+  </div>
+  <div class="lybody" id="lybody"></div>
+</div>
+
+<!-- 播放列表抽屉 -->
+<div class="plmask" id="plmask"></div>
+<aside class="plist" id="plist">
+  <div class="plhead">
+    <b>播放列表 <span class="n" id="plcount"></span></b>
+    <button class="ghost sm" id="plclear">清空</button>
+    <button class="ghost sm" id="plclose">✕</button>
+  </div>
+  <div class="plbody" id="plbody"></div>
+</aside>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const scCls=v=>v>=0.8?'hi':v>=0.5?'mid':'lo';
+const srcCls=s=>['qq','netease','bilibili'].includes(s)?s:'';
+const mb=b=>(b/1048576).toFixed(1)+'MB';
+const setMsg=(el,t,cls)=>{el.textContent=t;el.className='msg'+(cls?' '+cls:'');};
+
+/* ---------- 标签切换 ---------- */
+$$('.tab').forEach(t=>t.onclick=()=>{
+  $$('.tab').forEach(x=>x.classList.remove('on'));
+  $$('.pane').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); $('#p-'+t.dataset.p).classList.add('on');
+  if(t.dataset.p==='b') loadChips();
+  if(t.dataset.p==='h') loadHistory();
+  if(t.dataset.p==='st') stLoad();
+});
+
+/* ---------- 播放器 ---------- */
+const audio=$('#audio'), player=$('#player'), pbar=$('#pbar');
+let curRel='', playing=false, playList=[], playIdx=-1;
+let playRecorded=false, playStart=0;
+/* 播放模式：list(列表循环) / one(单曲循环) / shuffle(随机) / seq(顺序不循环) */
+let playMode = localStorage.getItem('m3_mode') || 'list';
+const MODE_ICON = {list:'🔁', one:'🔂', shuffle:'🔀', seq:'➡'};
+const MODE_NAME = {list:'列表循环', one:'单曲循环', shuffle:'随机', seq:'顺序播放'};
+/* 播放速度 */
+const RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+let playRate = parseFloat(localStorage.getItem('m3_rate') || '1') || 1;
+
+/* 波形：AudioContext + AnalyserNode 实时频谱 */
+let actx=null, analyser=null, srcNode=null, waveRAF=0, freqData=null;
+const waveCanvas=$('#pwave'), waveCtx=waveCanvas.getContext('2d');
+
+/* 8 段均衡器：60/170/350/1000/3500/5000/10000/16000 Hz */
+const EQ_FREQS = [60, 170, 350, 1000, 3500, 5000, 10000, 16000];
+const EQ_LABELS = ['60', '170', '350', '1k', '3.5k', '5k', '10k', '16k'];
+let eqFilters = [];
+let eqGains = JSON.parse(localStorage.getItem('m3_eq') || 'null') || [0,0,0,0,0,0,0,0];
+let eqBypass = localStorage.getItem('m3_eq_off') === '1';
+
+function ensureAudioGraph(){
+  if(actx) return true;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return false;
+    actx = new AC();
+    srcNode = actx.createMediaElementSource(audio);
+
+    // 串联 8 个 peaking filter
+    let prev = srcNode;
+    eqFilters = EQ_FREQS.map((f,i)=>{
+      const bq = actx.createBiquadFilter();
+      bq.type = 'peaking';
+      bq.frequency.value = f;
+      bq.Q.value = 1.1;
+      bq.gain.value = eqBypass ? 0 : (eqGains[i] || 0);
+      prev.connect(bq);
+      prev = bq;
+      return bq;
+    });
+
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.82;
+    prev.connect(analyser);
+    analyser.connect(actx.destination);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    return true;
+  }catch(e){
+    console.warn('audio graph 创建失败（可能是 CORS）', e);
+    actx = null;
+    return false;
+  }
+}
+
+function eqApply(i, val){
+  eqGains[i] = +val;
+  localStorage.setItem('m3_eq', JSON.stringify(eqGains));
+  if(eqFilters[i]) eqFilters[i].gain.value = eqBypass ? 0 : +val;
+  eqLabels();
+}
+function eqSetPreset(name){
+  const P = {
+    flat:   [0,0,0,0,0,0,0,0],
+    pop:    [-1,2,4,4,1,-1,-1,0],
+    rock:   [4,3,2,0,-1,1,3,4],
+    vocal:  [-2,-1,1,3,4,3,1,0],
+    bass:   [7,6,4,1,0,0,0,0],
+    treble: [0,0,0,0,1,3,6,7],
+  };
+  const g = P[name] || P.flat;
+  g.forEach((v,i)=>eqApply(i,v));
+  $$('.eqslider').forEach((el,i)=>{ el.value = g[i]; });
+}
+function eqLabels(){
+  const e = $('#eqlabels');
+  if(e) e.innerHTML = EQ_LABELS.map((l,i)=>`<span>${l}<br><b>${eqGains[i]>0?'+':''}${eqGains[i]}</b></span>`).join('');
+}
+
+function eqInit(){
+  const box = $('#eqsliders');
+  if(!box) return;
+  box.innerHTML = EQ_FREQS.map((f,i)=>
+    `<div class="eqcol">
+       <input type="range" class="eqslider" min="-12" max="12" step="1"
+              value="${eqGains[i]||0}" data-i="${i}">
+     </div>`).join('');
+  $$('.eqslider').forEach(el=>{
+    el.oninput = ()=>eqApply(+el.dataset.i, el.value);
+  });
+  eqLabels();
+  const off = $('#eqoff');
+  if(off){
+    off.checked = eqBypass;
+    off.onchange = ()=>{
+      eqBypass = off.checked;
+      localStorage.setItem('m3_eq_off', eqBypass ? '1' : '0');
+      eqFilters.forEach((bq,i)=>{ if(bq) bq.gain.value = eqBypass ? 0 : (eqGains[i]||0); });
+    };
+  }
+}
+function eqOpen(){ $('#eqpanel').classList.add('on'); eqInit(); }
+function eqClose(){ $('#eqpanel').classList.remove('on'); }
+
+function drawWave(){
+  if(!waveCtx) return;
+  const W = waveCanvas.width, H = waveCanvas.height;
+  waveCtx.clearRect(0,0,W,H);
+  const bars = 64;
+  const bw = W / bars;
+
+  if(analyser && !audio.paused){
+    analyser.getByteFrequencyData(freqData);
+    // 取前 64 个频点，低→高
+    for(let i=0;i<bars;i++){
+      const v = freqData[i] / 255;
+      const h = Math.max(2, v * H * 0.95);
+      const x = i * bw;
+      const g = waveCtx.createLinearGradient(0, H-h, 0, H);
+      g.addColorStop(0, 'rgba(124,92,255,0.95)');
+      g.addColorStop(1, 'rgba(78,161,255,0.35)');
+      waveCtx.fillStyle = g;
+      waveCtx.fillRect(x+1, H-h, bw-2, h);
+    }
+  }else{
+    // 暂停时画一条静态低幅波形
+    const t = Date.now()/900;
+    for(let i=0;i<bars;i++){
+      const h = 2 + Math.abs(Math.sin(i*0.3 + t)) * (H*0.12);
+      waveCtx.fillStyle = 'rgba(139,147,165,0.35)';
+      waveCtx.fillRect(i*bw+1, H-h, bw-2, h);
+    }
+  }
+  waveRAF = requestAnimationFrame(drawWave);
+}
+
+function startWave(){
+  if(waveRAF) return;
+  drawWave();
+}
+function stopWave(){
+  if(waveRAF){ cancelAnimationFrame(waveRAF); waveRAF=0; }
+  if(waveCtx) waveCtx.clearRect(0,0,waveCanvas.width,waveCanvas.height);
+}
+
+/* 自适应 canvas 宽度 */
+function fitWave(){
+  const r = waveCanvas.getBoundingClientRect();
+  if(r.width && waveCanvas.width !== Math.round(r.width)){
+    waveCanvas.width = Math.round(r.width);
+  }
+}
+window.addEventListener('resize', fitWave);
+
+function fmtT(s){if(!isFinite(s))return '--:--';s=Math.max(0,Math.floor(s));return (Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0');}
+
+function play(rel, title, artist, list, idx){
+  curRel=rel; playList=list||[]; playIdx=(idx==null?-1:idx);
+  player.classList.add('on');
+  fitWave();
+  $('#ptitle').textContent=title||rel.split(/[\\\\/]/).pop();
+  $('#partist').textContent=artist||'';
+
+  // 音频图只在首次创建（CORS 下 MediaElementSource 只能建一次）
+  ensureAudioGraph();
+  if(actx && actx.state === 'suspended') actx.resume();
+
+  audio.src='/api/stream?rel='+encodeURIComponent(rel);
+  // 保留速度设置（切歌后 audio 属性会重置）
+  try{ audio.playbackRate = playRate; }catch(e){}
+  audio.play().then(()=>{
+    playing=true; $('#ptoggle').textContent='❚❚';
+    startWave();
+  }).catch(e=>{
+    setMsg($('#msg'),'播放失败: '+e.message,'bad');
+  });
+
+  // 封面
+  $('#pcov').innerHTML='♪';
+  fetch('/api/cover?rel='+encodeURIComponent(rel)).then(r=>{
+    if(r.ok) return r.blob();
+    throw 0;
+  }).then(b=>{
+    $('#pcov').innerHTML='<img src="'+URL.createObjectURL(b)+'" alt="">';
+  }).catch(()=>{});
+
+  // 记历史（异步，不阻塞）
+  fetch('/api/history?add='+encodeURIComponent(rel)
+        +'&title='+encodeURIComponent(title||'')
+        +'&artists='+encodeURIComponent(artist||'')).catch(()=>{});
+
+  // 统计：播满 30 秒才算一次有效播放（避免误点计入）
+  playRecorded = false;
+  playStart = Date.now();
+
+  // 同步到播放列表（已在列表里就只更新 current）
+  const exist = (plData.items||[]).findIndex(x=>x.rel===rel);
+  if(exist<0){
+    fetch('/api/playlist?act=add&rel='+encodeURIComponent(rel)
+          +'&title='+encodeURIComponent(title||'')
+          +'&artists='+encodeURIComponent(artist||''))
+      .then(r=>r.json()).then(d=>{ plData=d; plRender(); }).catch(()=>{});
+  }else{
+    plData.current = exist;
+    fetch('/api/playlist?act=current&idx='+exist).catch(()=>{});
+    plRender();
+  }
+
+  // 歌词：如果面板开着就加载新歌的
+  if($('#lyrics').classList.contains('on')){
+    lyLoad(rel, title);
+  }else{
+    lyLines = []; lyCur = -1;   // 关着就不预载，省流量
+  }
+
+  $$('tbody tr').forEach(tr=>tr.classList.remove('playing'));
+}
+
+$('#ptoggle').onclick=()=>{
+  if(!curRel)return;
+  if(audio.paused){
+    audio.play().then(()=>{ $('#ptoggle').textContent='❚❚'; startWave(); });
+  }else{
+    audio.pause(); $('#ptoggle').textContent='▶'; stopWave();
+  }
+};
+$('#pprev').onclick=()=>{
+  if(audio.currentTime > 3){ audio.currentTime = 0; return; }
+  playNext(-1);
+};
+$('#pnext').onclick=()=>{ playNext(1); };
+
+function applyMode(){
+  const el = $('#pmode');
+  if(el){ el.textContent = MODE_ICON[playMode] || '🔁'; el.title = MODE_NAME[playMode] || ''; }
+  localStorage.setItem('m3_mode', playMode);
+}
+$('#pmode').onclick=()=>{
+  const order = ['list','one','shuffle','seq'];
+  const i = order.indexOf(playMode);
+  playMode = order[(i+1) % order.length];
+  applyMode();
+};
+
+/* 播放速度 */
+function applyRate(){
+  audio.playbackRate = playRate;
+  try{ audio.preservesPitch = true; }catch(e){}
+  try{ audio.mozPreservesPitch = true; }catch(e){}
+  try{ audio.webkitPreservesPitch = true; }catch(e){}
+  const el = $('#prate');
+  if(el){
+    el.textContent = (playRate === Math.floor(playRate) ? playRate.toFixed(0) : playRate) + 'x';
+    el.title = '播放速度 ' + playRate + 'x（点击切换）';
+    el.style.color = (playRate !== 1) ? 'var(--acc)' : '';
+  }
+  localStorage.setItem('m3_rate', String(playRate));
+}
+$('#prate').onclick=()=>{
+  const i = RATES.indexOf(playRate);
+  playRate = RATES[(i + 1) % RATES.length];
+  applyRate();
+};
+$('#pclose').onclick=()=>{
+  audio.pause(); audio.src=''; player.classList.remove('on');
+  $('#ptoggle').textContent='▶'; curRel=''; stopWave();
+};
+audio.ontimeupdate=()=>{
+  const p=audio.currentTime/(audio.duration||1)*100;
+  pbar.firstElementChild.style.width=Math.min(100,p)+'%';
+  lySync();
+  // 播满 30 秒记一次统计
+  if(!playRecorded && curRel && audio.currentTime >= 30){
+    playRecorded = true;
+    const secs = (audio.duration && isFinite(audio.duration)) ? audio.duration : audio.currentTime;
+    fetch('/api/stats?act=record'
+          +'&rel='+encodeURIComponent(curRel)
+          +'&title='+encodeURIComponent($('#ptitle').textContent||'')
+          +'&artists='+encodeURIComponent($('#partist').textContent||'')
+          +'&seconds='+Math.round(secs)).catch(()=>{});
+  }
+};
+/* 按当前模式决定播哪首 */
+function pickNext(dir){
+  dir = dir || 1;
+  const n = playList.length;
+  if(!n) return -1;
+  if(playMode === 'one' && dir > 0) return playIdx;   // 单曲循环
+  if(playMode === 'shuffle' && n > 1){
+    let i = playIdx;
+    for(let k=0;k<12 && i===playIdx;k++) i = Math.floor(Math.random()*n);
+    return i;
+  }
+  let i = playIdx + dir;
+  if(i >= n) i = (playMode === 'seq') ? -1 : 0;   // 顺序模式到底就停
+  if(i < 0) i = (playMode === 'seq') ? -1 : n-1;
+  return i;
+}
+function playNext(dir){
+  const i = pickNext(dir);
+  if(i < 0 || !playList[i]){ $('#ptoggle').textContent='▶'; stopWave(); return; }
+  const t = playList[i];
+  play(t.rel, t.title||t.name, t.artists||'', playList, i);
+}
+audio.onended=()=>{
+  if(playMode === 'one'){ audio.currentTime = 0; audio.play(); return; }
+  playNext(1);
+};
+audio.onpause=()=>{ $('#ptoggle').textContent='▶'; };
+audio.onplay =()=>{ $('#ptoggle').textContent='❚❚'; };
+pbar.onclick=e=>{
+  if(!audio.duration)return;
+  const r=pbar.getBoundingClientRect();
+  audio.currentTime=(e.clientX-r.left)/r.width*audio.duration;
+};
+
+/* ---------- 播放列表抽屉 ---------- */
+let plData = {items:[], current:-1};
+let dragFrom = -1;
+
+async function plLoad(){
+  try{
+    plData = await (await fetch('/api/playlist')).json();
+    plRender();
+  }catch(e){}
+}
+function plRender(){
+  const items = plData.items||[];
+  $('#plcount').textContent = `(${items.length})`;
+  if(!items.length){
+    $('#plbody').innerHTML = '<div class="n" style="padding:18px;text-align:center">播放列表为空<br>点曲库里的卡片开始</div>';
+    return;
+  }
+  $('#plbody').innerHTML = items.map((x,i)=>`
+    <div class="plitem ${i===plData.current?'on':''}" data-i="${i}" draggable="true">
+      <span class="idx">${i+1}</span>
+      <span class="txt">
+        <div class="t1">${esc(x.title||x.rel.split(/[\\\\/]/).pop())}</div>
+        <div class="t2">${esc(x.artists||'')}</div>
+      </span>
+      <span class="del" data-del="${i}" title="移除">✕</span>
+    </div>`).join('');
+  bindPlItems();
+}
+function bindPlItems(){
+  $$('.plitem').forEach(el=>{
+    const i = +el.dataset.i;
+
+    el.onclick = (e)=>{
+      if(e.target.dataset.del!==undefined) return;
+      plPlay(i);
+    };
+    // 删除
+    const del = el.querySelector('.del');
+    if(del) del.onclick = async(e)=>{
+      e.stopPropagation();
+      const rel = plData.items[i].rel;
+      plData = await (await fetch('/api/playlist?act=remove&rel='+encodeURIComponent(rel))).json();
+      plRender();
+    };
+    // 拖拽
+    el.ondragstart = (e)=>{
+      dragFrom = i;
+      el.classList.add('drag');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(i));
+    };
+    el.ondragend = ()=>{ el.classList.remove('drag'); $$('.plitem').forEach(x=>x.classList.remove('over')); };
+    el.ondragover = (e)=>{ e.preventDefault(); el.classList.add('over'); };
+    el.ondragleave = ()=>{ el.classList.remove('over'); };
+    el.ondrop = async(e)=>{
+      e.preventDefault();
+      el.classList.remove('over');
+      const to = i;
+      if(dragFrom<0 || dragFrom===to) return;
+      plData = await (await fetch(`/api/playlist?act=move&from=${dragFrom}&to=${to}`)).json();
+      dragFrom = -1;
+      plRender();
+    };
+  });
+}
+async function plPlay(i){
+  const it = (plData.items||[])[i];
+  if(!it) return;
+  plData.current = i;
+  fetch('/api/playlist?act=current&idx='+i).catch(()=>{});
+  play(it.rel, it.title, it.artists, plData.items, i);
+  plRender();
+}
+function plOpen(){ $('#plist').classList.add('on'); $('#plmask').classList.add('on'); plLoad(); }
+function plClose(){ $('#plist').classList.remove('on'); $('#plmask').classList.remove('on'); }
+$('#plopen').onclick = plOpen;
+$('#plclose').onclick = plClose;
+$('#plmask').onclick = plClose;
+$('#plclear').onclick = async()=>{
+  if(!confirm('清空播放列表？')) return;
+  plData = await (await fetch('/api/playlist?act=clear')).json();
+  plRender();
+};
+
+/* ---------- 歌词 ---------- */
+let lyLines = [];     // [{t:秒, s:'文本'}]
+let lyCur = -1;
+
+function parseLRC(text){
+  if(!text) return [];
+  const out = [];
+  const re = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+  text.split(/\r?\n/).forEach(raw=>{
+    const line = raw.trim();
+    if(!line) return;
+    // 跳过元信息 [ti:] [ar:] [al:] [by:] [offset:]
+    if(/^\[(ti|ar|al|by|offset|re|ve):/i.test(line)) return;
+    const times = [];
+    let m;
+    re.lastIndex = 0;
+    while((m = re.exec(line)) !== null){
+      const mm = +m[1], ss = +m[2];
+      let frac = m[3] ? +('0.' + m[3]) : 0;
+      times.push(mm*60 + ss + frac);
+    }
+    if(!times.length) return;
+    const txt = line.replace(re, '').trim();
+    if(!txt) return;
+    times.forEach(t=>out.push({t, s: txt}));
+  });
+  out.sort((a,b)=>a.t-b.t);
+  return out;
+}
+
+function lyRender(){
+  const box = $('#lybody');
+  if(!lyLines.length){
+    box.innerHTML = '<div class="lyempty">这首歌没有内嵌歌词<br><span class="n">下载时会自动写入 ID3 USLT</span></div>';
+    return;
+  }
+  box.innerHTML = lyLines.map((x,i)=>
+    `<div class="lyline" data-i="${i}">${esc(x.s)}</div>`).join('');
+  $$('.lyline').forEach(el=>{
+    el.onclick = ()=>{
+      const i = +el.dataset.i;
+      if(lyLines[i]) audio.currentTime = lyLines[i].t;
+    };
+  });
+  box.scrollTop = 0;
+  lyCur = -1;
+  lySync();
+}
+
+function lySync(){
+  if(!lyLines.length) return;
+  const t = audio.currentTime + 0.25;   // 稍微提前，视觉更跟手
+  // 二分找最后一条 t <= 当前时间
+  let lo = 0, hi = lyLines.length - 1, idx = -1;
+  while(lo <= hi){
+    const mid = (lo+hi) >> 1;
+    if(lyLines[mid].t <= t){ idx = mid; lo = mid+1; }
+    else hi = mid-1;
+  }
+  if(idx === lyCur) return;
+  lyCur = idx;
+  $$('.lyline').forEach((el,i)=>{
+    el.classList.toggle('cur', i===idx);
+    el.classList.toggle('near', Math.abs(i-idx)===1 && idx>=0);
+  });
+  const cur = $$('.lyline')[idx];
+  if(cur){
+    const box = $('#lybody');
+    const top = cur.offsetTop - box.clientHeight/2 + cur.offsetHeight/2;
+    box.scrollTo({top: Math.max(0, top), behavior:'smooth'});
+  }
+}
+
+async function lyLoad(rel, title){
+  lyLines = []; lyCur = -1;
+  $('#lytitle').textContent = title || '歌词';
+  $('#lybody').innerHTML = '<div class="lyempty">加载中…</div>';
+  let txt = '';
+  // ① 先读内嵌
+  try{
+    const d = await (await fetch('/api/tags?rel='+encodeURIComponent(rel))).json();
+    txt = d.lyric || '';
+  }catch(e){}
+  // ② 内嵌没有就联网补
+  if(txt.replace(/\[\d[^\]]*\]/g,'').trim().length < 40){
+    $('#lybody').innerHTML = '<div class="lyempty">内嵌无歌词，正在联网搜索…</div>';
+    try{
+      const d2 = await (await fetch('/api/lyric?rel='+encodeURIComponent(rel))).json();
+      if(d2.lyric) txt = d2.lyric;
+    }catch(e){}
+  }
+  lyLines = parseLRC(txt || '');
+  lyRender();
+}
+
+function lyOpen(){ $('#lyrics').classList.add('on'); if(curRel) lyLoad(curRel, $('#ptitle').textContent); }
+function lyClose(){ $('#lyrics').classList.remove('on'); }
+$('#plyr').onclick = lyOpen;
+$('#lyclose').onclick = lyClose;
+$('#peq').onclick = ()=>{ if($('#eqpanel').classList.contains('on')) eqClose(); else eqOpen(); };
+$('#eqclose').onclick = eqClose;
+
+/* ---------- 音量 ---------- */
+const volEl = $('#pvol');
+const savedVol = localStorage.getItem('m3_vol');
+if(savedVol !== null){
+  volEl.value = savedVol;
+  audio.volume = (+savedVol)/100;
+}
+volEl.oninput = ()=>{
+  const v = +volEl.value;
+  audio.volume = v/100;
+  localStorage.setItem('m3_vol', String(v));
+};
+
+/* ---------- 快捷键 ---------- */
+document.addEventListener('keydown', (e)=>{
+  // 输入框里不拦截
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='textarea') return;
+
+  switch(e.key){
+    case ' ':
+      if(curRel){ e.preventDefault(); $('#ptoggle').click(); }
+      break;
+    case 'ArrowLeft':
+      if(curRel && audio.duration){ e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime-5); }
+      break;
+    case 'ArrowRight':
+      if(curRel && audio.duration){ e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime+5); }
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      volEl.value = Math.min(100, +volEl.value + 5);
+      audio.volume = volEl.value/100; localStorage.setItem('m3_vol', volEl.value);
+      $('#pvolBox').classList.add('on');
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      volEl.value = Math.max(0, +volEl.value - 5);
+      audio.volume = volEl.value/100; localStorage.setItem('m3_vol', volEl.value);
+      $('#pvolBox').classList.add('on');
+      break;
+    case 'Escape':
+      if($('#lyrics').classList.contains('on')) lyClose();
+      else if($('#eqpanel').classList.contains('on')) eqClose();
+      else if($('#plist').classList.contains('on')) plClose();
+      break;
+    case 'e': case 'E':
+      if($('#eqpanel').classList.contains('on')) eqClose(); else eqOpen();
+      break;
+    case '[': case '{':
+      { const i = RATES.indexOf(playRate); if(i > 0){ playRate = RATES[i-1]; applyRate(); } }
+      break;
+    case ']': case '}':
+      { const i = RATES.indexOf(playRate); if(i >= 0 && i < RATES.length-1){ playRate = RATES[i+1]; applyRate(); } }
+      break;
+    case 'l': case 'L':
+      if(curRel) lyOpen();
+      break;
+    case 'n': case 'N':
+      if(curRel) $('#pnext').click();
+      break;
+    case 'p': case 'P':
+      if(curRel) $('#pprev').click();
+      break;
+  }
+});
+
+/* ---------- 搜索 ---------- */
+let last=[];
+async function doSearch(){
+  const q=$('#q').value.trim(); if(!q)return;
+  $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); $('#tb').innerHTML='';
+  try{
+    const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
+    const d=await (await fetch(`/api/search?q=${encodeURIComponent(q)}&sources=${src}&limit=15`)).json();
+    if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+    last=d.items||[];
+    const list=last.map((t,i)=>({rel:'', title:t.title, artists:t.artists}));
+    $('#tb').innerHTML=last.map((t,i)=>`<tr>
+      <td>${i+1}</td><td class="sc ${scCls(t.score)}">${t.score.toFixed(2)}</td>
+      <td class="n">${t.duration_str}</td>
+      <td><span class="src ${srcCls(t.source)}">${t.source}</span></td>
+      <td>${esc(t.title)}<div class="n">${esc(t.artists||'-')}</div></td>
+      <td><button class="ghost sm" onclick="dlOne(${i})">下载</button></td></tr>`).join('');
+    setMsg($('#msg'),`共 ${last.length} 条 · 0.8以上可直接下`);
+  }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
+  finally{$('#go').disabled=false;}
+}
+async function dlOne(i){
+  const q=$('#q').value.trim(); if(!q||!last[i])return;
+  const f=$('#force').checked?'1':'0';
+  setMsg($('#msg'),'下载中: '+last[i].title+' …');
+  try{
+    const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
+    const d=await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}`)).json();
+    setMsg($('#msg'), d.log||JSON.stringify(d), d.ok?'ok':'bad');
+    loadStat();
+  }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
+}
+$('#go').onclick=doSearch;
+$('#q').onkeydown=e=>{if(e.key==='Enter')doSearch();};
+$('#top1').onclick=()=>dlOne(0);
+
+/* ---------- 曲库 ---------- */
+let curSub='';
+async function loadChips(){
+  const d=await (await fetch('/api/ls')).json();
+  $('#chips').innerHTML=(d.dirs||[]).map(x=>
+    `<span class="chip ${x.name===curSub?'on':''}" onclick="openDir('${esc(x.name)}')">${esc(x.name)} <span class="n">${x.count}</span></span>`).join('');
+  if(curSub) openDir(curSub);
+}
+/* 分批渲染：500 首一次性 innerHTML 会卡 1~2 秒，
+   改成每批 60 条 + IntersectionObserver 滚到底就续下一批 */
+const BATCH = 60;
+let _renderJob = null;
+let viewMode = localStorage.getItem('m3_view') || 'grid';
+
+function applyViewMode(m){
+  viewMode = m;
+  localStorage.setItem('m3_view', m);
+  $$('.vtog span').forEach(s=>s.classList.toggle('on', s.dataset.v===m));
+  const g = $('#grid');
+  g.className = (m==='list') ? 'listview' : 'grid';
+  if(_renderJob) drawMoreBatch();
+}
+$$('.vtog span').forEach(s=>s.onclick=()=>applyViewMode(s.dataset.v));
+
+function renderGridBatch(items, sub){
+  const grid = $('#grid');
+  grid.innerHTML = '';
+  grid.className = (viewMode==='list') ? 'listview' : 'grid';
+  window._curList = items;
+  let shown = 0;
+
+  const sentinel = document.createElement('div');
+  sentinel.id = 'gsentinel';
+  sentinel.style.cssText = 'height:1px;width:100%';
+
+  _renderJob = {sub: sub||'_', items, sentinel, get shown(){return shown;},
+                set shown(v){shown=v;}};
+
+  window.drawMoreBatch = function(){
+    const end = Math.min(shown + BATCH, items.length);
+    const frag = document.createDocumentFragment();
+    for(let i=shown;i<end;i++){
+      const t = items[i];
+      if(viewMode === 'list'){
+        const row = document.createElement('div');
+        row.className = 'lrow';
+        row.innerHTML = `
+          <div class="lcov" data-rel="${esc(t.rel)}">♪</div>
+          <div class="ltxt">
+            <div class="lt1">${esc(t.title||t.rel.split(/[\\\\/]/).pop())}</div>
+            <div class="lt2">${esc(t.artists||'')}</div>
+          </div>
+          <div class="lsz">${t.size!==undefined?mb(t.size):''}</div>`;
+        row.onclick = ()=>play(t.rel, t.title, t.artists, items, i);
+        frag.appendChild(row);
+      }else{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="cardcov" data-rel="${esc(t.rel)}">♪</div>
+          <div class="cardbody">
+            <div class="cardtitle">${esc(t.title||t.rel.split(/[\\\\/]/).pop())}</div>
+            <div class="cardartist">${esc(t.artists||'')}${t.size!==undefined?' · '+mb(t.size):''}</div>
+          </div>`;
+        div.onclick = ()=>play(t.rel, t.title, t.artists, items, i);
+        frag.appendChild(div);
+      }
+    }
+    if(sentinel.parentNode) sentinel.remove();
+    grid.appendChild(frag);
+    shown = end;
+    if(shown < items.length) grid.appendChild(sentinel);
+    loadCoversFor(frag);
+    setMsg($('#bmsg'), `${sub||'结果'} · 已显示 ${shown}/${items.length}`);
+  };
+
+  window.drawMoreBatch();
+
+  if('IntersectionObserver' in window && !window._gridIO){
+    window._gridIO = new IntersectionObserver((es)=>{
+      if(es.some(e=>e.isIntersecting) && window.drawMoreBatch) window.drawMoreBatch();
+    }, {rootMargin:'320px'});
+  }
+  if(window._gridIO){
+    const watch = ()=>{
+      const s = document.getElementById('gsentinel');
+      if(s && !s._observed){ s._observed = true; window._gridIO.observe(s); }
+    };
+    watch();
+    if(!window._gridMO){
+      window._gridMO = new MutationObserver(watch);
+      window._gridMO.observe(grid, {childList:true});
+    }
+  }
+}
+
+function loadCoversFor(container){
+  container.querySelectorAll('.cardcov').forEach(el=>{
+    const rel = el.dataset.rel;
+    if(!rel) return;
+    fetch('/api/cover?rel='+encodeURIComponent(rel)).then(r=>{
+      if(r.ok) return r.blob(); throw 0;
+    }).then(b=>{
+      el.innerHTML = '<img loading="lazy" src="'+URL.createObjectURL(b)+'" alt="">';
+    }).catch(()=>{});
+  });
+}
+
+async function openDir(sub){
+  curSub=sub; loadChips();
+  setMsg($('#bmsg'),'加载中…'); $('#grid').innerHTML='';
+  try{
+    const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=500`)).json();
+    const items=d.items||[];
+    renderGridBatch(items, sub);
+  }catch(e){setMsg($('#bmsg'),'失败: '+e,'bad');}
+}
+$('#reload').onclick=loadChips;
+$('#fq').onkeydown=e=>{if(e.key==='Enter')doFind();};
+$('#fgo').onclick=doFind;
+async function doFind(){
+  const q=$('#fq').value.trim(); if(!q)return;
+  try{
+    const d=await (await fetch(`/api/find?q=${encodeURIComponent(q)}&limit=200`)).json();
+    const items=(d.items||[]).map(t=>({rel:t.rel, title:t.name, artists:'', size:t.size}));
+    renderGridBatch(items, '命中');
+  }catch(e){setMsg($('#bmsg'),'失败: '+e,'bad');}
+}
+
+/* ---------- 统计 ---------- */
+let stBy = 'count';
+let stTab = 'songs';   // songs | artists
+let stData = [];
+
+function fmtDur(s){
+  s = Math.round(s||0);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  if(h) return h+'h'+m+'m';
+  if(m) return m+'m'+sec+'s';
+  return sec+'s';
+}
+
+async function stLoad(){
+  setMsg($('#stmsg'),'加载中…');
+  try{
+    const sum = await (await fetch('/api/stats')).json();
+    $('#stcards').innerHTML = `
+      <div class="statcard"><div class="k">总播放</div><div class="v">${sum.total_plays||0}<span class="u">次</span></div></div>
+      <div class="statcard"><div class="k">累计时长</div><div class="v">${fmtDur(sum.total_seconds)}</div></div>
+      <div class="statcard"><div class="k">不重复曲目</div><div class="v">${sum.unique_songs||0}<span class="u">首</span></div></div>
+      <div class="statcard"><div class="k">不重复歌手</div><div class="v">${sum.unique_artists||0}<span class="u">位</span></div></div>`;
+    $('#sttabs').innerHTML = `
+      <span class="chip ${stTab==='songs'?'on':''}" onclick="stSetTab('songs')">曲目排行</span>
+      <span class="chip ${stTab==='artists'?'on':''}" onclick="stSetTab('artists')">歌手排行</span>`;
+    await stTable();
+    setMsg($('#stmsg'), sum.total_plays ? '' : '还没有播放记录，播满 30 秒就会记录');
+  }catch(e){ setMsg($('#stmsg'),'失败: '+e,'bad'); }
+}
+async function stTable(){
+  try{
+    const u = (stTab==='artists')
+      ? '/api/stats?act=artists&limit=50'
+      : `/api/stats?act=top&by=${stBy}&limit=50`;
+    const d = await (await fetch(u)).json();
+    stData = d.items||[];
+    if(stTab==='artists'){
+      $('#sttb').innerHTML = stData.map((x,i)=>`<tr>
+        <td>${i+1}</td><td>${esc(x.artists)}</td>
+        <td class="sc hi">${x.count}</td><td class="n">${fmtDur(x.seconds)}</td><td></td></tr>`).join('');
+    }else{
+      $('#sttb').innerHTML = stData.map((x,i)=>`<tr>
+        <td>${i+1}</td>
+        <td>${esc(x.title||x.rel.split(/[\\\\/]/).pop())}<div class="n">${esc(x.artists||'')}</div></td>
+        <td class="sc hi">${x.count}</td><td class="n">${fmtDur(x.seconds)}</td>
+        <td><button class="ghost sm" onclick="stPlay(${i})">播放</button></td></tr>`).join('');
+    }
+  }catch(e){}
+}
+function stSetTab(t){ stTab=t; stLoad(); }
+function stPlay(i){
+  const x = stData[i]; if(!x) return;
+  play(x.rel, x.title, x.artists);
+}
+$$('.vtog span[data-sv]').forEach(s=>s.onclick=()=>{
+  $$('.vtog span[data-sv]').forEach(x=>x.classList.remove('on'));
+  s.classList.add('on'); stBy = s.dataset.sv; stTable();
+});
+$('#streload').onclick = stLoad;
+$('#stclear').onclick = async()=>{
+  if(!confirm('清空全部播放统计？')) return;
+  await fetch('/api/stats?act=clear');
+  stLoad();
+};
+
+/* ---------- 库健康检查 ---------- */
+async function doHealth(){
+  const deep = $('#hdeep').checked;
+  const sub = curSub || '';
+  setMsg($('#hmsg2'), deep ? '深度扫描中（读 ID3，可能要几十秒）…' : '扫描中…');
+  $('#hresult').innerHTML = '';
+  try{
+    const u = `/api/health?deep=${deep?1:0}&sub=${encodeURIComponent(sub)}`;
+    const d = await (await fetch(u)).json();
+    if(d.error){ setMsg($('#hmsg2'), '错误: '+d.error, 'bad'); return; }
+    const sc = d.score;
+    const cls = sc>=90?'ok':(sc>=70?'':'bad');
+    setMsg($('#hmsg2'),
+      `共 ${d.total} 首 / ${d.total_size_mb} MB · 健康分 ${sc}/100${d.deep?'（深度）':'（快速）'}`, cls);
+    // 卡片
+    const cards = Object.entries(d.summary||{}).map(([k,v])=>
+      `<div class="statcard"><div class="k">${esc(k)}</div><div class="v" style="${v?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${v}</div></div>`
+    ).join('');
+    // 明细
+    const blocks = [];
+    window._healthNoCover = (d.detail && d.detail.no_cover) || [];
+    const LABEL = {no_lyric:'缺歌词', no_cover:'无封面', bad_name:'命名异常',
+                   no_artist:'无歌手', tiny:'文件过小', huge:'文件过大', dups:'重复'};
+    for(const k in LABEL){
+      const arr = (d.detail||{})[k] || [];
+      if(!arr.length) continue;
+      const rows = arr.map(x=>{
+        if(k==='dups') return `<div class="mono">${esc(x.key)}<br>&nbsp;&nbsp;A: ${esc(x.a||'')}<br>&nbsp;&nbsp;B: ${esc(x.b||'')}</div>`;
+        if(k==='bad_name') return `<div class="mono">${esc(x.rel||'')} <span class="n">(${esc(x.why||'')})</span></div>`;
+        if(k==='tiny'||k==='huge') return `<div class="mono">${esc(x.rel||'')} <span class="n">${x.size||x.duration||''}</span></div>`;
+        return `<div class="mono">${esc(x.rel||'')}</div>`;
+      }).join('');
+      blocks.push(`<div class="jobcard"><div class="jobtitle" style="margin-bottom:6px">${LABEL[k]} (${arr.length})</div>${rows}</div>`);
+    }
+    $('#hresult').innerHTML = `<div class="statgrid">${cards}</div>` + blocks.join('');
+  }catch(e){ setMsg($('#hmsg2'), '失败: '+e, 'bad'); }
+}
+$('#hscan').onclick = doHealth;
+
+/* 对健康检查里「无封面」列表逐首补封面 */
+$('#hfixcover').onclick = async()=>{
+  const list = (window._healthNoCover || []);
+  if(!list.length){
+    setMsg($('#hmsg2'), '先跑一次深度健康检查，才有「无封面」列表', 'bad');
+    return;
+  }
+  const btn = $('#hfixcover');
+  btn.disabled = true;
+  let ok = 0, miss = 0;
+  for(let i=0;i<list.length;i++){
+    const rel = list[i].rel;
+    setMsg($('#hmsg2'), `补封面 ${i+1}/${list.length} … ${rel.split(/[\\\\/]/).pop()}`);
+    try{
+      const d = await (await fetch('/api/coverfill?rel='+encodeURIComponent(rel)+'&write=1')).json();
+      if(d.ok && d.bytes) ok++; else miss++;
+    }catch(e){ miss++; }
+  }
+  btn.disabled = false;
+  setMsg($('#hmsg2'), `补封面完成：成功 ${ok} / 失败 ${miss}`, ok ? 'ok' : 'bad');
+  doHealth();   // 重扫
+};
+
+/* ---------- 维护守护 ---------- */
+async function mtRun(){
+  const btn = $('#mtrun');
+  btn.disabled = true;
+  const b = +$('#mtbatch').value || 20;
+  const sub = curSub || '';
+  setMsg($('#mtmsg'), `跑一轮（每轮 ${b} 首${sub?' · '+sub:''}）…`);
+  try{
+    const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
+      + `&lyric=${$('#mtlyric').checked?1:0}`
+      + `&cover=${$('#mtcover').checked?1:0}`
+      + `&clean=${$('#mtclean').checked?1:0}`;
+    const r = await (await fetch(u)).json();
+    if(r.error){ setMsg($('#mtmsg'), '错误: '+r.error, 'bad'); return; }
+    setMsg($('#mtmsg'),
+      `本轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}`
+      + (r.done ? ' · 已跑完一圈' : ''), 'ok');
+    await mtStat();
+  }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
+  finally{ btn.disabled = false; }
+}
+async function mtStat(){
+  try{
+    const s = await (await fetch('/api/maintain')).json();
+    const t = s.totals || {};
+    $('#mtresult').innerHTML = `
+      <div class="statgrid">
+        <div class="statcard"><div class="k">已跑轮次</div><div class="v">${s.runs||0}</div></div>
+        <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
+        <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
+        <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
+      </div>
+      <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
+  }catch(e){}
+}
+async function mtLog(){
+  setMsg($('#mtmsg'), '读日志…');
+  try{
+    const d = await (await fetch('/api/maintain?act=log&n=80')).json();
+    const lines = d.lines || [];
+    $('#mtresult').innerHTML = lines.length
+      ? `<div class="joblog" style="max-height:320px">${lines.map(esc).join('\n')}</div>`
+      : '<div class="n">日志为空</div>';
+    setMsg($('#mtmsg'), `共 ${lines.length} 行`);
+  }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
+}
+$('#mtrun').onclick = mtRun;
+$('#mtstat').onclick = mtStat;
+$('#mtlog').onclick = mtLog;
+$('#mtreset').onclick = async()=>{
+  if(!confirm('重置断点游标？下次会从头扫')) return;
+  await fetch('/api/maintain?act=reset');
+  setMsg($('#mtmsg'), '断点已重置', 'ok');
+  mtStat();
+};
+
+/* ---------- 关于弹窗 ---------- */
+const REPO_URL = 'https://github.com/qingshanjiluo/music3';
+
+function aboutOpen(){ $('#aboutmodal').classList.add('on'); }
+function aboutClose(){ $('#aboutmodal').classList.remove('on'); }
+
+async function copyText(t, btn){
+  let ok = false;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(t); ok = true;
+    }
+  }catch(e){}
+  if(!ok){
+    // http 非安全上下文降级：临时 textarea + execCommand
+    const ta = document.createElement('textarea');
+    ta.value = t;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ ok = document.execCommand('copy'); }catch(e){}
+    ta.remove();
+  }
+  if(btn){
+    const old = btn.textContent;
+    btn.textContent = ok ? '已复制' : '失败';
+    setTimeout(()=>{ btn.textContent = old; }, 1200);
+  }
+  return ok;
+}
+
+$('#btnabout').onclick = aboutOpen;
+$('#btnstar').onclick = ()=>{
+  window.open(REPO_URL, '_blank', 'noopener');
+};
+$('#mclose').onclick = aboutClose;
+$('#aboutmodal').onclick = (e)=>{
+  if(e.target.id === 'aboutmodal') aboutClose();
+};
+$('#openrepo').onclick = ()=>window.open(REPO_URL, '_blank', 'noopener');
+$('#copywx').onclick = ()=>{
+  copyText('andyloveanny', $('#copywx'));
+};
+$$('.copybtn').forEach(b=>{
+  b.onclick = ()=>copyText(b.dataset.copy || '', b);
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && $('#aboutmodal').classList.contains('on')) aboutClose();
+});
+
+/* ---------- 导出 ---------- */function doExport(fmt, src, fast){
+  const sub = (src === 'lib' && curSub) ? curSub : '';
+  let u = `/api/export?fmt=${fmt}&src=${src}&sub=${encodeURIComponent(sub)}`;
+  if(fmt === 'index' && fast !== undefined) u += '&fast=' + (fast ? 1 : 0);
+  const a = document.createElement('a');
+  a.href = u;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  const extra = (fmt==='index') ? (fast===0 ? '（含时长，约 2 分钟）' : '（快速，约 3 秒）') : '';
+  setMsg($('#dmsg'), '正在导出 ' + fmt + extra + (sub ? '（' + sub + '）' : '（全库）') + '…');
+}
+
+/* ---------- 历史 ---------- */
+async function loadHistory(){
+  setMsg($('#hmsg'),'加载中…');
+  try{
+    const d = await (await fetch('/api/history?limit=200')).json();
+    const items = d.items||[];
+    window._histList = items.map(x=>({rel:x.rel, title:x.title, artists:x.artists}));
+    $('#hcount').textContent = `共 ${items.length} 条`;
+    $('#htb').innerHTML = items.map((x,i)=>`<tr>
+      <td>${i+1}</td>
+      <td>${esc(x.title||x.rel.split(/[\\\\/]/).pop())}</td>
+      <td class="n">${esc(x.artists||'')}</td>
+      <td class="n">${esc((x.at||'').replace(/^\\d{4}-/,''))}</td>
+      <td><button class="ghost sm" onclick="playHist(${i})">播放</button></td>
+    </tr>`).join('');
+    setMsg($('#hmsg'), items.length? '' : '还没有播放记录');
+  }catch(e){ setMsg($('#hmsg'),'失败: '+e,'bad'); }
+}
+function playHist(i){
+  const L = window._histList||[];
+  const t = L[i]; if(!t) return;
+  play(t.rel, t.title, t.artists, L, i);
+}
+$('#hreload').onclick = loadHistory;
+$('#hclear').onclick = async()=>{
+  if(!confirm('清空全部播放历史？')) return;
+  await fetch('/api/history?clear=1');
+  loadHistory();
+};
+
+/* ---------- 批量（SSE） ---------- */
+let es=null, curJob='';
+$('#bstart').onclick=async()=>{
+  const raw=$('#bkws').value.trim();
+  if(!raw)return;
+  const kws=raw.split(/[\n,，]+/).map(s=>s.trim()).filter(Boolean);
+  if(!kws.length)return;
+  $('#bstop').disabled=false;
+  setMsg($('#msg'),'');
+  $('#jobbox').innerHTML='';
+  try{
+    const r=await fetch('/api/queue',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({keywords:kws, n:+$('#bn').value||1, workers:+$('#bw').value||3, bili:$('#bbili').checked})
+    });
+    const d=await r.json();
+    if(d.error){alert('错误: '+d.error);return;}
+    curJob=d.job;
+    subscribe(d.job, kws.length);
+  }catch(e){alert('失败: '+e);}
+};
+$('#bstop').onclick=async()=>{
+  if(!curJob)return;
+  await fetch('/api/job/cancel?id='+curJob);
+  $('#bstop').disabled=true;
+};
+function subscribe(jid, total){
+  if(es){es.close();es=null;}
+  const card=document.createElement('div');
+  card.className='jobcard'; card.id='jc-'+jid;
+  card.innerHTML=`<div class="jobhead">
+      <div class="jobtitle">批量下载 · ${jid}</div>
+      <div class="n" id="js-${jid}">连接中…</div>
+    </div>
+    <div class="pbar2"><i id="jp-${jid}"></i></div>
+    <div class="jobmeta">
+      <span>进度 <b id="jd-${jid}">0</b>/<b id="jt-${jid}">${total}</b></span>
+      <span>成功 <b id="jo-${jid}" style="color:var(--ok)">0</b></span>
+      <span>跳过 <b id="jk-${jid}">0</b></span>
+      <span>失败 <b id="jf-${jid}" style="color:var(--bad)">0</b></span>
+    </div>
+    <div class="joblog" id="jl-${jid}"></div>`;
+  $('#jobbox').prepend(card);
+
+  es=new EventSource('/api/job/sse?id='+jid);
+  es.addEventListener('progress',ev=>{
+    const s=JSON.parse(ev.data);
+    const tot=s.total||1;
+    $('#jd-'+jid).textContent=s.done;
+    $('#jt-'+jid).textContent=s.total;
+    $('#jo-'+jid).textContent=s.ok;
+    $('#jk-'+jid).textContent=s.skip;
+    $('#jf-'+jid).textContent=s.fail;
+    $('#jp-'+jid).style.width=Math.min(100,(s.done/tot)*100)+'%';
+    if(s.lines) $('#jl-'+jid).textContent=s.lines.slice(-40).join('\\n');
+    $('#js-'+jid).textContent=s.state==='running'?'运行中':s.state;
+    $('#jl-'+jid).scrollTop=$('#jl-'+jid).scrollHeight;
+  });
+  es.addEventListener('done',ev=>{
+    const d=JSON.parse(ev.data);
+    $('#js-'+jid).textContent=d.state==='done'?'完成':d.state;
+    $('#jp-'+jid).style.width='100%';
+    $('#bstop').disabled=true;
+    es.close(); es=null;
+    loadStat();
+  });
+  es.onerror=()=>{ $('#js-'+jid).textContent='连接断开'; };
+}
+
+/* ---------- 清理 ---------- */
+$('#scan').onclick=async()=>{
+  const by=document.querySelector('input[name=by]:checked').value;
+  setMsg($('#dmsg'),'扫描中…'); $('#dlist').innerHTML='';
+  try{
+    const d=await (await fetch(`/api/dup?by=${by}&top=15`)).json();
+    setMsg($('#dmsg'),`重复组 ${d.dup_groups} · 临时残留 ${d.tmp_files}`);
+    $('#dlist').innerHTML=(d.sample||[]).map(g=>
+      `<div class="jobcard"><div class="mono" style="color:var(--fg);margin-bottom:5px">${esc(g.key)}</div>`+
+      g.paths.map(p=>`<div class="mono" style="padding-left:12px">${esc(p)}</div>`).join('')+`</div>`).join('');
+  }catch(e){setMsg($('#dmsg'),'失败: '+e,'bad');}
+};
+
+/* ---------- 状态 ---------- */
+async function loadStat(){
+  try{
+    const d=await (await fetch('/api/stat')).json();
+    const t=Object.entries(d).map(([k,v])=>`${k} ${v}`).join(' · ');
+    $('.sub').textContent='B站 / 网易云 / QQ音乐 · '+t;
+  }catch(e){}
+}
+loadStat();
+/* 恢复视图偏好 + 预载播放列表 + 初始化均衡器 + 播放模式 */
+applyViewMode(viewMode);
+plLoad();
+eqInit();
+applyMode();
+applyRate();
+
+/* PWA：注册 service worker */
+if('serviceWorker' in navigator && location.protocol === 'http:' || location.protocol === 'https:'){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script></body></html>
+"""
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "music3/1.0"
+
+    def log_message(self, fmt, *args):
+        pass
+
+    def _send(self, code, body, ctype="application/json; charset=utf-8"):
+        if isinstance(body, (dict, list)):
+            body = json.dumps(body, ensure_ascii=False)
+        data = body.encode("utf-8") if isinstance(body, str) else body
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        u = urlparse(self.path)
+        qs = parse_qs(u.query)
+
+        def g(k, d=""):
+            return (qs.get(k) or [d])[0]
+
+        try:
+            if u.path in ("/", "/index.html"):
+                return self._send(200, PAGE, "text/html; charset=utf-8")
+
+            # ---- PWA 静态资源 ----
+            if u.path in ("/manifest.json", "/sw.js", "/icon.svg"):
+                import mimetypes
+
+                from . import config as _cfg2
+
+                webdir = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web"
+                )
+                fp = os.path.join(webdir, u.path.lstrip("/"))
+                if not os.path.exists(fp):
+                    return self._send(404, {"error": "not found"})
+                ctype = mimetypes.guess_type(fp)[0] or "application/octet-stream"
+                if u.path == "/sw.js":
+                    ctype = "application/javascript; charset=utf-8"
+                    # SW 不能被浏览器缓存，否则更新不生效
+                    with open(fp, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", ctype)
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                    self.send_header("Service-Worker-Allowed", "/")
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+                with open(fp, "rb") as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "public, max-age=600")
+                self.end_headers()
+                self.wfile.write(data)
+                return
+
+            if u.path == "/api/stat":
+                return self._send(200, library.count())
+
+            # ---- 任务列表 ----
+            if u.path == "/api/jobs":
+                from . import jobs
+
+                return self._send(200, {"jobs": jobs.list_jobs(int(g("limit", "20")))})
+
+            # ---- 单任务快照 ----
+            if u.path == "/api/job":
+                from . import jobs
+
+                jid = g("id").strip()
+                snap = jobs.get(jid)
+                if not snap:
+                    return self._send(404, {"error": "unknown job"})
+                return self._send(200, snap)
+
+            # ---- 取消任务 ----
+            if u.path == "/api/job/cancel":
+                from . import jobs
+
+                ok = jobs.cancel(g("id").strip())
+                return self._send(200, {"ok": ok})
+
+            # ---- SSE 实时进度流 ----
+            if u.path == "/api/job/sse":
+                from . import jobs
+
+                jid = g("id").strip()
+                if not jobs.get(jid):
+                    return self._send(404, {"error": "unknown job"})
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Connection", "keep-alive")
+                self.send_header("X-Accel-Buffering", "no")
+                self.end_headers()
+                last_ver = -1
+                idle = 0
+                try:
+                    while True:
+                        snap = jobs.get(jid)
+                        if snap is None:
+                            self.wfile.write(
+                                b"event: error\ndata: {\"error\":\"gone\"}\n\n"
+                            )
+                            self.wfile.flush()
+                            return
+                        if snap["version"] != last_ver:
+                            last_ver = snap["version"]
+                            self.wfile.write(
+                                (
+                                    "event: progress\ndata: "
+                                    + json.dumps(snap, ensure_ascii=False)
+                                    + "\n\n"
+                                ).encode("utf-8")
+                            )
+                            self.wfile.flush()
+                            idle = 0
+                        else:
+                            idle += 1
+                            if idle % 20 == 0:
+                                self.wfile.write(b": keepalive\n\n")
+                                self.wfile.flush()
+                        if snap["state"] != "running":
+                            self.wfile.write(
+                                (
+                                    "event: done\ndata: "
+                                    + json.dumps(
+                                        {
+                                            "state": snap["state"],
+                                            "ok": snap["ok"],
+                                            "skip": snap["skip"],
+                                            "fail": snap["fail"],
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n\n"
+                                ).encode("utf-8")
+                            )
+                            self.wfile.flush()
+                            return
+                        time.sleep(0.5)
+                except Exception:
+                    return
+
+            # ---- 试听：音频流（支持 Range，可拖进度条） ----
+            if u.path == "/api/stream":
+                from . import stream as _stream
+
+                rel = g("rel", "")
+                full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                if not full:
+                    return self._send(400, {"error": "invalid path"})
+                return _stream.send_file(self, full, "audio/mpeg")
+
+            # ---- 下载单曲到浏览器（带附件头） ----
+            if u.path == "/api/file":
+                from . import stream as _stream
+
+                rel = g("rel", "")
+                full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                if not full:
+                    return self._send(400, {"error": "invalid path"})
+                name = os.path.basename(full)
+                return _stream.send_file(self, full, "audio/mpeg", download_name=name)
+
+            # ---- 封面（带磁盘缓存） ----
+            if u.path == "/api/cover":
+                from . import stream as _stream, covercache
+
+                rel = g("rel", "")
+                full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                if not full:
+                    return self._send(400, {"error": "invalid path"})
+                data, mime = covercache.get_cover(full)
+                if not data:
+                    return self._send(404, {"error": "no cover"})
+                return _stream.send_bytes(self, data, mime or "image/jpeg")
+
+            # ---- 维护守护 ----
+            if u.path == "/api/maintain":
+                from . import maintain as _mt
+
+                act = g("act", "")
+                if act == "tick":
+                    r = _mt.tick(
+                        batch=int(g("batch", "20")),
+                        sub=g("sub", ""),
+                        do_lyric=(g("lyric", "1") == "1"),
+                        do_cover=(g("cover", "1") == "1"),
+                        do_clean=(g("clean", "1") == "1"),
+                        write_id3=(g("write", "1") == "1"),
+                        dry=(g("dry", "0") == "1"),
+                    )
+                    return self._send(200, r)
+                if act == "reset":
+                    _mt.reset_cursor()
+                    return self._send(200, {"ok": True})
+                if act == "log":
+                    return self._send(
+                        200, {"lines": _mt.tail_log(int(g("n", "80")))}
+                    )
+                return self._send(200, _mt.status())
+
+            # ---- 封面补全 ----
+            if u.path == "/api/coverfill":
+                from . import coverfill, stream as _stream
+
+                rel = g("rel", "")
+                if rel:
+                    full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                    if not full:
+                        return self._send(400, {"error": "invalid path"})
+                    r = coverfill.fill_one(
+                        full, write_id3=(g("write", "0") == "1")
+                    )
+                    d, m = coverfill.get_cached(full)
+                    # 缓存失效，清掉封面缓存让前端重新拉
+                    try:
+                        from . import covercache
+
+                        covercache.cover_cache_clear()
+                    except Exception:
+                        pass
+                    return self._send(200, {
+                        "rel": rel,
+                        "ok": bool(r.get("ok")),
+                        "source": r.get("source") or "",
+                        "bytes": len(d) if d else 0,
+                        "wrote": bool(r.get("wrote")),
+                    })
+                if g("clear", "0") == "1":
+                    n = coverfill.cache_clear()
+                    return self._send(200, {"cleared": n})
+                return self._send(200, coverfill.cache_stats())
+
+            # ---- 库健康检查 ----
+            if u.path == "/api/health":
+                from . import health
+
+                deep = g("deep", "0") == "1"
+                lim = int(g("limit", "0")) or None
+                r = health.scan(library.DEFAULT_ROOT, g("sub", ""), limit=lim, deep=deep)
+                # 明细太多会撑爆响应，只带前 30 条
+                slim = {}
+                for k in ("no_lyric", "no_cover", "bad_name", "no_artist", "tiny", "huge", "dups"):
+                    slim[k] = (r.get(k) or [])[:30]
+                return self._send(200, {
+                    "total": r["total"],
+                    "total_size_mb": round(r["total_size_mb"], 1),
+                    "score": r["score"],
+                    "summary": r["summary"],
+                    "detail": slim,
+                    "deep": deep,
+                })
+
+            # ---- 导出（直接下载文件） ----
+            if u.path == "/api/export":
+                from . import export as _export, browse as _browse
+
+                fmt = g("fmt", "m3u8").lower()
+                sub = g("sub", "")
+                src = g("src", "lib")   # lib | playlist
+
+                if src == "playlist":
+                    from . import playlist as _pl
+
+                    d = _pl.get()
+                    paths = []
+                    for it in d.get("items") or []:
+                        p = os.path.join(library.DEFAULT_ROOT, it["rel"].replace("/", os.sep))
+                        if os.path.exists(p):
+                            paths.append(p)
+                else:
+                    paths = [t["path"] for t in _browse.list_tracks(library.DEFAULT_ROOT, sub, limit=1000000)]
+
+                if fmt == "index":
+                    import json as _j
+
+                    text = _j.dumps(
+                        _export.library_index(
+                            library.DEFAULT_ROOT, sub,
+                            fast=(g("fast", "1") == "1"),
+                        ),
+                        ensure_ascii=False, indent=1,
+                    )
+                    name = "music3_index.json"
+                    ctype = "application/json; charset=utf-8"
+                elif fmt == "json":
+                    text = _export.to_json(paths, library.DEFAULT_ROOT, include_lyric=(g("detail", "0") == "1"))
+                    name = "music3_playlist.json"
+                    ctype = "application/json; charset=utf-8"
+                elif fmt == "csv":
+                    text = _export.to_csv(paths, library.DEFAULT_ROOT)
+                    name = "music3_playlist.csv"
+                    ctype = "text/csv; charset=utf-8"
+                else:
+                    text = _export.to_m3u8(paths, library.DEFAULT_ROOT)
+                    name = "music3_playlist.m3u8"
+                    ctype = "audio/x-mpegurl; charset=utf-8"
+
+                data = text.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(data)))
+                import urllib.parse as _up
+
+                self.send_header(
+                    "Content-Disposition",
+                    "attachment; filename*=UTF-8''%s" % _up.quote(name),
+                )
+                self.end_headers()
+                self.wfile.write(data)
+                return
+
+            # ---- 歌词补全 ----
+            if u.path == "/api/lyric":
+                from . import lyricfill, stream as _stream
+
+                rel = g("rel", "")
+                if rel:
+                    full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                    if not full:
+                        return self._send(400, {"error": "invalid path"})
+                    # 先看缓存
+                    ly = lyricfill.get_cached(full)
+                    if ly:
+                        return self._send(
+                            200, {"rel": rel, "lyric": ly, "source": "cache"}
+                        )
+                    r = lyricfill.fill_one(full, write_id3=(g("write", "0") == "1"))
+                    ly = lyricfill.get_cached(full)
+                    return self._send(
+                        200,
+                        {"rel": rel, "lyric": ly, "source": r.get("source") or "",
+                         "ok": bool(ly)},
+                    )
+                # 缓存管理
+                if g("clear", "0") == "1":
+                    n = lyricfill.cache_clear()
+                    return self._send(200, {"cleared": n})
+                return self._send(200, lyricfill.cache_stats())
+
+            # ---- 播放列表（可拖拽排序） ----
+            if u.path == "/api/playlist":
+                from . import playlist
+
+                act = g("act", "")
+                if act == "add":
+                    return self._send(
+                        200,
+                        playlist.add(
+                            g("rel", ""), g("title", ""), g("artists", "")
+                        ),
+                    )
+                if act == "set":
+                    items = []
+                    raw = g("items", "")
+                    if raw:
+                        try:
+                            items = json.loads(raw)
+                        except Exception:
+                            items = []
+                    return self._send(
+                        200, playlist.set_items(items, g("current", None) or None)
+                    )
+                if act == "move":
+                    return self._send(
+                        200, playlist.move(g("from", "0"), g("to", "0"))
+                    )
+                if act == "remove":
+                    return self._send(200, playlist.remove(g("rel", "")))
+                if act == "clear":
+                    return self._send(200, playlist.clear())
+                if act == "current":
+                    return self._send(200, playlist.set_current(g("idx", "0")))
+                return self._send(200, playlist.get())
+
+            # ---- 播放统计 ----
+            if u.path == "/api/stats":
+                from . import stats
+
+                act = g("act", "")
+                if act == "clear":
+                    stats.clear()
+                    return self._send(200, {"ok": True})
+                if act == "record":
+                    stats.record(
+                        g("rel", ""), g("title", ""), g("artists", ""),
+                        float(g("seconds", "0") or 0),
+                    )
+                    return self._send(200, {"ok": True})
+                if act == "artists":
+                    return self._send(
+                        200, {"items": stats.top_artists(int(g("limit", "30")))}
+                    )
+                if act == "top":
+                    return self._send(
+                        200,
+                        {
+                            "items": stats.top(
+                                g("by", "count"), int(g("limit", "50"))
+                            )
+                        },
+                    )
+                return self._send(200, stats.summary())
+
+            # ---- 播放历史 ----
+            if u.path == "/api/history":
+                from . import covercache
+
+                add = g("add", "")
+                if add:
+                    covercache.history_add(
+                        add, g("title", ""), g("artists", "")
+                    )
+                if g("clear", "") == "1":
+                    covercache.history_clear()
+                rm = g("remove", "")
+                if rm:
+                    covercache.history_remove(rm)
+                return self._send(
+                    200,
+                    {"items": covercache.history_list(int(g("limit", "100")))},
+                )
+
+            # ---- 封面缓存管理 ----
+            if u.path == "/api/cache":
+                from . import covercache
+
+                if g("clear", "") == "1":
+                    n = covercache.cover_cache_clear()
+                    return self._send(200, {"cleared": n})
+                return self._send(200, covercache.cover_cache_stats())
+
+            # ---- 标签（标题/歌手/时长/歌词） ----
+            if u.path == "/api/tags":
+                from . import stream as _stream, tagreader
+
+                rel = g("rel", "")
+                full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                if not full:
+                    return self._send(400, {"error": "invalid path"})
+                t = tagreader.read_tags(full)
+                t["rel"] = rel
+                t["exists"] = os.path.exists(full)
+                return self._send(200, t)
+
+            if u.path == "/api/ls":
+                from . import browse
+
+                sub = g("sub", "")
+                if not sub:
+                    return self._send(200, {"dirs": browse.list_dirs(library.DEFAULT_ROOT)})
+                rows = browse.list_tracks(
+                    library.DEFAULT_ROOT,
+                    sub,
+                    limit=int(g("limit", "200")),
+                    offset=int(g("offset", "0")),
+                )
+                return self._send(200, {"sub": sub, "count": len(rows), "items": rows})
+
+            if u.path == "/api/find":
+                from . import browse
+
+                kw = g("q").strip()
+                if not kw:
+                    return self._send(400, {"error": "q required"})
+                hits = browse.find(library.DEFAULT_ROOT, kw, limit=int(g("limit", "50")))
+                return self._send(200, {"keyword": kw, "count": len(hits), "items": hits})
+
+            if u.path == "/api/dup":
+                from . import dedup
+
+                dups = dedup.find_dups(
+                    library.DEFAULT_ROOT, by=g("by", "name")
+                )
+                tmp = dedup.find_tmp(library.DEFAULT_ROOT)
+                return self._send(
+                    200,
+                    {
+                        "dup_groups": len(dups),
+                        "sample": [
+                            {"key": k, "paths": v} for k, v in dups[: int(g("top", "10"))]
+                        ],
+                        "tmp_files": len(tmp),
+                    },
+                )
+
+            if u.path == "/api/search":
+                kw = g("q").strip()
+                if not kw:
+                    return self._send(400, {"error": "q required"})
+                srcs = [s.strip() for s in g("sources", "qq,netease").split(",") if s.strip()]
+                lim = int(g("limit", "15"))
+                bili = "bilibili" in srcs
+                res = router.search(kw, sources=srcs, limit=lim, bili=bili)
+                return self._send(
+                    200, {"keyword": kw, "items": [t.to_dict() for t in res]}
+                )
+
+            if u.path == "/api/get":
+                kw = g("q").strip()
+                if not kw:
+                    return self._send(400, {"error": "q required"})
+                n = int(g("n", "1"))
+                force = g("force", "0") == "1"
+                srcs = [s.strip() for s in g("sources", "qq,netease").split(",") if s.strip()]
+                bili = "bilibili" in srcs
+                res = router.search(kw, sources=srcs, limit=15, bili=bili)
+                if not res:
+                    return self._send(200, {"ok": False, "log": "无结果"})
+                t = res[min(n, len(res)) - 1]
+                idx = library.scan()
+                old = library.exists(t.title, t.artists, idx)
+                if old and not force:
+                    return self._send(
+                        200,
+                        {"ok": True, "log": "已存在: %s" % old, "path": old},
+                    )
+                d = library.dest_dir(t.source)
+                ok, m, path = downloader.download(t, d)
+                return self._send(
+                    200,
+                    {
+                        "ok": ok,
+                        "log": "%s | %s\n%s" % ("OK" if ok else "FAIL", m, path or ""),
+                        "path": path or "",
+                    },
+                )
+
+            return self._send(404, {"error": "not found"})
+        except Exception as e:
+            return self._send(500, {"error": repr(e)})
+
+    def do_POST(self):
+        u = urlparse(self.path)
+        try:
+            ln = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(ln).decode("utf-8") if ln else "{}"
+            body = json.loads(raw or "{}")
+        except Exception:
+            return self._send(400, {"error": "bad json"})
+
+        if u.path in ("/api/batch", "/api/queue"):
+            kws = body.get("keywords") or []
+            if isinstance(kws, str):
+                kws = [k.strip() for k in kws.splitlines() if k.strip()]
+            if not kws:
+                return self._send(400, {"error": "keywords required"})
+            n = int(body.get("n", 1))
+            workers = int(body.get("workers", 3))
+            bili = bool(body.get("bili", False))
+            force = bool(body.get("force", False))
+            retries = int(body.get("retries", 2))
+            sources = body.get("sources") or (["qq", "netease", "bilibili"] if bili else ["qq", "netease"])
+
+            from . import jobs
+
+            jid = jobs.create("queue", total=len(kws), meta={"n": n, "workers": workers})
+            jobs.log(jid, "任务创建：%d 个关键词，并发 %d" % (len(kws), workers))
+
+            def work():
+                from . import queue as q
+
+                try:
+                    st = q.run(
+                        kws,
+                        workers=workers,
+                        per_kw=n,
+                        sources=sources,
+                        bili=bili,
+                        retries=retries,
+                        force=force,
+                        job_id=jid,
+                    )
+                    jobs.log(
+                        jid,
+                        "完成: 成功%(ok)d / 跳过%(skip)d / 失败%(fail)d / 共%(total)d" % st,
+                    )
+                    jobs.finish(jid, "done")
+                except Exception as e:
+                    jobs.log(jid, "异常: %r" % (e,))
+                    jobs.finish(jid, "error", repr(e))
+
+            threading.Thread(target=work, daemon=True).start()
+            return self._send(200, {"job": jid, "total": len(kws)})
+
+        return self._send(404, {"error": "not found"})
+
+
+def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    print("music3 web -> http://%s:%d" % (HOST, PORT), flush=True)
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+
+
+if __name__ == "__main__":
+    main()

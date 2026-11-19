@@ -1,0 +1,42 @@
+# ---- 运行时数据 ----
+_cache/
+*.log
+*.log.1
+
+# ---- 本地配置（含本机绝对路径，用 config.example.json 作模板）----
+config.json
+config.json.bak
+config.json.tmp
+
+# ---- 临时/半成品 ----
+.dl_*
+.tmp_*
+*.part
+*.tmp
+_dt/
+*.m3u8
+music3_export_*
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# ---- 编辑器/系统 ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---- 导出产物 ----
+music3_index.json
+music3_playlist.*
+
+# ---- �����������̻��� ----
+musicdl_outputs/
+

@@ -1,0 +1,34 @@
+{
+ "root": "D:\\音乐",
+ "sources": ["qq", "netease", "bilibili"],
+ "search_size": 15,
+ "min_score": 0.15,
+ "workers": 3,
+ "retries": 2,
+ "tag_cover": true,
+ "tag_lyric": true,
+ "auto_lyric": true,
+ "audio_format": "30216/30280/30232/bestaudio",
+ "ffmpeg": "ffmpeg",
+ "ffprobe": "ffprobe",
+ "valid_min_sec": 8,
+ "valid_max_sec": 1500,
+ "valid_min_bytes": 153600,
+ "cache_dir": "_cache",
+ "src_subdir": {
+  "bilibili": "投稿\\B站",
+  "netease": "投稿\\网易云",
+  "qq": "投稿\\QQ音乐",
+  "kuwo": "投稿\\酷我",
+  "qianqian": "投稿\\千千",
+  "migu": "投稿\\咪咕"
+ },
+ "src_weight": {
+  "qq": 1.0,
+  "netease": 0.98,
+  "kuwo": 0.9,
+  "qianqian": 0.85,
+  "migu": 0.8,
+  "bilibili": 0.7
+ }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "music3 · 三源音乐",
+  "short_name": "music3",
+  "description": "B站 / 网易云 / QQ音乐 三源搜索与下载",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0d11",
+  "theme_color": "#0b0d11",
+  "lang": "zh-CN",
+  "categories": ["music", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

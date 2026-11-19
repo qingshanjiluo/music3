@@ -1,0 +1,307 @@
+# -*- coding: utf-8 -*-
+"""歌词补全：无内嵌歌词时，从网易云/QQ 搜索并拉取。
+
+策略：
+  1. 从文件名解析「歌手 - 歌名」
+  2. 网易云搜 → 取歌词（官方接口，准确度高）
+  3. 网易云没有 → QQ 搜 → 取歌词
+  4. 结果缓存到 _cache/lyrics/<md5>.lrc（不改原文件）
+  5. 可选 --write 把歌词写回 ID3 USLT（任何播放器都能看到）
+
+实测：56/60 首缺歌词，补全后前端「词」面板才有内容可显示。
+"""
+from __future__ import annotations
+
+import hashlib
+import os
+import re
+
+from . import config as _cfg
+from .models import norm
+
+_C = _cfg.load()
+_CACHE_DIR = _C.get("cache_dir") or os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_cache"
+)
+_LYRIC_DIR = os.path.join(_CACHE_DIR, "lyrics")
+
+# 文件名里常见的噪声，比对前先剥掉
+_NOISE = re.compile(
+    r"[\(（\[【].*?[\)）\]】]|"
+    r"\b(remix|live|cover|feat|ft\.?|official|mv|hd|hq|4k|flac|mp3|wav)\b",
+    re.I,
+)
+
+
+def parse_name(path):
+    """从文件路径解析 (歌手, 歌名)。"""
+    stem = os.path.splitext(os.path.basename(path))[0]
+    # 常见分隔符
+    for sep in (" - ", "－", " — ", "_"):
+        if sep in stem:
+            a, t = stem.split(sep, 1)
+            return a.strip(), t.strip()
+    return "", stem.strip()
+
+
+def _clean(s):
+    if not s:
+        return ""
+    s = _NOISE.sub(" ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def cache_path(path):
+    key = hashlib.md5(os.path.abspath(path).lower().encode("utf-8")).hexdigest()[:24]
+    return os.path.join(_LYRIC_DIR, key + ".lrc")
+
+
+def get_cached(path):
+    p = cache_path(path)
+    if os.path.exists(p):
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                txt = f.read().strip()
+            # 缓存里的占位歌词（「纯音乐无填词」）视为无效，自动作废
+            if txt and _is_real_lyric(txt):
+                return txt
+            if txt:
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    return ""
+
+
+def save_cached(path, lyric):
+    if not lyric:
+        return False
+    try:
+        os.makedirs(_LYRIC_DIR, exist_ok=True)
+        tmp = cache_path(path) + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(lyric)
+        os.replace(tmp, cache_path(path))
+        return True
+    except Exception:
+        return False
+
+
+def _score(cand_title, cand_artist, want_title, want_artist):
+    """简单相似度，0~1。"""
+    ct, ca = norm(cand_title), norm(cand_artist)
+    wt, wa = norm(want_title), norm(want_artist)
+    s = 0.0
+    if not wt:
+        return 0.0
+    if ct == wt:
+        s += 0.6
+    elif wt in ct or ct in wt:
+        s += 0.45
+    else:
+        hit = sum(1 for ch in set(wt) if ch in ct)
+        s += 0.45 * hit / max(1, len(set(wt)))
+    if wa and ca:
+        if ca == wa or wa in ca or ca in wa:
+            s += 0.4
+        elif any(c in ca for c in wa if c.isalnum()):
+            s += 0.08
+    else:
+        # 没有歌手信息时不惩罚
+        s += 0.15
+    return s
+
+
+def _is_real_lyric(text):
+    """判断是不是真歌词，而不是「纯音乐无填词」这类占位。"""
+    if not text:
+        return False
+    t = text.strip()
+    if len(t) < 80:
+        return False
+    # 去掉时间戳后看纯文本
+    body = re.sub(r"\[\d{1,2}:\d{1,2}(?:[.:]\d{1,3})?\]", "", t)
+    body = re.sub(r"\[(ti|ar|al|by|offset|re|ve):[^\]]*\]", "", body).strip()
+    if len(body) < 40:
+        return False
+    # 占位文案黑名单
+    PLACE = (
+        "纯音乐", "没有填词", "无填词", "请您欣赏", "此歌曲为没有",
+        "instrumental", "暂无歌词", "没有歌词", "no lyric",
+    )
+    low = body.lower()
+    for w in PLACE:
+        if w in low:
+            # 真歌词里通常不会只出现这一句
+            if len(body) < 120:
+                return False
+    return True
+
+
+def find_lyric(title, artist, log=None, timeout=15):
+    """从网易云/QQ 找歌词。返回 (lyric, source) 或 ("", "")."""
+    title_c, artist_c = _clean(title), _clean(artist)
+    if not title_c:
+        return "", ""
+
+    kw = ("%s %s" % (title_c, artist_c)).strip()
+
+    # ① 网易云
+    try:
+        from . import src_netease
+
+        cands = src_netease.search(kw, limit=8)
+        best, best_s = None, 0.0
+        for t in cands:
+            s = _score(t.title, t.artists, title_c, artist_c)
+            if s > best_s:
+                best, best_s = t, s
+        if best and best_s >= 0.55:
+            ly = src_netease.get_lyric(best.track_id)
+            if _is_real_lyric(ly):
+                if log:
+                    log("netease 命中 %.2f: %s - %s" % (best_s, best.title, best.artists))
+                return ly, "netease"
+            elif ly and log:
+                log("netease 命中但非真歌词（%.0f 字）" % len(ly))
+    except Exception as e:
+        if log:
+            log("netease ERR %r" % (e,))
+
+    # ② QQ
+    try:
+        from . import src_qq
+
+        cands = src_qq.search(kw, limit=8)
+        best, best_s = None, 0.0
+        for t in cands:
+            s = _score(t.title, t.artists, title_c, artist_c)
+            if s > best_s:
+                best, best_s = t, s
+        if best and best_s >= 0.55:
+            ly = src_qq.get_lyric(best.track_id)
+            # QQ 有时给 base64
+            if ly and not ly.lstrip().startswith("["):
+                import base64
+
+                try:
+                    dec = base64.b64decode(ly).decode("utf-8", "replace")
+                    if _is_real_lyric(dec):
+                        ly = dec
+                except Exception:
+                    pass
+            if _is_real_lyric(ly):
+                if log:
+                    log("qq 命中 %.2f: %s - %s" % (best_s, best.title, best.artists))
+                return ly, "qq"
+            elif ly and log:
+                log("qq 命中但非真歌词（%.0f 字）" % len(ly))
+    except Exception as e:
+        if log:
+            log("qq ERR %r" % (e,))
+
+    return "", ""
+
+
+def fill_one(path, write_id3=False, log=None):
+    """补一首。返回 dict 结果。"""
+    r = {"path": path, "ok": False, "source": "", "cached": False, "wrote": False}
+
+    # 已有内嵌歌词就跳过
+    try:
+        from . import tagreader
+
+        t = tagreader.read_tags(path)
+        if t.get("lyric") and len(t["lyric"]) > 80:
+            r["ok"] = True
+            r["source"] = "embedded"
+            return r
+    except Exception:
+        t = {}
+
+    # 已缓存
+    cached = get_cached(path)
+    if cached:
+        r["ok"] = True
+        r["source"] = "cache"
+        r["cached"] = True
+        if write_id3:
+            r["wrote"] = _write_id3(path, cached)
+        return r
+
+    # 解析名字
+    title = (t.get("title") or "").strip()
+    artist = (t.get("artists") or "").strip()
+    if not title:
+        a, ti = parse_name(path)
+        artist, title = artist or a, ti
+
+    ly, src = find_lyric(title, artist, log=log)
+    if ly:
+        save_cached(path, ly)
+        r.update(ok=True, source=src, cached=True)
+        if write_id3:
+            r["wrote"] = _write_id3(path, ly)
+    return r
+
+
+def _write_id3(path, lyric):
+    """把歌词写进 ID3 USLT。"""
+    try:
+        from . import tagger
+
+        ok, _ = tagger.tag(path, lyric=lyric)
+        return bool(ok)
+    except Exception:
+        return False
+
+
+def batch(paths, write_id3=False, limit=None, log=None, on_progress=None):
+    """批量补歌词。返回统计。"""
+    stats = {"total": 0, "ok": 0, "miss": 0, "wrote": 0, "by_source": {}}
+    todo = paths[:limit] if limit else paths
+    stats["total"] = len(todo)
+    for i, p in enumerate(todo, 1):
+        try:
+            r = fill_one(p, write_id3=write_id3, log=log)
+        except Exception as e:
+            r = {"ok": False, "source": "err:%r" % (e,)}
+        if r.get("ok"):
+            stats["ok"] += 1
+            src = r.get("source") or "?"
+            stats["by_source"][src] = stats["by_source"].get(src, 0) + 1
+            if r.get("wrote"):
+                stats["wrote"] += 1
+        else:
+            stats["miss"] += 1
+        if on_progress:
+            on_progress(i, len(todo), p, r)
+    return stats
+
+
+def cache_stats():
+    n, size = 0, 0
+    if os.path.isdir(_LYRIC_DIR):
+        for f in os.listdir(_LYRIC_DIR):
+            p = os.path.join(_LYRIC_DIR, f)
+            try:
+                n += 1
+                size += os.path.getsize(p)
+            except Exception:
+                pass
+    return {"files": n, "bytes": size}
+
+
+def cache_clear():
+    n = 0
+    if os.path.isdir(_LYRIC_DIR):
+        for f in os.listdir(_LYRIC_DIR):
+            try:
+                os.remove(os.path.join(_LYRIC_DIR, f))
+                n += 1
+            except Exception:
+                pass
+    return n
