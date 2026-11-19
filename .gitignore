@@ -40,3 +40,8 @@ music3_playlist.*
 # ---- 第三方库落盘缓存 ----
 musicdl_outputs/
 
+
+# ---- 临时 ----
+_commitmsg.txt
+_*.py
+
