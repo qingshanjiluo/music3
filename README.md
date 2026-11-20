@@ -877,3 +877,34 @@ A：全库 5176 首补歌词+封面，单首约 3~4 秒（含网络），约 5~6
 
 实测：`GET/POST /api/config` 200/200 持久化 ✓、三路并发 4.2s ✓、歌词候选 8 条 ✓、赠金 100→99+stats 13→14 ✓、node --check 0 ✓、JS undefined ids NONE、CSS 217/217、fmtDur 单定义、死循环已解环 ✓。
 
+---
+
+## 第15轮：搜索页交互大升级
+
+**新增能力（全部实测）**
+
+| 能力 | 说明 | 实测 |
+|---|---|---|
+| **预听（不下载）** | `/api/preview` 取在线直链，浏览器 `<audio>` 直连试听 | 1.2s 取链 ok=True（QQ flac） |
+| **大图灯箱** | MV/封面点击放大到 90vw，点任意处/Esc 关 | 结构+CSS 全 OK |
+| **多选 + 一键下载** | 表格加复选列/全选/全不选/`批量下载所选`（并发走 `/api/get`） | 结构 OK |
+| **收藏歌单** | 新标签页「收藏」：`★` 收藏、列表播放/下载/移除/清空、导出 m3u8、**一键下载** | CRUD 实测：add✓ 重复不加✓ remove✓ |
+| **歌单链接下载** | 粘贴含 BV 号的歌单链接 → 提取 BV → `act=playlist` 后台 job 批量下 MV | 缺参校验✓ |
+| **搜索词→批量** | `加入批量` 把当前关键词追加进批量页 | — |
+
+**接口**
+- `GET /api/preview?title=&artists=&q=&sources=` → `{ok,url,title,artists,ext}`
+- `GET /api/favs?act=add|remove|clear|add_multi` → 收藏歌单（`_cache/favs.json` 原子写）
+- `GET /api/mv?act=playlist&bvids=...` → 歌单批量下载 job
+
+**校验**：compile 0、node --check 0、JS undefined ids NONE、CSS 232/232、
+13 个新 marker 全 OK、7 个端点 GET OK、preview 1.2s。
+
+**踩坑追加**
+- Python 源码里写 JS 正则 `split(/[\r\n,]+/)`，若用普通字符串字面量，`\r\n`
+  会变成真回车/换行嵌进正则 → JS 语法错 `missing /`。修法：先确认 JS 侧字节是
+  `\r\n` 两个字符，不是 `0x0a`；用字节级替换而非肉眼改。
+- 补字符时 `old` 段写错会连带切掉相邻 `)` `]`，node --check 会指到后一行。
+  改一行 JS 后必须跑 node --check，别只看 py_compile。
+- `/api/export` 全库 m3u8 要 87 秒（每首读 ffprobe 时长），不是坏了，是慢测试超时。
+
