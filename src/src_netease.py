@@ -265,3 +265,15 @@ def get_lyric(sid, timeout=15):
         return lrc
     except Exception:
         return ""
+
+
+def apply_login(cookie=""):
+    """注入登录态：MUSIC_U cookie 解锁版权原唱搜索与外链。"""
+    try:
+        if cookie:
+            _S.headers["Cookie"] = cookie
+        else:
+            _S.headers.pop("Cookie", None)
+    except Exception:
+        pass
+

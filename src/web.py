@@ -38,7 +38,7 @@ PORT = 8420
 PAGE = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0d11">
+<meta name="theme-color" content="#0e1014">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
@@ -47,40 +47,57 @@ PAGE = r"""<!doctype html>
 <title>music3 · 三源音乐</title>
 <style>
 :root{
-  --bg:#0b0d11; --panel:#13161d; --panel2:#181c25; --line:#232833;
-  --fg:#e8eaf0; --dim:#8b93a5; --acc:#4ea1ff; --acc2:#7c5cff;
-  --ok:#3ecf8e; --warn:#e0b350; --bad:#ff6b6b; --radius:12px;
+  --bg:#0b0d12; --panel:#14171f; --panel2:#1a1e27; --line:#262b36;
+  --fg:#e9ebf2; --dim:#878fa2; --acc:#4e8cff; --acc2:#9b6bff;
+  --ok:#3ecf8e; --warn:#e0b350; --bad:#ff6b6b; --radius:10px;
+  --glass:rgba(16,18,25,.92);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
+/* 滚动条槽：弹层锁 body 滚动时占位不塌，消横向跳动 */
+html{scrollbar-gutter:stable}
+body.ov{overflow:hidden}
 body{
   background:var(--bg);color:var(--fg);
-  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  font:13.5px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   padding-bottom:calc(84px + env(safe-area-inset-bottom));
 }
 .wrap{max-width:1180px;margin:0 auto;padding:16px 14px 40px}
+/* 焦点可见（键盘可达） */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--acc);outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
 
 /* 顶栏 */
-header{display:flex;align-items:center;gap:10px;padding:6px 0 14px}
+header{display:flex;align-items:center;gap:10px;padding:4px 0 14px}
+.hd h1{letter-spacing:.4px;font-weight:650}
 .logo{
   width:34px;height:34px;border-radius:10px;flex:0 0 auto;
   background:linear-gradient(135deg,var(--acc),var(--acc2));
   display:flex;align-items:center;justify-content:center;
   font-size:17px;font-weight:700;color:#fff;
 }
-.hd h1{font-size:17px;margin:0;letter-spacing:.2px}
+.hd h1{font-size:16.5px;margin:0}
 .hd .sub{color:var(--dim);font-size:11.5px;margin-top:1px}
 
-/* 标签 */
-.tabs{display:flex;gap:3px;background:var(--panel);padding:3px;border-radius:10px;margin-bottom:14px}
+/* 竖轨导航：桌面贴左侧，手机横向可滚（不换行） */
+.tabs{
+  display:flex;gap:3px;background:var(--panel);padding:4px;border-radius:11px;
+  margin-bottom:14px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
 .tab{
   flex:1;text-align:center;padding:8px 6px;border-radius:8px;cursor:pointer;
   color:var(--dim);font-size:13px;transition:.15s;user-select:none;white-space:nowrap;
 }
-.tab.on{background:var(--panel2);color:var(--fg);font-weight:600;box-shadow:0 1px 3px #0006}
+.tab.on{background:var(--panel2);color:var(--fg);font-weight:600}
 .pane{display:none}.pane.on{display:block}
 
-/* 输入条 */
+/* 消抖动：消息条/内容区常占位，刷新不顶动页面 */
+.msg{min-height:20px}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
 input[type=text],input[type=number]{
   flex:1;min-width:170px;background:var(--panel);border:1px solid var(--line);
@@ -114,7 +131,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--acc);cursor:pointer}
 .msg.bad{border-left-color:var(--bad);color:#ffb3b3}
 
 /* 表格 */
-.tablewrap{background:var(--panel);border-radius:var(--radius);overflow:hidden}
+.tablewrap{background:var(--panel);border-radius:var(--radius);overflow:hidden;min-height:44px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
 th{color:var(--dim);font-weight:500;font-size:11.5px;background:var(--panel2);position:sticky;top:0;z-index:1}
@@ -199,6 +216,7 @@ tbody tr.playing td{background:#12243a}
 .chip{
   padding:7px 14px;background:var(--panel);border:1px solid var(--line);
   border-radius:99px;cursor:pointer;font-size:12.5px;transition:.15s;user-select:none;
+  line-height:1.35;
 }
 .chip:hover{border-color:var(--acc)}
 .chip.on{background:#12243a;border-color:var(--acc);color:var(--acc);font-weight:600}
@@ -235,14 +253,17 @@ tbody tr.playing td{background:#12243a}
 .statcard .u{font-size:11px;color:var(--dim);margin-left:2px;-webkit-text-fill-color:var(--dim)}
 
 /* 播放器 */
+/* 播放器：常驻占位（idle 也占同高，首播零位移） */
 .player{
   position:fixed;left:0;right:0;bottom:0;z-index:100;
-  background:rgba(19,22,29,.97);backdrop-filter:blur(14px);
-  border-top:1px solid var(--line);
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.2);
+  border-top:1px solid rgba(78,140,255,.22);
+  box-shadow:0 -8px 32px rgba(0,0,0,.45);
   padding:9px 14px calc(9px + env(safe-area-inset-bottom));
-  display:none;gap:12px;align-items:center;
+  display:flex;gap:12px;align-items:center;overflow:hidden;
 }
-.player.on{display:flex}
+.player:not(.on){opacity:.72}
+.player:not(.on) .pbtn{pointer-events:none;opacity:.55}
 .pcov{
   width:46px;height:46px;border-radius:9px;flex:0 0 auto;
   background:linear-gradient(135deg,#1d222c,#2a3140);
@@ -263,14 +284,57 @@ tbody tr.playing td{background:#12243a}
 .pbar{
   position:absolute;left:0;right:0;top:-1px;height:2px;background:#232833;cursor:pointer;
 }
+.pbar{height:2px}
 .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .1s linear}
-.playicon{font-size:15px}
+.playicon,.pbtn svg{width:15px;height:15px;display:block;pointer-events:none}
+.pbtn.main svg{width:17px;height:17px}
+/* 歌词手动取词候选列表 */
+.lycands{max-height:44vh;overflow-y:auto;border-top:1px solid var(--line);background:#10131a}
+.lycands:empty{display:none}
+.lycand{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;
+  border-bottom:1px solid var(--line);transition:background .12s;
+}
+.lycand:hover{background:#151a23}
+.lcsrc{
+  font-size:10.5px;padding:2px 7px;border-radius:5px;flex:0 0 auto;
+  background:#232a38;color:var(--acc);
+}
+.lct{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lcn{font-size:11px;color:var(--dim);margin-top:1px}
+.lyok{padding:14px;text-align:center;color:var(--ok);font-size:12.5px}
 /* 波形层：铺在播放器背景，不挡交互 */
 .pwave{
   position:absolute;left:0;right:0;bottom:0;width:100%;height:44px;
-  opacity:.35;pointer-events:none;display:block;
+  opacity:.45;pointer-events:none;display:block;
 }
 .player{overflow:hidden}
+/* 搜索结果分组标签 */
+.gtag{
+  display:inline-block;font-size:10px;line-height:1;padding:3px 5px;margin-right:6px;
+  border-radius:4px;vertical-align:1.5px;border:1px solid var(--line);
+}
+.g-song{color:var(--acc);border-color:rgba(78,140,255,.45);background:rgba(78,140,255,.1)}
+.g-artist{color:#4ecfbf;border-color:rgba(78,207,191,.4);background:rgba(78,207,191,.09)}
+.g-mv{color:#c98cff;border-color:rgba(201,140,255,.4);background:rgba(201,140,255,.1)}
+/* 设置弹窗 */
+.setrow{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;
+  background:#11141b;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;
+}
+.setrow .k{font-size:12.5px;width:86px;flex:0 0 auto;color:var(--fg)}
+.setrow .h{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.5}
+.setrow select,.setrow input[type=text]{
+  flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);color:var(--fg);
+  padding:8px 10px;border-radius:8px;font-size:13px;outline:none;
+}
+.setrow select:focus,.setrow input:focus{border-color:var(--acc)}
+.creditbox{
+  display:flex;align-items:center;gap:10px;padding:14px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(78,140,255,.13),rgba(155,107,255,.07));
+  border:1px solid rgba(78,140,255,.3);margin-bottom:8px;
+}
+.creditbox .cv{font-size:22px;font-weight:700;color:var(--acc)}
 /* 播放列表抽屉 */
 .plist{
   position:fixed;right:0;top:0;bottom:0;width:340px;max-width:88vw;z-index:200;
@@ -388,7 +452,7 @@ tbody tr.playing td{background:#12243a}
 }
 
 /* 网格卡（曲库） */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;min-height:120px}
 .card{
   background:var(--panel);border-radius:var(--radius);overflow:hidden;
   cursor:pointer;transition:.15s;border:1px solid transparent;
@@ -423,9 +487,59 @@ tbody tr.playing td{background:#12243a}
   <div class="hd"><h1>music3</h1><div class="sub">B站 / 网易云 / QQ音乐 · 打分去重</div></div>
   <div class="hdr-right">
     <button class="ghost sm star-btn" id="btnstar" title="给作者点个 Star">⭐ Star</button>
+    <button class="ghost sm" id="btnset" title="设置">设置</button>
     <button class="ghost sm" id="btnabout" title="关于本工具">关于</button>
   </div>
 </header>
+
+<!-- 设置弹窗：音质 / 登录 / 赠金 -->
+<div class="modal" id="setmodal">
+  <div class="mbox">
+    <button class="mclose" id="setclose">✕</button>
+    <div class="mlogo">⚙</div>
+    <div class="mtitle">设置</div>
+    <div class="mver">音质 · 登录 · 赠金</div>
+
+    <div class="creditbox">
+      <span style="font-size:20px">◈</span>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--dim)">赠金余额（假设为本地记账额度，可编辑）</div>
+        <div class="h">每成功下载 1 首扣 1 赠金，余额 0 时仍可下载（记为欠费）</div>
+      </div>
+      <span class="cv" id="creditv">--</span>
+    </div>
+    <div class="setrow">
+      <span class="k">调整赠金</span>
+      <input type="text" id="creditin" placeholder="如 100 或 -10">
+      <button class="ghost sm" id="creditset">应用</button>
+    </div>
+
+    <div class="setrow">
+      <span class="k">QQ 音质</span>
+      <select id="qquality">
+        <option value="14,11,10,8,4">综合（默认，死链过滤顺序）</option>
+        <option value="14,8,4">偏高码率（320 优先）</option>
+        <option value="4,8,10,11,14">偏快速（低档先取，秒下）</option>
+      </select>
+    </div>
+    <div class="setrow" style="flex-direction:column;align-items:stretch">
+      <span class="k">QQ 登录 <span class="n">（qm_keyst cookie，提高取链成功率）</span></span>
+      <input type="text" id="qqcookie" placeholder="粘贴浏览器 y.qq.com Cookie: qm_keyst=xxx">
+      <div class="h">从 y.qq.com 页面 F12 → Application → Cookies 复制 qm_keyst。留空=游客模式。</div>
+    </div>
+    <div class="setrow" style="flex-direction:column;align-items:stretch">
+      <span class="k">网易云登录 <span class="n">（MUSIC_U cookie）</span></span>
+      <input type="text" id="necookie" placeholder="粘贴 music.163.com 的 Cookie: MUSIC_U=xxx">
+      <div class="h">登录后可搜到版权原唱（未登录只能搜到翻唱）。留空=游客模式。</div>
+    </div>
+
+    <div class="mactions">
+      <button class="ghost" id="setsave">保存设置</button>
+      <button class="ghost" id="setclose2">关闭</button>
+    </div>
+    <div class="mnote" id="setmsg">保存即生效，源搜索/下载下次请求携带新配置。</div>
+  </div>
+</div>
 
 <!-- 关于弹窗 -->
 <div class="modal" id="aboutmodal">
@@ -479,6 +593,12 @@ tbody tr.playing td{background:#12243a}
 <!-- ========== 搜索 ========== -->
 <div class="pane on" id="p-s">
   <div class="bar">
+    <div class="vtog" id="smode">
+      <span class="on" data-sm="all">全部</span>
+      <span data-sm="song">歌曲</span>
+      <span data-sm="artist">歌手</span>
+      <span data-sm="mv">MV</span>
+    </div>
     <input type="text" id="q" placeholder="歌名 歌手，如：晴天 周杰伦" autofocus>
     <button id="go">搜索</button>
   </div>
@@ -486,12 +606,13 @@ tbody tr.playing td{background:#12243a}
     <label class="chk"><input type="checkbox" id="bili" checked> 含B站</label>
     <label class="chk"><input type="checkbox" id="force"> 忽略查重</label>
     <button class="ghost sm" id="top1">只下第一首</button>
+    <span class="n" id="smodetip">歌名模式：自动打分去重，按匹配度排序</span>
   </div>
   <div class="msg" id="msg"></div>
   <div class="tablewrap">
   <table><thead><tr>
     <th style="width:36px">#</th><th style="width:52px">分</th><th style="width:52px">时长</th>
-    <th style="width:76px">来源</th><th>标题</th><th style="width:56px">操作</th>
+    <th style="width:76px">来源</th><th>标题</th><th style="width:96px">操作</th>
   </tr></thead><tbody id="tb"></tbody></table>
   </div>
 </div>
@@ -633,15 +754,15 @@ tbody tr.playing td{background:#12243a}
   </div>
   <div class="pbtns">
     <div class="pvol" id="pvolBox"><input type="range" id="pvol" min="0" max="100" value="100"></div>
-    <div class="pbtn" id="peq" title="均衡器">EQ</div>
-    <div class="pbtn" id="plyr" title="歌词">词</div>
-    <div class="pbtn" id="plopen" title="播放列表">☰</div>
-    <div class="pbtn" id="prate" title="播放速度">1x</div>
-    <div class="pbtn" id="pmode" title="播放模式">🔁</div>
-    <div class="pbtn" id="pprev" title="上一首">⏮</div>
-    <div class="pbtn main" id="ptoggle">▶</div>
-    <div class="pbtn" id="pnext" title="下一首">⏭</div>
-    <div class="pbtn" id="pclose">✕</div>
+    <div class="pbtn" id="peq" title="均衡器" aria-label="均衡器"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21v-6M5 9V3M12 21v-10M12 5V3M19 21v-4M19 11V3"/><path d="M2 15h6M10 5h4M17 11h4"/></svg></div>
+    <div class="pbtn" id="plyr" title="歌词" aria-label="歌词"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+    <div class="pbtn" id="plopen" title="播放列表" aria-label="播放列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
+    <div class="pbtn" id="prate" title="播放速度" aria-label="播放速度">1x</div>
+    <div class="pbtn" id="pmode" title="播放模式" aria-label="播放模式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+    <div class="pbtn" id="pprev" title="上一首" aria-label="上一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></div>
+    <div class="pbtn main" id="ptoggle" aria-label="播放"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></div>
+    <div class="pbtn" id="pnext" title="下一首" aria-label="下一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg></div>
+    <div class="pbtn" id="pclose" title="关闭播放" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
   </div>
 </div>
 <audio id="audio" preload="none" crossorigin="anonymous"></audio>
@@ -676,10 +797,12 @@ tbody tr.playing td{background:#12243a}
 <div class="lyrics" id="lyrics">
   <div class="lyhead">
     <b id="lytitle">歌词</b>
-    <span class="n">点歌词可跳转 · 滚轮调速 · <span class="kbd">Esc</span> 关闭</span>
+    <span class="n">点歌词可跳转 · <span class="kbd">Esc</span> 关闭</span>
+    <button class="ghost sm" id="lyfetch" title="手动取词（各源同名候选）">手动取词</button>
     <button class="ghost sm" id="lyclose">✕</button>
   </div>
   <div class="lybody" id="lybody"></div>
+  <div class="lycands" id="lycands"></div>
 </div>
 
 <!-- 播放列表抽屉 -->
@@ -706,7 +829,7 @@ $$('.tab').forEach(t=>t.onclick=()=>{
   $$('.tab').forEach(x=>x.classList.remove('on'));
   $$('.pane').forEach(x=>x.classList.remove('on'));
   t.classList.add('on'); $('#p-'+t.dataset.p).classList.add('on');
-  if(t.dataset.p==='b') loadChips();
+  if(t.dataset.p==='b' && !document.querySelector('#chips .chip')) loadChips().then(()=>{ if(curSub) openDir(curSub); });
   if(t.dataset.p==='h') loadHistory();
   if(t.dataset.p==='st') stLoad();
 });
@@ -717,8 +840,19 @@ let curRel='', playing=false, playList=[], playIdx=-1;
 let playRecorded=false, playStart=0;
 /* 播放模式：list(列表循环) / one(单曲循环) / shuffle(随机) / seq(顺序不循环) */
 let playMode = localStorage.getItem('m3_mode') || 'list';
-const MODE_ICON = {list:'🔁', one:'🔂', shuffle:'🔀', seq:'➡'};
+const MODE_SVG = {
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  one:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><path d="M11 10l2 2-2 2" fill="none"/></svg>',
+  shuffle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
+  seq:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4l7 8-7 8M12 4l7 8-7 8"/></svg>',
+};
+const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+const PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
 const MODE_NAME = {list:'列表循环', one:'单曲循环', shuffle:'随机', seq:'顺序播放'};
+function setPlayIcon(on){
+  const t = $('#ptoggle');
+  if(t) t.innerHTML = on ? PAUSE_SVG : PLAY_SVG;
+}
 /* 播放速度 */
 const RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 let playRate = parseFloat(localStorage.getItem('m3_rate') || '1') || 1;
@@ -815,8 +949,8 @@ function eqInit(){
     };
   }
 }
-function eqOpen(){ $('#eqpanel').classList.add('on'); eqInit(); }
-function eqClose(){ $('#eqpanel').classList.remove('on'); }
+function eqOpen(){ document.body.classList.add('ov'); $('#eqpanel').classList.add('on'); eqInit(); }
+function eqClose(){ document.body.classList.remove('ov'); $('#eqpanel').classList.remove('on'); }
 
 function drawWave(){
   if(!waveCtx) return;
@@ -885,7 +1019,7 @@ function play(rel, title, artist, list, idx){
   // 保留速度设置（切歌后 audio 属性会重置）
   try{ audio.playbackRate = playRate; }catch(e){}
   audio.play().then(()=>{
-    playing=true; $('#ptoggle').textContent='❚❚';
+    playing=true; setPlayIcon(true);
     startWave();
   }).catch(e=>{
     setMsg($('#msg'),'播放失败: '+e.message,'bad');
@@ -935,9 +1069,9 @@ function play(rel, title, artist, list, idx){
 $('#ptoggle').onclick=()=>{
   if(!curRel)return;
   if(audio.paused){
-    audio.play().then(()=>{ $('#ptoggle').textContent='❚❚'; startWave(); });
+    audio.play().then(()=>{ setPlayIcon(true); startWave(); });
   }else{
-    audio.pause(); $('#ptoggle').textContent='▶'; stopWave();
+    audio.pause(); setPlayIcon(false); stopWave();
   }
 };
 $('#pprev').onclick=()=>{
@@ -948,7 +1082,7 @@ $('#pnext').onclick=()=>{ playNext(1); };
 
 function applyMode(){
   const el = $('#pmode');
-  if(el){ el.textContent = MODE_ICON[playMode] || '🔁'; el.title = MODE_NAME[playMode] || ''; }
+  if(el){ el.innerHTML = MODE_SVG[playMode] || MODE_SVG.list; el.title = '播放模式：' + MODE_NAME[playMode]; }
   localStorage.setItem('m3_mode', playMode);
 }
 $('#pmode').onclick=()=>{
@@ -979,7 +1113,7 @@ $('#prate').onclick=()=>{
 };
 $('#pclose').onclick=()=>{
   audio.pause(); audio.src=''; player.classList.remove('on');
-  $('#ptoggle').textContent='▶'; curRel=''; stopWave();
+  setPlayIcon(false); curRel=''; stopWave();
 };
 audio.ontimeupdate=()=>{
   const p=audio.currentTime/(audio.duration||1)*100;
@@ -1014,7 +1148,7 @@ function pickNext(dir){
 }
 function playNext(dir){
   const i = pickNext(dir);
-  if(i < 0 || !playList[i]){ $('#ptoggle').textContent='▶'; stopWave(); return; }
+  if(i < 0 || !playList[i]){ setPlayIcon(false); stopWave(); return; }
   const t = playList[i];
   play(t.rel, t.title||t.name, t.artists||'', playList, i);
 }
@@ -1022,8 +1156,8 @@ audio.onended=()=>{
   if(playMode === 'one'){ audio.currentTime = 0; audio.play(); return; }
   playNext(1);
 };
-audio.onpause=()=>{ $('#ptoggle').textContent='▶'; };
-audio.onplay =()=>{ $('#ptoggle').textContent='❚❚'; };
+audio.onpause=()=>{ setPlayIcon(false); };
+audio.onplay =()=>{ setPlayIcon(true); };
 pbar.onclick=e=>{
   if(!audio.duration)return;
   const r=pbar.getBoundingClientRect();
@@ -1103,8 +1237,8 @@ async function plPlay(i){
   play(it.rel, it.title, it.artists, plData.items, i);
   plRender();
 }
-function plOpen(){ $('#plist').classList.add('on'); $('#plmask').classList.add('on'); plLoad(); }
-function plClose(){ $('#plist').classList.remove('on'); $('#plmask').classList.remove('on'); }
+function plOpen(){ document.body.classList.add('ov'); $('#plist').classList.add('on'); $('#plmask').classList.add('on'); plLoad(); }
+function plClose(){ document.body.classList.remove('ov'); $('#plist').classList.remove('on'); $('#plmask').classList.remove('on'); }
 $('#plopen').onclick = plOpen;
 $('#plclose').onclick = plClose;
 $('#plmask').onclick = plClose;
@@ -1209,12 +1343,60 @@ async function lyLoad(rel, title){
   lyRender();
 }
 
-function lyOpen(){ $('#lyrics').classList.add('on'); if(curRel) lyLoad(curRel, $('#ptitle').textContent); }
-function lyClose(){ $('#lyrics').classList.remove('on'); }
+function lyOpen(){ document.body.classList.add('ov'); $('#lyrics').classList.add('on'); if(curRel) lyLoad(curRel, $('#ptitle').textContent); }
+function lyClose(){ document.body.classList.remove('ov'); $('#lyrics').classList.remove('on'); }
 $('#plyr').onclick = lyOpen;
 $('#lyclose').onclick = lyClose;
 $('#peq').onclick = ()=>{ if($('#eqpanel').classList.contains('on')) eqClose(); else eqOpen(); };
 $('#eqclose').onclick = eqClose;
+
+/* 手动取词：列各源同名候选（B站没词时从 QQ/网易选） */
+let lyCands = [];
+async function lyFetchList(){
+  const box = $('#lycands');
+  if(!box) return;
+  const title = $('#lytitle').textContent || $('#ptitle').textContent || '';
+  let artists = $('#partist').textContent || '';
+  box.innerHTML = '<div class="lyempty">搜索各源同名候选…</div>';
+  try{
+    const d = await (await fetch(
+      `/api/lyric-fetch?act=candidates&title=${encodeURIComponent(title)}`
+      + `&artist=${encodeURIComponent(artists)}&sources=qq,netease&limit=6`
+    )).json();
+    lyCands = d.candidates || [];
+    if(!lyCands.length){ box.innerHTML = '<div class="lyempty">没找到同名候选，换个歌名试试</div>'; return; }
+    box.innerHTML = lyCands.map((c,i)=>`
+      <div class="lycand" data-i="${i}">
+        <span class="lcsrc">${esc(c.source)}</span>
+        <span class="lct">${esc(c.title)}<div class="lcn">${esc(c.artists||'')} · ${fmtDur(c.duration)} · 相似 ${c.score}</div></span>
+        <button class="ghost sm" data-pick="${i}">用这首</button>
+      </div>`).join('');
+    box.querySelectorAll('[data-pick]').forEach(b=>{
+      b.onclick = ()=>lyPick(+b.dataset.pick);
+    });
+  }catch(e){ box.innerHTML = '<div class="lyempty">搜索失败: '+esc(String(e))+'</div>'; }
+}
+async function lyPick(i){
+  const c = lyCands[i]; if(!c || !curRel) return;
+  const box = $('#lycands');
+  box.innerHTML = '<div class="lyempty">拉取歌词中…</div>';
+  try{
+    const u = new URL('/api/lyric-fetch', location.origin);
+    u.searchParams.set('act','pick'); u.searchParams.set('source',c.source);
+    u.searchParams.set('sid', c.sid); u.searchParams.set('rel', curRel);
+    u.searchParams.set('write','1');
+    const d = await (await fetch(u)).json();
+    if(d.ok && d.lyric){
+      lyLines = parseLRC(d.lyric); lyRender();
+      box.innerHTML = '<div class="lyok">已写入 ID3：'+esc(c.source)+' · '+esc(c.title)+'</div>';
+      setTimeout(()=>{ const b=$('#lyfetch'); if(b) b.style.display=''; }, 1500);
+    }else{
+      box.innerHTML = '<div class="lyempty">取词失败：'+esc(d.msg||'无效歌词')+'</div>';
+    }
+  }catch(e){ box.innerHTML = '<div class="lyempty">失败: '+esc(String(e))+'</div>'; }
+}
+const _lyBtn = $('#lyfetch');
+if(_lyBtn) _lyBtn.onclick = lyFetchList;
 
 /* ---------- 音量 ---------- */
 const volEl = $('#pvol');
@@ -1289,28 +1471,107 @@ async function doSearch(){
   const q=$('#q').value.trim(); if(!q)return;
   $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); $('#tb').innerHTML='';
   try{
+    if(searchMode==='all')         return await doSearchAll(q);
+    if(searchMode==='artist')      return await doSearchArtist(q);
+    else if(searchMode==='mv')     return await doSearchMV(q);
     const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
     const d=await (await fetch(`/api/search?q=${encodeURIComponent(q)}&sources=${src}&limit=15`)).json();
     if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
-    last=d.items||[];
-    const list=last.map((t,i)=>({rel:'', title:t.title, artists:t.artists}));
-    $('#tb').innerHTML=last.map((t,i)=>`<tr>
-      <td>${i+1}</td><td class="sc ${scCls(t.score)}">${t.score.toFixed(2)}</td>
-      <td class="n">${t.duration_str}</td>
-      <td><span class="src ${srcCls(t.source)}">${t.source}</span></td>
-      <td>${esc(t.title)}<div class="n">${esc(t.artists||'-')}</div></td>
-      <td><button class="ghost sm" onclick="dlOne(${i})">下载</button></td></tr>`).join('');
+    last=(d.items||[]).map(t=>Object.assign({type:'song', duration:t.duration_s}, t));
+    renderRows(last, false);
     setMsg($('#msg'),`共 ${last.length} 条 · 0.8以上可直接下`);
   }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
   finally{$('#go').disabled=false;}
 }
+/* 全部模式：歌曲+歌手曲+MV 三路并发，一组表格分组展示（rows 带 type） */
+async function doSearchAll(q){
+  setMsg($('#msg'),'并发搜索中（歌曲 / 歌手曲目 / B站MV）…');
+  const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
+  const [rSong, rArtist, rMV] = await Promise.allSettled([
+    fetch(`/api/search?q=${encodeURIComponent(q)}&sources=${src}&limit=12`).then(r=>r.json()),
+    fetch(`/api/artists?name=${encodeURIComponent(q)}&limit=12`).then(r=>r.json()),
+    $('#bili').checked ? fetch(`/api/mv?act=search&q=${encodeURIComponent(q)}&limit=6`).then(r=>r.json()) : Promise.resolve({items:[]}),
+  ]);
+  const song  = (rSong.status==='fulfilled' && rSong.value.items) || [];
+  const art   = (rArtist.status==='fulfilled' && rArtist.value.items) || [];
+  const mv    = (rMV.status==='fulfilled' && rMV.value.items) || [];
+  const seen = new Set(); last = [];
+  const push=(type, arr, map)=>{ (arr||[]).forEach(t=>{
+      const k = type+'|'+(t.title||'')+'|'+(t.artists||t.bvid||'');
+      if(seen.has(k)) return; seen.add(k); last.push(Object.assign({type}, map(t)));
+  });};
+  push('song', song, t=>({title:t.title, artists:t.artists, source:t.source, duration:t.duration_s, score:t.score}));
+  // 歌手曲去重（与 song 撞车的不再列）
+  push('artist', art, t=>({title:t.title, artists:t.artists, source:t.source, duration:t.duration, score:t.score}));
+  push('mv', mv, t=>({title:t.title, artists:t.artists, source:'bilibili', duration:t.duration, score:null, bvid:t.bvid, page_url:t.page_url}));
+  renderRows(last, true);
+  setMsg($('#msg'), `歌曲 ${song.length} · 歌手曲 ${art.length} · MV ${mv.length} · 共 ${last.length} 条（已跨组去重）`);
+}
+/* 歌手模式：/api/artists，纯歌手名搜索 */
+async function doSearchArtist(q){
+  setMsg($('#msg'),'按歌手搜「'+q+'」…');
+  const d=await (await fetch(`/api/artists?name=${encodeURIComponent(q)}&limit=30`)).json();
+  if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+  last=(d.items||[]).map(t=>Object.assign({type:'artist'}, t));
+  renderRows(last, false);
+  const names=[...new Set(last.map(t=>t.artists).filter(Boolean))];
+  setMsg($('#msg'),`歌手「${q}」 ${last.length} 首 · 歌手: ${names.slice(0,3).join(' / ')}${names.length>3?' 等'+names.length+'位':''}`);
+}
+/* 统一表格渲染（带分组标签与按类型下载）；fmtDur 复用统计页已定义的 */
+const TYPE_TAG = {song:'曲', artist:'歌手', mv:'MV'};
+function renderRows(rows, grouped){
+  $('#tb').innerHTML = rows.map((t,i)=>{
+    const tag = grouped ? `<span class="gtag g-${t.type}">${TYPE_TAG[t.type]||''}</span>` : '';
+    const isMV = t.type==='mv';
+    const score = (t.score===null||t.score===undefined) ? '—'
+      : `<span class="sc ${scCls(t.score)}">${Number(t.score).toFixed(2)}</span>`;
+    const btn = isMV
+      ? `<button class="ghost sm" onclick="dlMV(${i})">下载MV</button>`
+      : `<button class="ghost sm" onclick="dlOne(${i})">下载</button>`;
+    return `<tr>
+      <td>${i+1}</td><td>${score}</td>
+      <td class="n">${fmtDur(t.duration)}</td>
+      <td><span class="src ${srcCls(t.source)}">${t.source}</span></td>
+      <td>${tag}${esc(t.title)}<div class="n">${esc(t.artists||'-')}${t.bvid?' · '+esc(t.bvid):''}</div></td>
+      <td>${btn}</td></tr>`;
+  }).join('');
+}
+/* MV 模式：搜 B 站视频当 MV 源，点下载出视频文件 */
+async function doSearchMV(q){
+  setMsg($('#msg'),'搜 B站 MV 候选…');
+  const d=await (await fetch(`/api/mv?act=search&q=${encodeURIComponent(q)}&limit=8`)).json();
+  if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+  last=(d.items||[]).map(t=>Object.assign({type:'mv'}, t));
+  renderRows(last, false);
+  setMsg($('#msg'),`B站 MV 候选 ${last.length} 条 · 点「下载MV」存为视频文件`);
+}
+async function dlMV(i){
+  const t=last[i]; if(!t)return;
+  setMsg($('#msg'),'启动 MV 下载: '+t.title+' …');
+  try{
+    const u=new URL('/api/mv',location.origin);
+    u.searchParams.set('act','download'); u.searchParams.set('bvid',t.bvid);
+    u.searchParams.set('title',t.title); u.searchParams.set('artists',t.artists||'');
+    u.searchParams.set('sub','投稿\\B站');
+    const d=await (await fetch(u)).json();
+    if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+    setMsg($('#msg'),'MV 下载已启动，进度在「批量」页任务卡');
+    setTab('q');
+    if(typeof subscribe==='function') subscribe(d.job_id, 1);   // 复用批量页 SSE 卡片
+  }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
+}
 async function dlOne(i){
   const q=$('#q').value.trim(); if(!q||!last[i])return;
+  const t=last[i];
+  if(searchMode==='mv') return dlMV(i);
+  if(t.type==='mv') return dlMV(i);
   const f=$('#force').checked?'1':'0';
-  setMsg($('#msg'),'下载中: '+last[i].title+' …');
+  setMsg($('#msg'),'下载中: '+(t.title||'')+' …');
   try{
+    // 精确标题（歌手模式歌名不在关键词里，靠二次搜索选不准）
+    const exact=t.title?`&title=${encodeURIComponent(t.title)}&artists=${encodeURIComponent(t.artists||'')}`:'';
     const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
-    const d=await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}`)).json();
+    const d=await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}${exact}`)).json();
     setMsg($('#msg'), d.log||JSON.stringify(d), d.ok?'ok':'bad');
     loadStat();
   }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
@@ -1318,14 +1579,52 @@ async function dlOne(i){
 $('#go').onclick=doSearch;
 $('#q').onkeydown=e=>{if(e.key==='Enter')doSearch();};
 $('#top1').onclick=()=>dlOne(0);
+/* 搜索模式切换 */
+let searchMode = localStorage.getItem('m3_sm') || 'all';
+/* 任务跟踪：MV 等后台 job 的进度浮层（挂在批量页日志区） */
+function setTab(p){
+  const t = document.querySelector(`.tab[data-p="${p}"]`);
+  if(t) t.click();
+}
+let _watchTimer = 0;
+const SM_TIP = {
+  all:'一次同时搜：歌曲（QQ+网易+B站）+ 歌手曲目 + B站 MV，分组展示',
+  song:'歌名模式：自动打分去重，按匹配度排序',
+  artist:'歌手模式：纯歌手名搜全部曲目，按歌手命中的排前',
+  mv:'MV 模式：搜 B站视频当 MV 源，下载存为 mp4',
+};
+function applySM(){
+  $$('#smode span').forEach(x=>x.classList.toggle('on', x.dataset.sm===searchMode));
+  $('#q').placeholder = searchMode==='all' ? '一个词全搜：晴天 周杰伦'
+    : searchMode==='song' ? '歌名 歌手，如：晴天 周杰伦'
+    : searchMode==='artist' ? '歌手名，如：周杰伦 / 洛天依'
+    : '歌名+MV，如：海阔天空 Beyond MV';
+  $('#smodetip').textContent = SM_TIP[searchMode] || '';
+  localStorage.setItem('m3_sm', searchMode);
+}
+$$('#smode span').forEach(x=>x.onclick=()=>{ searchMode=x.dataset.sm; applySM(); });
+applySM();
 
 /* ---------- 曲库 ---------- */
 let curSub='';
+async function _loadChipsOnly(){
+  const d=await (await fetch('/api/ls')).json();
+  $('#chips').innerHTML=(d.dirs||[]).map(x=>
+    `<span class="chip" data-n="${esc(x.name)}" onclick="openDir('${esc(x.name)}')">${esc(x.name)} <span class="n">${x.count}</span></span>`).join('');
+  chipsRefreshActive();
+}
 async function loadChips(){
   const d=await (await fetch('/api/ls')).json();
   $('#chips').innerHTML=(d.dirs||[]).map(x=>
-    `<span class="chip ${x.name===curSub?'on':''}" onclick="openDir('${esc(x.name)}')">${esc(x.name)} <span class="n">${x.count}</span></span>`).join('');
-  if(curSub) openDir(curSub);
+    `<span class="chip" data-n="${esc(x.name)}" onclick="openDir('${esc(x.name)}')">${esc(x.name)} <span class="n">${x.count}</span></span>`).join('');
+}
+/* loadChips 只负责渲染分类片，绝不再回调 openDir（死循环抖动根因）。
+   当前分类的高亮由 openDir 里的 chipsRefreshActive() 就地更新。 */
+function chipsRefreshActive(){
+  $$('#chips .chip').forEach(el=>{
+    const nm = el.textContent.replace(/\s*\d+\s*$/,'').trim();
+    el.classList.toggle('on', nm === curSub || el.dataset.n === curSub);
+  });
 }
 /* 分批渲染：500 首一次性 innerHTML 会卡 1~2 秒，
    改成每批 60 条 + IntersectionObserver 滚到底就续下一批 */
@@ -1428,7 +1727,11 @@ function loadCoversFor(container){
 }
 
 async function openDir(sub){
-  curSub=sub; loadChips();
+  const same = (curSub===sub);
+  curSub=sub;
+  // 分类片缺失才拉；已有则只就地高亮 —— 不再 loadChips(它会重画全表)
+  if(!document.querySelector('#chips .chip')) { try{ await _loadChipsOnly(); }catch(e){} }
+  else chipsRefreshActive();
   setMsg($('#bmsg'),'加载中…'); $('#grid').innerHTML='';
   try{
     const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=500`)).json();
@@ -1631,11 +1934,51 @@ $('#mtreset').onclick = async()=>{
   mtStat();
 };
 
+/* ---------- 设置弹窗（音质/登录/赠金） ---------- */
+let CFG = {};
+async function cfgLoad(){
+  try{ CFG = await (await fetch('/api/config')).json(); }catch(e){ CFG = {}; }
+  $('#creditv').textContent = (CFG.credit_balance!=null)? CFG.credit_balance : 100;
+  if(CFG.qq_quality_order) $('#qquality').value = CFG.qq_quality_order.join(',');
+  $('#qqcookie').value = CFG.qq_cookie || '';
+  $('#necookie').value = CFG.netease_cookie || '';
+}
+function setOpen(){ document.body.classList.add('ov'); $('#setmodal').classList.add('on'); cfgLoad(); }
+function setClose(){ document.body.classList.remove('ov'); $('#setmodal').classList.remove('on'); }
+$('#btnset').onclick = setOpen;
+$('#setclose').onclick = setClose;
+$('#setclose2').onclick = setClose;
+$('#setmodal').onclick = e=>{ if(e.target.id==='setmodal') setClose(); };
+$('#creditset').onclick = ()=>{
+  const n = parseInt($('#creditin').value, 10);
+  if(isNaN(n)){ setMsg($('#setmsg'),'赠金要填整数（可负=欠费）','bad'); return; }
+  $('#creditv').textContent = (parseInt($('#creditv').textContent,10)||0) + n;
+  $('#creditin').value='';
+  setMsg($('#setmsg'),'赠金已调 '+(n>0?'+':'')+n+'，点「保存设置」生效');
+};
+$('#setsave').onclick = async ()=>{
+  const body = {
+    qq_quality_order: $('#qquality').value.split(',').map(Number),
+    qq_cookie: $('#qqcookie').value.trim(),
+    netease_cookie: $('#necookie').value.trim(),
+    credit_balance: parseInt($('#creditv').textContent, 10) || 0,
+  };
+  try{
+    const r = await (await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+    setMsg($('#setmsg'), r.ok===false ? ('保存失败: '+(r.error||'')) : '已保存并生效 ✓');
+    if(r.ok!==false) applyCredits();
+  }catch(e){ setMsg($('#setmsg'),'保存失败: '+e,'bad'); }
+};
+function applyCredits(){ /* 充数达标时高亮 */ }
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && $('#setmodal').classList.contains('on')) setClose();
+});
+
 /* ---------- 关于弹窗 ---------- */
 const REPO_URL = 'https://github.com/qingshanjiluo/music3';
 
-function aboutOpen(){ $('#aboutmodal').classList.add('on'); }
-function aboutClose(){ $('#aboutmodal').classList.remove('on'); }
+function aboutOpen(){ document.body.classList.add('ov'); $('#aboutmodal').classList.add('on'); }
+function aboutClose(){ document.body.classList.remove('ov'); $('#aboutmodal').classList.remove('on'); }
 
 async function copyText(t, btn){
   let ok = false;
@@ -1830,6 +2173,36 @@ if('serviceWorker' in navigator && location.protocol === 'http:' || location.pro
 }
 </script></body></html>
 """
+
+
+def _mv_worker(jid, track, dest_dir):
+    """MV 下载工作线程（走 jobs 记进度/日志，前端可 SSE 跟）。"""
+    from . import jobs, src_bili, downloader
+
+    jobs.log(jid, "开始下载 %s - %s" % (track.artists, track.title))
+    try:
+        ok, msg, path = src_bili.download_video(track, dest_dir)
+    except Exception as e:
+        jobs.log(jid, "异常 %r" % (e,))
+        jobs.finish(jid, "error", str(e))
+        return
+    if ok:
+        dur = downloader.duration_of(path) if path else 0
+        try:
+            from . import stats, config as _cfg
+            from .covercache import history_add
+
+            _root = _cfg.get("root") or r"D:\音乐"
+            rel = os.path.relpath(path, _root).replace("\\", "/")
+            stats.record(rel, track.title, track.artists, float(dur or 0))
+            history_add(rel, track.title, track.artists)
+        except Exception:
+            pass
+        jobs.log(jid, "完成: %s (%s)" % (os.path.basename(path or ""), msg))
+        jobs.finish(jid, "done")
+    else:
+        jobs.log(jid, "失败: %s" % msg)
+        jobs.finish(jid, "error", str(msg))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -2181,6 +2554,163 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, {"cleared": n})
                 return self._send(200, lyricfill.cache_stats())
 
+            # ---- 配置读写（音质/登录/赠金） ----
+            if u.path == "/api/config":
+                from . import config as _cfg
+                from . import src_qq as _sq, src_netease as _sn
+
+                if self.command == "POST":
+                    try:
+                        ln = int(self.headers.get("Content-Length") or 0)
+                        body = json.loads(self.rfile.read(ln).decode("utf-8") or "{}")
+                        d = _cfg.load(reload=True)
+                        changed = False
+                        for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance"):
+                            if k in body:
+                                d[k] = body[k]
+                                changed = True
+                        if changed:
+                            _cfg.save(d)
+                            _sq.apply_login(d.get("qq_cookie", ""))
+                            _sn.apply_login(d.get("netease_cookie", ""))
+                        return self._send(200, {"ok": True})
+                    except Exception as e:
+                        return self._send(400, {"error": repr(e)})
+                d = _cfg.load(reload=True)
+                return self._send(200, {
+                    "qq_quality_order": d.get("qq_quality_order", [14, 11, 10, 8, 4]),
+                    "qq_cookie": d.get("qq_cookie", ""),
+                    "netease_cookie": d.get("netease_cookie", ""),
+                    "credit_balance": d.get("credit_balance", 100),
+                    "credit_spent": d.get("credit_spent", 0),
+                    # 服务进程实际生效的登录态（单例 session 的 Cookie 头）
+                    "qq_cookie_active": bool(_sq._S.headers.get("Cookie")),
+                    "netease_cookie_active": bool(_sn._S.headers.get("Cookie")),
+                })
+
+            # ---- 手动歌词：多源候选 + 按点拉取 ----
+            if u.path == "/api/lyric-fetch":
+                from . import lyricfill, stream as _stream
+
+                act = g("act", "")
+                if act == "pick":
+                    # 用户点选某源某 id 拉词并落盘
+                    src = g("source", "")
+                    sid = g("sid", "")
+                    rel = g("rel", "")
+                    ly, msg = lyricfill.fetch_lyric(src, sid)
+                    if ly and rel:
+                        full = _stream.safe_join(library.DEFAULT_ROOT, rel)
+                        if full:
+                            # 同步缓存 + 可选写回 ID3
+                            lyricfill.save_cached(full, ly)
+                            if g("write", "1") == "1":
+                                try:
+                                    from . import tagger
+
+                                    tagger.tag(full, lyric=ly)
+                                except Exception:
+                                    pass
+                            # 封面缓存同步失效（mtime 变了）
+                            try:
+                                from . import covercache
+
+                                covercache.cover_cache_clear()
+                            except Exception:
+                                pass
+                    return self._send(
+                        200, {"ok": bool(ly), "lyric": ly, "msg": msg, "source": src}
+                    )
+                # act=candidates：列出各源同名候选（B站/网易/QQ 都可作为词源）
+                cands = lyricfill.find_candidates(
+                    g("title", ""), g("artist", ""),
+                    tuple(x for x in g("sources", "netease,qq").split(",") if x),
+                    limit=int(g("limit", "6")),
+                )
+                return self._send(200, {"candidates": cands})
+
+            # ---- 歌手搜索 ----
+            if u.path == "/api/artists":
+                from . import artist as _artist
+
+                name = g("name", "")
+                if not name:
+                    return self._send(400, {"error": "missing name"})
+                srcs = tuple(
+                    x for x in g("sources", "qq,netease").split(",") if x
+                )
+                try:
+                    # 纯歌手名搜歌名不匹配 → 分只有 ~0.05，必须放行 min_score
+                    ts = _artist.artist_tracks(
+                        name,
+                        per_source=int(g("limit", "30")),
+                        sources=list(srcs),
+                        min_score=float(g("min_score", "0.04")),
+                    )
+                except Exception as e:
+                    return self._send(500, {"error": repr(e)})
+                # 歌手命中的排前面，去重
+                from .models import norm
+
+                nn = norm(name)
+                seen = set()
+                rows = []
+                for t in ts:
+                    k = (norm(t.title), norm(t.artists), t.source)
+                    if k in seen:
+                        continue
+                    seen.add(k)
+                    hit = 1 if (nn and nn in norm(t.artists)) else 0
+                    rows.append({
+                        "title": t.title, "artists": t.artists,
+                        "source": t.source, "duration": round(float(t.duration_s or 0), 1),
+                        "score": round(float(t.score or 0), 3),
+                        "page_url": t.page_url or "",
+                        "_hit": hit,
+                    })
+                rows.sort(key=lambda r: (-r["_hit"], -r["score"]))
+                for r in rows:
+                    r.pop("_hit", None)
+                return self._send(200, {"name": name, "items": rows})
+
+            # ---- MV 视频 ----
+            if u.path == "/api/mv":
+                from . import src_bili
+
+                act = g("act", "")
+                if act == "download":
+                    # 下载指定 BV 为视频（异步 job）
+                    from . import jobs, library as _lib, queue as _q  # noqa
+                    from .models import Track
+                    from . import config as _cfg
+                    import threading
+
+                    bvid = g("bvid", "")
+                    if not bvid:
+                        return self._send(400, {"error": "missing bvid"})
+                    sub = g("sub") or "投稿\\B站"
+                    dest = os.path.join(library.DEFAULT_ROOT, sub)
+                    tr = Track(
+                        source="bilibili", track_id=bvid,
+                        title=g("title") or bvid, artists=g("artists") or "",
+                        page_url="https://www.bilibili.com/video/" + bvid,
+                    )
+                    jid = jobs.create("mv", meta={"bvid": bvid, "title": tr.title})
+                    threading.Thread(
+                        target=_mv_worker, args=(jid, tr, dest), daemon=True
+                    ).start()
+                    return self._send(200, {"job_id": jid})
+                # act=search：列 MV 候选
+                from . import src_bili
+
+                cands = src_bili.search_mv(g("q", ""), limit=int(g("limit", "8")))
+                rows = [{
+                    "bvid": c.track_id, "title": c.title, "artists": c.artists,
+                    "duration": round(float(c.duration_s or 0), 1),
+                    "page_url": c.page_url or "",
+                } for c in cands]
+                return self._send(200, {"items": rows, "q": g("q", "")})
+
             # ---- 播放列表（可拖拽排序） ----
             if u.path == "/api/playlist":
                 from . import playlist
@@ -2345,12 +2875,24 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "q required"})
                 n = int(g("n", "1"))
                 force = g("force", "0") == "1"
+                exact_title = g("title", "")
                 srcs = [s.strip() for s in g("sources", "qq,netease").split(",") if s.strip()]
                 bili = "bilibili" in srcs
                 res = router.search(kw, sources=srcs, limit=15, bili=bili)
                 if not res:
                     return self._send(200, {"ok": False, "log": "无结果"})
-                t = res[min(n, len(res)) - 1]
+                # 前端给了精确标题（歌手模式关键词只是歌手名）→ 用它选
+                t = None
+                if exact_title:
+                    from .models import norm as _norm
+
+                    et, ea = _norm(exact_title), _norm(g("artists", ""))
+                    for c in res:
+                        if _norm(c.title) == et and (not ea or _norm(c.artists) == ea or ea in _norm(c.artists)):
+                            t = c
+                            break
+                if t is None:
+                    t = res[min(n, len(res)) - 1]
                 idx = library.scan()
                 old = library.exists(t.title, t.artists, idx)
                 if old and not force:
@@ -2381,6 +2923,20 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(raw or "{}")
         except Exception:
             return self._send(400, {"error": "bad json"})
+
+        if u.path == "/api/config":
+            from . import config as _cfg
+            from . import src_qq as _sq, src_netease as _sn
+
+            d = _cfg.load(reload=True)
+            for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance"):
+                if k in body:
+                    d[k] = body[k]
+            if _cfg.save(d):
+                _sq.apply_login(d.get("qq_cookie", ""))
+                _sn.apply_login(d.get("netease_cookie", ""))
+                return self._send(200, {"ok": True})
+            return self._send(500, {"error": "save failed"})
 
         if u.path in ("/api/batch", "/api/queue"):
             kws = body.get("keywords") or []

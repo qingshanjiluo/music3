@@ -248,6 +248,58 @@ def search_any(keyword, limit=20, log=None):
     return search_ytdlp(keyword, limit=limit)
 
 
+def search_mv(kw, limit=8):
+    """搜适合当 MV 的 B 站视频：只留有时长(>60s)、优先标题含 MV/官方等词。"""
+    kw2 = "%s MV" % kw
+    cands = search(kw2, limit=limit) or []
+    if not cands:
+        cands = search(kw, limit=limit) or []
+    KEY = ("mv", "官方", "music video", "音乐视频", "录像", "live", "现场")
+    L, H = [], []
+    for t in cands:
+        if not (t.duration_s and 60 <= (t.duration_s or 0) <= 900):
+            continue
+        (H if any(k in t.title.lower() for k in KEY) else L).append(t)
+    return H + L
+
+
+def download_video(track, dest_dir, timeout=900, quality="best[height<=1080]"):
+    """下载 B 站视频（MV 用，不转码，保留画面）。返回 (ok, msg, path)。"""
+    os.makedirs(dest_dir, exist_ok=True)
+    base = safe_name("%s - %s (MV)" % (track.artists or "B站", track.title), 100)
+    final = os.path.join(dest_dir, base + ".mp4")
+    if os.path.exists(final) and os.path.getsize(final) > 500 * 1024:
+        return True, "exists", final
+
+    url = track.page_url or ("https://www.bilibili.com/video/%s" % track.track_id)
+    tmp = os.path.join(dest_dir, ".tmp_" + base + ".%(ext)s")
+    rc, out, err = _run(
+        [
+            "yt-dlp",
+            "--encoding", "utf-8",
+            "-f", "bv*[height<=1080]+ba/b[height<=1080]/" + quality,
+            "--merge-output-format", "mp4",
+            "--no-playlist",
+            "--no-warnings",
+            "-o", tmp,
+            url,
+        ],
+        timeout=timeout,
+    )
+    produced = os.path.join(dest_dir, ".tmp_" + base + ".mp4")
+    if os.path.exists(produced) and os.path.getsize(produced) > 500 * 1024:
+        os.replace(produced, final)
+        return True, "ok", final
+    # 可能是别的后缀（mkv/webm），找出来改名
+    for ext in ("mp4", "mkv", "webm", "flv"):
+        p2 = os.path.join(dest_dir, ".tmp_" + base + "." + ext)
+        if os.path.exists(p2) and os.path.getsize(p2) > 500 * 1024:
+            dst = os.path.join(dest_dir, base + "." + ext)
+            os.replace(p2, dst)
+            return True, "ok(%s)" % ext, dst
+    return False, "yt-dlp rc=%s: %s" % (rc, (err or out or "")[-240:]), ""
+
+
 def download(track, dest_dir, timeout=900):
     """下 B 站音频转 mp3。返回 (ok, msg, path)。"""
     os.makedirs(dest_dir, exist_ok=True)

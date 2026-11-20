@@ -866,3 +866,14 @@ A：全库 5176 首补歌词+封面，单首约 3~4 秒（含网络），约 5~6
 ---
 
 <sub>如果这个项目对你有帮助，请给个 ⭐ Star 支持一下 —— 作者：最中幻想（微信 andyloveanny）</sub>
+
+## 第14轮：设计重构 + 三 bug + 音质/登录/赠金
+
+- **曲库点击后一直刷新抖动（死循环）**：`loadChips()` 尾部递归 `openDir()`、`openDir()` 头部调 `loadChips()`，两次构成环，每次点分类片互相触发。修法：`loadChips` 只渲染分类片（抽 `_loadChipsOnly`），当前分类高亮由 `chipsRefreshActive()` 就地更新；`openDir` 仅在片缺失时拉一次。
+- **搜索页 MV/歌手/歌曲不能同时搜**：新增「全部」模式（默认），`Promise.allSettled` 三路并发（歌曲+歌手曲+B站MV）→ `renderRows` 统一渲染、跨组去重、分组标签（曲/歌手/MV）。实测 4.2s 出 33 条（原串行约 14s）。
+- **设计语言**（frontend-design）：tokens 重定（`--bg:#0b0d12` 冷蓝黑、`--acc:#4e8cff→--acc2:#9b6bff` 双调渐变）、正文 13.5px/1.65、播放器玻璃拟态 `backdrop-filter blur(20px) saturate(1.2)` + 顶缘 `rgba(78,140,255,.22)` 光、进度条 2px、波形提亮 0.45、去 tab 阴影、分组标签三色（曲蓝/歌手青/MV 紫）。
+- **音质/登录/赠金**：设置弹窗（⚙/设置按钮）—— QQ 音质顺序（`config.qq_quality_order` 三档透传 `src_qq.get_url`）、QQ `qm_keyst` cookie 登录（`apply_login` 注入 `_S.headers.Cookie`，提高 vkey 成功率）、网易云 `MUSIC_U` cookie 登录（解锁版权原唱搜索）、赠金余额（本地记账，每成功下载扣 1，`config.credit_balance`，设为 null 不限量）。
+- **赠金方案说明（假设）**：非任务原文字段，按「本地记账额度」落地——每下载 1 首 -1，余额 0 不拦（记欠费），设置页可 +N/-N。若你指的是「QQ 音乐赠送配额/其他平台赠金」，告诉我接口我接真实数据。
+
+实测：`GET/POST /api/config` 200/200 持久化 ✓、三路并发 4.2s ✓、歌词候选 8 条 ✓、赠金 100→99+stats 13→14 ✓、node --check 0 ✓、JS undefined ids NONE、CSS 217/217、fmtDur 单定义、死循环已解环 ✓。
+

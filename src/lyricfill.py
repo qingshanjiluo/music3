@@ -141,6 +141,69 @@ def _is_real_lyric(text):
     return True
 
 
+def find_candidates(title, artist, sources=("netease", "qq"), limit=6):
+    """列出各源同名候选（含 id），供前端点选拉歌词。
+
+    返回 [{source, sid, title, artists, duration, cover_url, score}]
+    """
+    out = []
+    t = (title or "").strip()
+    a = (artist or "").strip()
+    if not t:
+        return out
+    kw = ("%s %s" % (t, a)).strip()
+    for src in sources:
+        try:
+            if src == "netease":
+                from . import src_netease as mod
+            elif src == "qq":
+                from . import src_qq as mod
+            else:
+                continue
+            for c in (mod.search(kw, limit=limit) or []):
+                out.append({
+                    "source": src,
+                    "sid": c.track_id,
+                    "title": c.title,
+                    "artists": c.artists,
+                    "duration": round(float(c.duration_s or 0), 1),
+                    "cover_url": c.cover_url or "",
+                    "score": round(_score(c.title, c.artists, t, a), 3),
+                })
+        except Exception:
+            continue
+    # 同源内按分排序，跨源保持顺序（netease 在前）
+    out.sort(key=lambda x: -x.get("score", 0))
+    return out
+
+
+def fetch_lyric(source, sid, timeout=15):
+    """按用户点选的 source+sid 拉歌词。返回 (lyric, msg)。"""
+    try:
+        if source == "netease":
+            from . import src_netease
+
+            ly = src_netease.get_lyric(sid)
+        elif source == "qq":
+            from . import src_qq
+
+            ly = src_qq.get_lyric(sid)
+            if ly and not ly.lstrip().startswith("["):
+                import base64
+
+                try:
+                    ly = base64.b64decode(ly).decode("utf-8", "replace")
+                except Exception:
+                    pass
+        else:
+            return "", "unknown source"
+        if _is_real_lyric(ly or ""):
+            return ly, "ok"
+        return ly or "", "占位/无效歌词（纯音乐或无词）"
+    except Exception as e:
+        return "", repr(e)
+
+
 def find_lyric(title, artist, log=None, timeout=15):
     """从网易云/QQ 找歌词。返回 (lyric, source) 或 ("", "")."""
     title_c, artist_c = _clean(title), _clean(artist)

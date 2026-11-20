@@ -77,13 +77,20 @@ def bili_up_videos(mid, limit=200, log=None):
     return out
 
 
-def artist_tracks(name, per_source=30, sources=None, log=None):
-    """按歌手名在音乐源里抓取。返回候选 Track（未去重排序）。"""
+def artist_tracks(name, per_source=30, sources=None, log=None, min_score=0.15):
+    """按歌手名在音乐源里抓取。返回候选 Track（未去重排序）。
+
+    min_score：纯歌手名做关键词时歌名不匹配、score 只有 ~0.05，
+    歌手搜索场景要传低阈值（0.04）否则全被过滤。
+    """
     from . import router
 
     sources = sources or ["qq", "netease"]
     # 用歌手名当关键词，多拉一些
-    res = router.search(name, sources=sources, limit=per_source, bili=False, log=log)
+    res = router.search(
+        name, sources=sources, limit=per_source, bili=False,
+        log=log, min_score=min_score,
+    )
     # 只保留歌手字段命中的
     from .models import norm
 

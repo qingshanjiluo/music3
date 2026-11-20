@@ -189,7 +189,11 @@ def download_direct(track, dest_dir, timeout=900, convert=True):
             try:
                 from . import src_qq
 
-                url, ext2, qname = src_qq.get_url(track.track_id)
+                from . import config as _c
+                url, ext2, qname = src_qq.get_url(
+                    track.track_id,
+                    quality_order=_c.get("qq_quality_order") or None,
+                )
                 if url:
                     track.url = url
                     track.ext = ext2 or track.ext
@@ -294,7 +298,18 @@ def download_direct(track, dest_dir, timeout=900, convert=True):
 
 
 def download(track, dest_dir):
-    """分派。"""
+    """分派下载。成功落盘后记录 stats + 播放历史（record 下载）。"""
     if track.source == "bilibili":
-        return src_bili.download(track, dest_dir)
-    return download_direct(track, dest_dir)
+        ok, msg, path = src_bili.download(track, dest_dir)
+    else:
+        ok, msg, path = download_direct(track, dest_dir)
+    if ok and path:
+        # exists 也记录：文件已存在但用户点了一次下载，就算一次
+        # （record_download 有 30s 去重窗口防连点刷数）
+        try:
+            from . import record
+
+            record.record_download(path, track.title, track.artists, track.source)
+        except Exception:
+            pass
+    return ok, msg, path

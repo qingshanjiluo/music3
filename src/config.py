@@ -18,6 +18,11 @@ DEFAULTS = {
     "tag_cover": True,
     "tag_lyric": True,
     "auto_lyric": True,
+    "qq_quality_order": [14, 11, 10, 8, 4],
+    "qq_cookie": "",
+    "netease_cookie": "",
+    "credit_balance": 100,
+    "credit_spent": 0,
     "audio_format": "30216/30280/30232/bestaudio",
     "ffmpeg": r"C:\Users\Administrator\AppData\Local\Microsoft\WinGet\Links\ffmpeg.exe",
     "ffprobe": r"C:\Users\Administrator\AppData\Local\Microsoft\WinGet\Links\ffprobe.exe",
@@ -66,3 +71,20 @@ def load(reload=False):
 
 def get(key, default=None):
     return load().get(key, default)
+
+
+def save(d=None):
+    """原子写 config.json 并刷新缓存（默认只写可覆盖键，不丢未知键）。"""
+    global _cache
+    cur = dict(load())
+    if d:
+        cur.update(d)
+    try:
+        tmp = CFG_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(cur, f, ensure_ascii=False, indent=1)
+        os.replace(tmp, CFG_PATH)
+        _cache = cur
+        return True
+    except Exception:
+        return False

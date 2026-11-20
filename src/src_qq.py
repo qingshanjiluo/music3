@@ -195,3 +195,20 @@ def cover_url(mid=None, album_mid=None, size=800):
             album_mid,
         )
     return ""
+
+
+def apply_login(cookie=""):
+    """注入登录态：qm_keyst cookie 可显著提高 vkey/直链成功率。"""
+    try:
+        if cookie:
+            _S.headers["Cookie"] = cookie
+        else:
+            _S.headers.pop("Cookie", None)
+    except Exception:
+        pass
+
+
+def get_url_quality(quality_order=None):
+    """占位：统一由 get_url(m, quality_order=cfg[...]) 调用。"""
+    return None
+
