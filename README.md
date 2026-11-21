@@ -908,3 +908,28 @@ A：全库 5176 首补歌词+封面，单首约 3~4 秒（含网络），约 5~6
   改一行 JS 后必须跑 node --check，别只看 py_compile。
 - `/api/export` 全库 m3u8 要 87 秒（每首读 ffprobe 时长），不是坏了，是慢测试超时。
 
+---
+
+## 第16轮（自我完善闭环 R1）：检查→优化→设计→验收
+
+**检查**：24 个 GET 端点全 OK、stream/file Range 206、py_compile 0、node --check 0、
+JS undefined ids NONE、CSS 245/245。发现 3 个问题进入优化。
+
+**优化**
+1. 曲库截断修复：`/api/ls` limit 500→2000，超限提示用查找缩小（原归档区 4708 首看不到 4208 首）。
+2. **预听防盗链代理 `/api/pvstream`**：转发在线音频流带 Referer/UA，CDN 直连被拒时保底；
+   **SSRF 白名单**（只放行 .qq.com/.gtimg.cn/.163/.music.163.com/.126.net/.bilivideo.com，
+   外域 403 实测）。Range 透传（206 + Content-Range），实测首 8B `fLaC` 魔数、二次 Range 902KB。
+   前端 `a.src = d.proxy`，`crossOrigin=anonymous`。
+3. 封面进视口才拉：`IntersectionObserver` 懒加载（.cardcov/.lcov），500 卡片不再一次性发 500 请求。
+
+**设计（frontend-design 风格，6 项全落）**
+- 环境光晕：`body::before` 顶部两团低饱和蓝紫径向光 + 底部极淡绿，收在视觉中心之上。
+- 头部渐变分隔线：`header::after` 两端透明、中间实色 1px。
+- 表格微交互：行 hover 左侧 3px 强调条 + 分数徽章放大。
+- 按钮反馈：`transition: transform` + `:active scale(.92)`。
+- 播放器呼吸光：播放中 `.pulsing` 让顶缘光蓝→紫呼吸（2.6s），`prefers-reduced-motion` 关。
+
+**验收证据**：设计 6/6 marker OK、优化 3/3 OK、端点 24/0、预听 2.0s/206/fLaC、
+HTML 98902B、JS 61400ch undefined NONE、CSS 245/245、node 0、compile 0。
+

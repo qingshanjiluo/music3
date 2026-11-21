@@ -27,7 +27,7 @@ import logging
 logging.getLogger("musicdl").setLevel(logging.WARNING)
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, quote as _urlquote
 
 from src import router, library, downloader
 from src.models import norm
@@ -57,6 +57,13 @@ html,body{margin:0;padding:0}
 /* 滚动条槽：弹层锁 body 滚动时占位不塌，消横向跳动 */
 html{scrollbar-gutter:stable}
 body.ov{overflow:hidden}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background:
+    radial-gradient(680px 380px at 12% -8%, rgba(91,140,255,.13), transparent 62%),
+    radial-gradient(620px 340px at 88% -6%, rgba(155,107,255,.10), transparent 62%),
+    radial-gradient(900px 500px at 50% 118%, rgba(62,207,142,.05), transparent 70%);
+}
 body{
   background:var(--bg);color:var(--fg);
   font:13.5px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
@@ -72,7 +79,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 }
 
 /* 顶栏 */
-header{display:flex;align-items:center;gap:10px;padding:4px 0 14px}
+header{display:flex;align-items:center;gap:10px;padding:6px 0 14px;
+  position:relative}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line) 18%,var(--line) 82%,transparent)}
 .hd h1{letter-spacing:.4px;font-weight:650}
 .logo{
   width:34px;height:34px;border-radius:10px;flex:0 0 auto;
@@ -105,7 +115,7 @@ input[type=text],input[type=number]{
 }
 input[type=text]:focus{border-color:var(--acc);background:var(--panel2)}
 input::placeholder{color:#5a6274}
-button{
+button{transition:transform .1s ease, background .15s, border-color .15s, color .15s;
   background:var(--acc);border:0;color:#06121f;font-weight:600;
   padding:11px 17px;border-radius:10px;cursor:pointer;font-size:13.5px;transition:.15s;
   flex:0 0 auto;
@@ -263,6 +273,11 @@ tbody tr.playing td{background:#12243a}
   display:flex;gap:12px;align-items:center;overflow:hidden;
 }
 .player:not(.on){opacity:.72}
+.player.on{border-top-color:rgba(78,140,255,.34)}
+.player.on.pulsing{animation:edgeBreath 2.6s ease-in-out infinite}
+@keyframes edgeBreath{0%,100%{border-top-color:rgba(78,140,255,.30)}
+  50%{border-top-color:rgba(155,107,255,.55)}}
+@media (prefers-reduced-motion:reduce){.player.on.pulsing{animation:none}}
 .player:not(.on) .pbtn{pointer-events:none;opacity:.55}
 .pcov{
   width:46px;height:46px;border-radius:9px;flex:0 0 auto;
@@ -275,6 +290,7 @@ tbody tr.playing td{background:#12243a}
 .ptitle{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .partist{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbtns{display:flex;gap:7px;flex:0 0 auto}
+.pbtn:active{transform:scale(.92)}
 .pbtn{
   width:38px;height:38px;border-radius:50%;background:var(--panel2);
   border:1px solid var(--line);color:var(--fg);cursor:pointer;
@@ -323,6 +339,10 @@ tbody tr.playing td{background:#12243a}
 .favrow .ft1{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .ft2{font-size:11.5px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .fops{display:flex;gap:6px;flex:0 0 auto}
+/* 搜索表微交互 */
+#tb tr{transition:background .12s, box-shadow .12s}
+#tb tr:hover{background:#1a2130;box-shadow:inset 3px 0 0 var(--acc)}
+#tb tr:hover .sc{transform:scale(1.12);display:inline-block;transition:transform .12s}
 /* 搜索表选中态 */
 #tb tr.picked{background:rgba(78,140,255,.10)}
 #tb tr.picked td{border-color:rgba(78,140,255,.25)!important}
@@ -908,6 +928,7 @@ const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 
 const PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
 const MODE_NAME = {list:'列表循环', one:'单曲循环', shuffle:'随机', seq:'顺序播放'};
 function setPlayIcon(on){
+  player.classList.toggle('pulsing', !!on);
   const t = $('#ptoggle');
   if(t) t.innerHTML = on ? PAUSE_SVG : PLAY_SVG;
 }
@@ -1638,7 +1659,8 @@ async function previewOne(i){
     const d = await (await fetch(u)).json();
     if(!d.ok){ setMsg($('#msg'), d.log||'取链失败','bad'); return; }
     const a = ensurePvAudio();
-    a.src = d.url;
+    a.crossOrigin = 'anonymous';
+    a.src = d.proxy || d.url;   // 走本机代理，绕 CDN 防盗链/跨域
     a.play().catch(()=>{});
     showPvBar(d.title, d.artists);
     setMsg($('#msg'), '正在试听（未下载，仅在线流）: '+d.title, 'ok');
@@ -1991,15 +2013,23 @@ function renderGridBatch(items, sub){
   }
 }
 
+let _covIO = ('IntersectionObserver' in window)
+  ? new IntersectionObserver(es=>{
+      es.forEach(e=>{ if(e.isIntersecting){ _loadOne(e.target); _covIO.unobserve(e.target); } });
+    }, {rootMargin:'200px'}) : null;
+function _loadOne(el){
+  const rel = el.dataset.rel; if(!rel || el.dataset.done) return;
+  el.dataset.done = '1';
+  fetch('/api/cover?rel='+encodeURIComponent(rel)).then(r=>{
+    if(r.ok) return r.blob(); throw 0;
+  }).then(b=>{
+    el.innerHTML = '<img loading="lazy" src="'+URL.createObjectURL(b)+'" alt="">';
+  }).catch(()=>{ el.dataset.done=''; });
+}
 function loadCoversFor(container){
-  container.querySelectorAll('.cardcov').forEach(el=>{
-    const rel = el.dataset.rel;
-    if(!rel) return;
-    fetch('/api/cover?rel='+encodeURIComponent(rel)).then(r=>{
-      if(r.ok) return r.blob(); throw 0;
-    }).then(b=>{
-      el.innerHTML = '<img loading="lazy" src="'+URL.createObjectURL(b)+'" alt="">';
-    }).catch(()=>{});
+  container.querySelectorAll('.cardcov,.lcov').forEach(el=>{
+    if(!el.dataset.rel) return;
+    if(_covIO) _covIO.observe(el); else _loadOne(el);
   });
 }
 
@@ -2011,9 +2041,10 @@ async function openDir(sub){
   else chipsRefreshActive();
   setMsg($('#bmsg'),'加载中…'); $('#grid').innerHTML='';
   try{
-    const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=500`)).json();
+    const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=2000`)).json();
     const items=d.items||[];
     renderGridBatch(items, sub);
+    setMsg($('#bmsg'), sub+' · 共 '+items.length+' 首'+(items.length>=2000?'（已达单次上限，用查找缩小）':''));
   }catch(e){setMsg($('#bmsg'),'失败: '+e,'bad');}
 }
 $('#reload').onclick=loadChips;
@@ -2831,6 +2862,47 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, {"cleared": n})
                 return self._send(200, lyricfill.cache_stats())
 
+            # ---- 预听代理：转发在线音频流（带 Referer/UA，绕 CDN 防盗链）----
+            if u.path == "/api/pvstream":
+                import requests as _rq
+                from . import stream as _st2
+                url = g("url", "")
+                if not url.startswith(("http://", "https://")):
+                    return self._send(400, {"error": "bad url"})
+                host = urlparse(url).netloc.lower()
+                # SSRF 白名单：只放行三家音乐源的 CDN
+                ALLOW = (".qq.com", ".gtimg.cn", ".music.163.com", ".126.net",
+                         ".163.com", ".bilibili.com", ".bilivideo.com")
+                if not any(host.endswith(x) or host == x.strip(".") for x in ALLOW):
+                    return self._send(403, {"error": "host not allowed: %s" % host})
+                hds = {"Referer": "https://y.qq.com/", "User-Agent": "Mozilla/5.0",
+                       "Accept": "*/*"}
+                if self.headers.get("Range"):
+                    hds["Range"] = self.headers.get("Range")
+                try:
+                    resp = _rq.get(url, headers=hds, stream=True, timeout=20)
+                except Exception as e:
+                    return self._send(502, {"error": repr(e)})
+                self.send_response(resp.status_code)
+                ct = resp.headers.get("Content-Type") or "audio/mpeg"
+                self.send_header("Content-Type", ct)
+                cl = resp.headers.get("Content-Length")
+                if cl:
+                    self.send_header("Content-Length", cl)
+                for hh in ("Content-Range", "Accept-Ranges"):
+                    if resp.headers.get(hh):
+                        self.send_header(hh, resp.headers.get(hh))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                try:
+                    for chunk in resp.iter_content(65536):
+                        if chunk:
+                            self.wfile.write(chunk)
+                except Exception:
+                    pass
+                return
+
             # ---- 预览试听：取在线直链，返回 URL 给浏览器 <audio> 直连 ----
             if u.path == "/api/preview":
                 from . import config as _cfg
@@ -2873,8 +2945,10 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, {"ok": False, "log": repr(e)})
                 if not url:
                     return self._send(200, {"ok": False, "log": "取链失败（vkey 过期？换一首）"})
-                return self._send(200, {"ok": True, "url": url, "title": t.title,
-                                       "artists": t.artists, "ext": ext or "mp3"})
+                proxy = "/api/pvstream?url=" + _urlquote(url, safe="")
+                return self._send(200, {"ok": True, "url": url, "proxy": proxy,
+                                       "title": t.title, "artists": t.artists,
+                                       "ext": ext or "mp3"})
 
             # ---- 收藏歌单 ----
             if u.path == "/api/favs":
