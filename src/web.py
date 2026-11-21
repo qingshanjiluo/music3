@@ -2428,7 +2428,7 @@ $('#hfixlyric').onclick = async ()=>{
     const rel = arr[i];
     setMsg($('#hmsg2'), `补歌词 ${i+1}/${arr.length} … ${String(rel).split(/[\\/]/).pop()}`);
     try{
-      const r = await (await fetch(`/api/lyric-fetch?act=pick&source=netease&rel=${encodeURIComponent(rel)}&write=1`)).json();
+      const r = await (await fetch(`/api/lyric-fetch?act=fill&rel=${encodeURIComponent(rel)}&write=1`)).json();
       if(r.ok) ok++; else miss++;
     }catch(e){ miss++; }
   }
@@ -3441,6 +3441,18 @@ class Handler(BaseHTTPRequestHandler):
                 from . import lyricfill, stream as _stream
 
                 act = g("act", "")
+                if act == "fill":
+                    # 按 rel 整曲补词（走 maintain 验证过的 fill_one 管线）
+                    rel = g("rel", "")
+                    full = _stream.safe_join(library.DEFAULT_ROOT, rel) if rel else None
+                    if not full:
+                        return self._send(400, {"error": "invalid rel"})
+                    r = lyricfill.fill_one(full, write_id3=(g("write", "1") == "1"))
+                    return self._send(200, {
+                        "ok": bool(r.get("ok")), "source": r.get("source") or "",
+                        "msg": r.get("msg") or ("ok" if r.get("ok") else "无词"),
+                        "rel": rel,
+                    })
                 if act == "pick":
                     # 用户点选某源某 id 拉词并落盘
                     src = g("source", "")

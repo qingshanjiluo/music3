@@ -1241,3 +1241,32 @@ marker 3/3（dups 覆盖逻辑在 JS 内）、node 0、compile 0、测试目录�
 **验收**：分批重复 3394（期望 3394）、score 77.1、端点 28/0、HTML 113737B、JS undefined NONE、
 CSS 269/269、marker 3/3、node 0、compile 0、测试目录清理、截图 3 张留档。
 
+---
+
+## 第30轮（闭环 R15）：补歌词/补封面根因修复 + maintain +636/+739
+
+**E2E 起手就抓到按钮批量 0 命中**，逐层插桩定位 3 个真 bug：
+
+1. **按钮发 `act=pick` 不带 `sid`** → 后端 `fetch_lyric(src,"")` 必空（0.0s 立即失败）。
+   修：新增 `act=fill`（按 rel 走 maintain 已验证的 `fill_one` 管线），按钮改调它。
+   **复测 0→3/10**（其余 msg="无词" 是网易对归档曲返回占位词，数据边界）。
+
+2. **ID3 title/artist 颠倒**（实测 `title='Luis Fonsi' artist='Despacito'`、
+   `title='Alan Walker' artist='Fade'`）→ `_score` 0.14~0.48 全卡 0.55 阈值，
+   而候选里封面明明 `has_cover=True`。修：`find_lyric`/`find_cover` 失败后
+   **交换 title/artist 重试一次**（source 标 `+swap`）。
+   **封面复测 0→7/10**，7 条全是 `netease+swap` 命中。
+
+3. 同因的文件名兜底（`artist==title`/空 artist → `parse_name`）一并落 `lyricfill`+`coverfill`。
+
+**maintain 续跑**：40 批 1000 首 708s → 歌词 +636、封面 +739
+（totals 1449/1609 → **2085/2348**）。
+
+**验收**：封面 7/10、`act=fill` 在源与 JS 双 marker、端点 28/0、
+HTML 113722B、JS undefined NONE、CSS 269/269、node 0、compile 0、测试目录清理。
+
+**坑（双杀）**：① 补丁脚本第一次整批静默未落盘（后续每批必须 grep 行数核对，
+不能只信脚本 print）；② 健康缺口列表是**老脏元数据**（maintain 补的新曲不在里面），
+E2E 抽样测的是失败率最高的尾巴样本——批量成功率要用「maintain 增量 totals」当
+主指标，缺口样本命中率只当下界。
+

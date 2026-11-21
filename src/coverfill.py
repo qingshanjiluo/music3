@@ -172,13 +172,20 @@ def fill_one(path, write_id3=True, log=None):
     # 解析名字
     title = (tg.get("title") or "").strip()
     artist = (tg.get("artists") or "").strip()
-    if not title:
+    if not artist or (title and artist == title):
         from .lyricfill import parse_name
 
         a2, t2 = parse_name(path)
-        artist, title = artist or a2, t2
+        artist, title = artist or a2, t2 or title
 
     data, mime, src = find_cover(title, artist, log=log)
+    # ID3 颠倒（Despacito 案例: title='Luis Fonsi' artist='Despacito' 打分 0.27 卡阈值）→ 交换重试
+    if not data and title and artist and title != artist:
+        if log:
+            log("颠倒重试: %s <-> %s" % (title[:24], artist[:24]))
+        data, mime, src = find_cover(artist, title, log=log)
+        if data:
+            src = (src or "") + "+swap"
     if data:
         save_cached(path, data, mime or "image/jpeg")
         r.update(ok=True, source=src or "?", cached=True)

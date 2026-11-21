@@ -301,8 +301,23 @@ def fill_one(path, write_id3=False, log=None):
     if not title:
         a, ti = parse_name(path)
         artist, title = artist or a, ti
+    # 元数据颠倒（title==artist，如 "Luis Fonsi"+"Luis Fonsi"）→ 文件名兜底
+    if not artist or artist == title:
+        try:
+            a3, t3 = parse_name(path)
+            if t3 and t3 != title:
+                artist, title = artist or a3, t3
+        except Exception:
+            pass
 
     ly, src = find_lyric(title, artist, log=log)
+    # ID3 颠倒（title 放了歌手、artist 放了歌名，实测打分 0.14~0.48 必卡阈值）→ 交换重试
+    if not ly and title and artist and title != artist:
+        if log:
+            log("颠倒重试: %s <-> %s" % (title[:24], artist[:24]))
+        ly, src = find_lyric(artist, title, log=log)
+        if ly:
+            src = (src or "") + "+swap"
     if ly:
         save_cached(path, ly)
         r.update(ok=True, source=src, cached=True)
