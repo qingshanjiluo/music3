@@ -1952,7 +1952,13 @@ async function dlOne(i){
     // 精确标题（歌手模式歌名不在关键词里，靠二次搜索选不准）
     const exact=t.title?`&title=${encodeURIComponent(t.title)}&artists=${encodeURIComponent(t.artists||'')}`:'';
     const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
-    const d=await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}${exact}`)).json();
+    let d = await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}${exact}`)).json();
+    if(!d.ok){
+      // vkey 瞬时抖动（实测 0.1s fail）→ 隔 1.5s 自动重试一次
+      setMsg($('#msg'), '首次取链失败，1.5s 后重试…');
+      await new Promise(r=>setTimeout(r,1500));
+      d = await (await fetch(`/api/get?q=${encodeURIComponent(q)}&n=${i+1}&force=${f}&sources=${src}${exact}`)).json();
+    }
     setMsg($('#msg'), d.log||JSON.stringify(d), d.ok?'ok':'bad');
     loadStat();
   }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}

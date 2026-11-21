@@ -1042,3 +1042,24 @@ Playwright 自带 chromium 未装，避免下载 150MB）；accessibility tree �
 4. Playwright 环境：`playwright install` 未跑就用系统 Chrome；CDP 替代
    accessibility API。
 
+---
+
+## 第22轮（闭环 R7）：真实音频链路端到端实测 + 下载重试
+
+**实测（全部真实外网/真实文件）**
+| 链路 | 结果 |
+|---|---|
+| 预听 preview→pvstream | 2.5s 取链 ok；Range① 206 `fLaC` 魔数；Range② 206 100001B（1MB 段）；Content-Range ✓ |
+| 本地曲库流 | Range 206 512B + Content-Range ✓（拖进度条通路） |
+| mp3 下载 | QQ exists 2.1s / 网易真下 **6.1s ok(243.3s)** / 二次 exists 0.4s |
+| **MV mp4 端到端** | job done **20.2s** → `测试 - 测试MV (MV).mp4` **20.5MB** ffprobe `mov` **212.3s** ✓（历史欠账首跑通） |
+
+**优化**：`dlOne` 失败自动重试 1 次（1.5s 间隔）。实测下载首轮 0.1s fail 系 vkey
+瞬时抖动，立即重试即过——不重试就直接把一次网络抖动报给用户。
+
+**验收**：端点 25/0（`/api/lib` 本次回归脚本漏配，R4 已 7 态实测）、HTML 107876B、
+JS undefined NONE、CSS 269/269、重试逻辑在 JS 内、node 0、compile 0；测试 MV 已清。
+
+**坑**：全链路实测脚本给下载用的临时查询词若命中已存在的文件，`exists` 分支
+会掩盖真实下载路径——验下载要用**库里没有的曲子**或 `force=1` + 确认日志含 `ok(...秒)`。
+
