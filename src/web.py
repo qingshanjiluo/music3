@@ -697,7 +697,7 @@ tbody tr.playing td{background:#12243a}
     <span class="n" id="smodetip">歌名模式</span>
   </div>
   <div class="bar">
-    <input type="text" id="linkin" placeholder="粘贴歌单链接（QQ 音乐歌单页 / 自定义 URL 多行）" style="flex:1">
+    <input type="text" id="linkin" placeholder="粘贴歌单页链接（y.qq.com / music.163.com / bilibili.com，可多行；BV 链接也行）" style="flex:1">
     <button class="ghost sm" id="linkgo">歌单链接下载</button>
   </div>
   <div class="msg" id="msg" role="status" aria-live="polite"></div>
@@ -755,6 +755,9 @@ tbody tr.playing td{background:#12243a}
     <button class="ghost" id="favreload">刷新</button>
     <button class="ghost" id="favdlall" title="把收藏的曲目逐首下载">一键下载</button>
     <button class="ghost" id="favexport" title="导出收藏为 m3u8">导出 m3u8</button>
+    <button class="ghost" id="favexpjson" title="导出完整字段 JSON（跨设备迁移用）">导出JSON</button>
+    <button class="ghost" id="favimp" title="导入收藏 JSON">导入JSON</button>
+    <input type="file" id="favimpfile" accept=".json,application/json" style="display:none">
     <button class="danger sm" id="favclear">清空</button>
     <span class="n" id="favcount"></span>
   </div>
@@ -1797,13 +1800,28 @@ $('#bysong').onclick = ()=>{
 $('#linkgo').onclick = async ()=>{
   const raw = $('#linkin').value.trim(); if(!raw){ setMsg($('#msg'),'粘贴歌单链接','bad'); return; }
   const urls = raw.split(/[\r\n,]+/).map(x=>x.trim()).filter(Boolean);
-  // 提取 BV 号（B站歌单/合集页里内嵌的视频 id）
-  const bvids = [];
   const bvRe = /(BV[0-9A-Za-z]{10})/g;
+  const bvids = [];
   urls.forEach(u=>{ let m; while((m = bvRe.exec(u))){ if(!bvids.includes(m[1])) bvids.push(m[1]); } });
-  if(!bvids.length){ setMsg($('#msg'),'链接里没有 BV 号（暂时只支持含 BV 号的歌单链接）','bad'); return; }
-  setMsg($('#msg'),'已解析 '+bvids.length+' 个 BV，启动歌单下载…');
+  const httpUrls = urls.filter(u=>/^https?:\/\//.test(u));
   try{
+    // 1) QQ/网易/B站 歌单页（http 链接）
+    if(httpUrls.length){
+      setMsg($('#msg'),'解析歌单页…（约 3-8 秒）');
+      for(const u of httpUrls){
+        const r = await (await fetch('/api/plimport?act=parse&url='+encodeURIComponent(u))).json();
+        if(!r.ok){ setMsg($('#msg'),'解析失败: '+(r.error||''),'bad'); continue; }
+        setMsg($('#msg'), '「'+(r.title||u.slice(0,40))+'」 '+r.count+' 首 · 启动批量下载…','ok');
+        const d = await (await fetch('/api/plimport?act=download&url='+encodeURIComponent(u))).json();
+        if(!d.ok){ setMsg($('#msg'),'启动失败: '+(d.error||''),'bad'); continue; }
+        setTab('q');
+        if(typeof subscribe==='function') subscribe(d.job_id, d.total);
+      }
+      return;
+    }
+    // 2) 含 BV 的链接（B站视频列表）
+    if(!bvids.length){ setMsg($('#msg'),'链接里没有 BV 号或歌单页 URL','bad'); return; }
+    setMsg($('#msg'),'已解析 '+bvids.length+' 个 BV，启动歌单下载…');
     const u = new URL('/api/mv', location.origin);
     u.searchParams.set('act','playlist');
     u.searchParams.set('bvids', bvids.join(','));
@@ -1911,6 +1929,30 @@ $('#favexport').onclick = ()=>{
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
   setMsg($('#favmsg'),'已导出 '+items.length+' 首 -> favs.m3u8','ok');
+};
+$('#favexpjson').onclick = ()=>{
+  const items = window._favItems||[];
+  if(!items.length){ setMsg($('#favmsg'),'收藏为空','bad'); return; }
+  const blob = new Blob([JSON.stringify(items, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'favs.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  setMsg($('#favmsg'),'已导出 '+items.length+' 首 → favs.json（含关键词/来源/时长，跨设备可还原）','ok');
+};
+$('#favimp').onclick = ()=>$('#favimpfile').click();
+$('#favimpfile').onchange = async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const items = JSON.parse(await f.text());
+    if(!Array.isArray(items) || !items.length){ setMsg($('#favmsg'),'JSON 里没有曲目数组','bad'); return; }
+    const d = await (await fetch('/api/favs', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({act:'import', items})})).json();
+    setMsg($('#favmsg'), '导入完成：新增 '+(d.added||0)+'，共 '+d.count+' 首', 'ok');
+    favLoad();
+  }catch(err){ setMsg($('#favmsg'),'导入失败: '+err,'bad'); }
+  e.target.value = '';
 };
 $('#favclear').onclick = async ()=>{
   if(!confirm('清空收藏歌单？')) return;
@@ -3189,6 +3231,54 @@ class Handler(BaseHTTPRequestHandler):
                                             "rel": os.path.relpath(dst, library.DEFAULT_ROOT).replace(chr(92), "/")})
                 return self._send(400, {"error": "unknown act"})
 
+            # ---- 歌单链接导入（QQ/网易/B站 歌单页 → 标题表 → 打分下载）----
+            if u.path == "/api/plimport":
+                from . import playlistimport as _pli, jobs as _jobs3, library as _lib
+                import threading
+                url = g("url", "").strip()
+                act = g("act", "parse")
+                okp, payload, ptitle = _pli.parse_url(url)
+                if not okp:
+                    return self._send(200, {"ok": False, "error": payload, "title": ptitle})
+                if act == "parse":
+                    return self._send(200, {"ok": True, "title": ptitle, "count": len(payload),
+                                            "items": payload})
+                # act=download：逐曲交给搜索打分下载（异步 job）
+                sub = g("sub") or "投稿\\QQ音乐"
+                dest = os.path.join(_lib.DEFAULT_ROOT, sub)
+                os.makedirs(dest, exist_ok=True)
+                sources = "qq,netease,bilibili"
+                jid = _jobs3.create("pl-import", total=len(payload),
+                                    meta={"n": len(payload), "title": ptitle})
+                _jobs3.log(jid, "歌单导入 %s · %d 首 → %s" % (ptitle or url, len(payload), sub))
+                def worker():
+                    okc = 0
+                    for i, it in enumerate(payload):
+                        kw = (it.get("title") or it.get("raw") or "").strip()
+                        if not kw:
+                            continue
+                        try:
+                            res = router.search(kw, sources=sources, limit=5, bili=True)
+                            if not res:
+                                _jobs3.log(jid, "[%d] %s 无结果" % (i+1, kw[:40]))
+                            else:
+                                tr = res[0]
+                                ok, msg, _p = downloader.download(tr, dest)
+                                okc += 1 if ok else 0
+                                _jobs3.log(jid, "[%d] %s -> %s" % (i+1, kw[:40],
+                                            "OK" if ok else msg[:50]))
+                        except Exception as e:
+                            _jobs3.log(jid, "[%d] 异常 %r" % (i+1, e))
+                        _jobs3.log(jid, "")  # 进度心跳
+                        if _jobs3.get(jid, 0).get("cancel"):
+                            _jobs3.finish(jid, "canceled")
+                            return
+                    _jobs3.finish(jid, "done" if okc else "error",
+                                   "" if okc else "0 首成功")
+                threading.Thread(target=worker, daemon=True).start()
+                return self._send(200, {"ok": True, "job_id": jid, "total": len(payload),
+                                        "title": ptitle})
+
             # ---- 收藏歌单 ----
             if u.path == "/api/favs":
                 from . import favs
@@ -3626,6 +3716,14 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(raw or "{}")
         except Exception:
             return self._send(400, {"error": "bad json"})
+
+        if u.path == "/api/favs" and body.get("act") == "import":
+            from . import favs as _favs2
+            items = body.get("items")
+            if not isinstance(items, list) or not items:
+                return self._send(400, {"error": "items required"})
+            merged, added = _favs2.add_many(items)
+            return self._send(200, {"ok": True, "added": added, "count": len(merged)})
 
         if u.path == "/api/config":
             from . import config as _cfg

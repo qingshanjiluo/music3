@@ -1063,3 +1063,34 @@ JS undefined NONE、CSS 269/269、重试逻辑在 JS 内、node 0、compile 0；
 **坑**：全链路实测脚本给下载用的临时查询词若命中已存在的文件，`exists` 分支
 会掩盖真实下载路径——验下载要用**库里没有的曲子**或 `force=1` + 确认日志含 `ok(...秒)`。
 
+---
+
+## 第23轮（闭环 R8）：歌单页链接下载 + 收藏 JSON 导入导出
+
+**新能力**
+- `GET /api/plimport?act=parse|download&url=`：QQ/网易/B站 **歌单页链接 → 曲目表 →
+  打分下载**（异步 job 进「批量」页）。真实歌单实测 **25.1s 解析 12 首**。
+  白名单双拦截实测：外域 403 文案、非 http 文案。
+- 收藏页 `导出JSON` / `导入JSON`（`POST /api/favs {act:import}`，do_POST 分支）：
+  导出含关键词/来源/时长可跨设备还原；导入实测 added=1、重复 added=0、空数组 400。
+- `linkgo` 分流：http 链接走 plimport，BV 链接走既有 MV 歌单下载。
+
+**路径记录（QQ 歌单 API 四条死路 + 一条活路）**
+1. `musicu.fcg GetSonglist`：code=500003 缺 sign ✗
+2. `fcg_get_diss_by_tag`：code=0 但 songlist 空 ✗
+3. 页面 `__INITIAL_DATA__`：SPA 服务端空壳 `{}` ✗
+4. JS chunk 挖接口：3 个 chunk 无特征串 ✗
+5. **Playwright 渲染抓 DOM** `.songlist__list li` ✓（选定路径）
+
+**修复（挂死根因）**：`launch` 默认 180s 超时 + **9 个残留 headless chrome**
+拖垮启动 → 233s 失败。修：launch 30s + 整体 70s 总闸三检查点 + goto 25s +
+selector 12s + `finally close` 兜底；修后 25.1s 完成。**每次跑 E2E 后必须清
+无标题 chrome 进程**（与 run.py 残留同款坑）。
+
+**验收**：端点 27/0、HTML 110031B、JS undefined NONE、CSS 269/269、
+marker 3/3、收藏闭环（add/重复/空400/清理）、node 0、compile 0。
+
+**坑**：在服务进程里同步起浏览器会被外部 kill/超时连坐——重活必须走异步 job；
+Playwright launch 在本机并发场景要显式 `timeout=30000`，默认 180s 会把整条
+HTTP 请求挂成超时。
+
