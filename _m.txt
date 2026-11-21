@@ -1,9 +1,0 @@
-feat(闭环R3): 曲库卡片删除/改名按钮接线
-
-检查: 路由30、无重复函数、5xx 全无、下载 OK；发现 /api/track 有后端无前端真缺口
-优化: 卡片 hover 浮现 改名/删除 按钮接入 R2 端点
-  delete 先 dry 预览二次确认、rename 校验 .mp3 后缀与非法字符
-设计: .cardops 悬浮层 + .cop 按钮，悬停才现不挤网格
-验收: 端点 25/0、marker 7/8(act=playlist 实测200=误报)、HTML 103072B、
-  CSS 269/269、node 0、compile 0、歌单job done
-坑: 清 __pycache__ 后首启重编译全部 .pyc，固定等13秒误判 DOWN —— 先预热 compileall
