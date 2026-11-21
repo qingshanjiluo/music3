@@ -994,3 +994,27 @@ CSS 269/269、node 0、compile 0、46 按钮（`lyfetch` 为 `_lyBtn` 别名误�
 按首命中 `replace` 会改错那处——多个同形锚点必须带行号/上下文定位
 （`_cfg.load` 调用处才是 POST 分支）。
 
+---
+
+## 第20轮（闭环 R5）：JS 健壮性 + ARIA 可访问性
+
+**检查**：JS 静态扫——9 个"未声明调用"全为白名单误报（Uint8Array/map/one 等）、
+16 个空 catch 全为刻意 best-effort（preservesPitch 探测 / execCommand / chips 回刷）、
+空格与方向键快捷键已存在（`case ' '`/Arrow*，首轮检查正则误报）。
+真缺口：**role=0、aria-live=0、焦点无管理**。
+
+**优化+设计（32 项 ARIA 补丁）**
+- tab 栏 `role=tablist` + 7 个 tab `role=tab aria-selected` + 7 个 pane `tabpanel tabindex=-1`
+- 9 处状态消息 `role=status aria-live=polite`（搜索/曲库/历史/收藏/统计/清理/维护/设置）
+- 3 个弹窗 `role=dialog aria-modal aria-labelledby/label`（设置/关于/灯箱）
+- **焦点管理**：`_opener` 打开记当前焦点、聚焦首个控件，关闭归还（4 函数）
+- 播放进度 `role=progressbar` + JS 实时 `aria-valuenow`；音量 `aria-label`
+- `setPlayIcon` 同步按钮名（播放/暂停）；`applySM` 同步 `aria-checked`
+- vtog 2 处 `radiogroup`；✕ 按钮与删除 span 全部补可及名
+
+**验收**：32/32 补丁全中 · role 0→32 · aria-live 9 · aria-label 33 ·
+HTML 107594B · JS 66536ch undefined NONE · CSS 269/269 · **端点 26/0** · node 0 · compile 0。
+
+**坑**：静态检查的"空格快捷键缺失"是正则没写 `case ' '` 导致的假阳性——
+检查脚本必须先跑已知存在项做自校准，否则会把误报当工作项。
+

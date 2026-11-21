@@ -570,11 +570,11 @@ tbody tr.playing td{background:#12243a}
 </header>
 
 <!-- 设置弹窗：音质 / 登录 / 赠金 -->
-<div class="modal" id="setmodal">
+<div class="modal" id="setmodal" role="dialog" aria-modal="true" aria-labelledby="settitle">
   <div class="mbox">
-    <button class="mclose" id="setclose">✕</button>
+    <button class="mclose" id="setclose" aria-label="关闭设置">✕</button>
     <div class="mlogo">⚙</div>
-    <div class="mtitle">设置</div>
+    <div class="mtitle" id="settitle">设置</div>
     <div class="mver">音质 · 登录 · 赠金</div>
 
     <div class="creditbox">
@@ -619,14 +619,14 @@ tbody tr.playing td{background:#12243a}
       <button class="ghost" id="setsave">保存设置</button>
       <button class="ghost" id="setclose2">关闭</button>
     </div>
-    <div class="mnote" id="setmsg">保存即生效，源搜索/下载下次请求携带新配置。</div>
+    <div class="mnote" id="setmsg" role="status" aria-live="polite">保存即生效，源搜索/下载下次请求携带新配置。</div>
   </div>
 </div>
 
 <!-- 关于弹窗 -->
-<div class="modal" id="aboutmodal">
+<div class="modal" id="aboutmodal" role="dialog" aria-modal="true" aria-labelledby="abouttitle">
   <div class="mbox">
-    <button class="mclose" id="mclose">✕</button>
+    <button class="mclose" id="mclose" aria-label="关闭关于">✕</button>
     <div class="mlogo">♪</div>
     <div class="mtitle">music3 · 三源音乐工具</div>
     <div class="mver">B站 / 网易云 / QQ音乐 · 统一搜索 · 打分去重 · v1.0.0</div>
@@ -663,20 +663,20 @@ tbody tr.playing td{background:#12243a}
   </div>
 </div>
 
-<div class="tabs">
-  <div class="tab on" data-p="s">搜索</div>
-  <div class="tab" data-p="b">曲库</div>
-  <div class="tab" data-p="h">历史</div>
-  <div class="tab" data-p="st">统计</div>
-  <div class="tab" data-p="f">收藏</div>
-  <div class="tab" data-p="q">批量</div>
-  <div class="tab" data-p="d">清理</div>
+<div class="tabs" role="tablist" aria-label="主导航">
+  <div class="tab on" role="tab" aria-selected="true" data-p="s" aria-selected=" on" aria-controls="p-s">搜索</div>
+  <div class="tab" role="tab" data-p="b" aria-selected="" aria-controls="p-b">曲库</div>
+  <div class="tab" role="tab" data-p="h" aria-selected="" aria-controls="p-h">历史</div>
+  <div class="tab" role="tab" data-p="st" aria-selected="" aria-controls="p-st">统计</div>
+  <div class="tab" role="tab" data-p="f" aria-selected="" aria-controls="p-f">收藏</div>
+  <div class="tab" role="tab" data-p="q" aria-selected="" aria-controls="p-q">批量</div>
+  <div class="tab" role="tab" data-p="d" aria-selected="" aria-controls="p-d">清理</div>
 </div>
 
 <!-- ========== 搜索 ========== -->
-<div class="pane on" id="p-s">
+<div class="pane on" id="p-s" role="tabpanel" aria-labelledby="tab-s" tabindex="-1">
   <div class="bar">
-    <div class="vtog" id="smode">
+    <div class="vtog" id="smode" role="radiogroup" aria-label="搜索模式">
       <span class="on" data-sm="all">全部</span>
       <span data-sm="song">歌曲</span>
       <span data-sm="artist">歌手</span>
@@ -700,7 +700,7 @@ tbody tr.playing td{background:#12243a}
     <input type="text" id="linkin" placeholder="粘贴歌单链接（QQ 音乐歌单页 / 自定义 URL 多行）" style="flex:1">
     <button class="ghost sm" id="linkgo">歌单链接下载</button>
   </div>
-  <div class="msg" id="msg"></div>
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
   <div class="tablewrap">
   <table><thead><tr>
     <th style="width:30px"><input type="checkbox" id="selallh" title="全选"></th>
@@ -711,38 +711,38 @@ tbody tr.playing td{background:#12243a}
 </div>
 
 <!-- 大图灯箱 -->
-<div class="lightbox" id="lightbox">
-  <button class="lbclose" id="lbclose">✕</button>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="封面大图">
+  <button class="lbclose" id="lbclose" aria-label="关闭大图">✕</button>
   <img id="lbimg" alt="">
   <div class="lbcap" id="lbcap"></div>
 </div>
 
 <!-- ========== 曲库 ========== -->
-<div class="pane" id="p-b">
+<div class="pane" id="p-b" role="tabpanel" aria-labelledby="tab-b" tabindex="-1">
   <div class="bar">
     <input type="text" id="fq" placeholder="在曲库中查找…">
     <button id="fgo">查找</button>
     <button class="ghost" id="reload">刷新</button>
     <button class="ghost" id="mkdir">新建文件夹</button>
     <button class="ghost" id="redir">改名当前</button>
-    <div class="vtog">
+    <div class="vtog" role="radiogroup" aria-label="视图切换">
       <span class="on" data-v="grid">网格</span>
       <span data-v="list">列表</span>
     </div>
   </div>
   <div class="chips" id="chips"></div>
-  <div class="msg" id="bmsg"></div>
+  <div class="msg" id="bmsg" role="status" aria-live="polite"></div>
   <div class="grid" id="grid"></div>
 </div>
 
 <!-- ========== 历史 ========== -->
-<div class="pane" id="p-h">
+<div class="pane" id="p-h" role="tabpanel" aria-labelledby="tab-h" tabindex="-1">
   <div class="bar">
     <button class="ghost" id="hreload">刷新</button>
     <button class="danger sm" id="hclear">清空历史</button>
     <span class="n" id="hcount"></span>
   </div>
-  <div class="msg" id="hmsg"></div>
+  <div class="msg" id="hmsg" role="status" aria-live="polite"></div>
   <table><thead><tr>
     <th style="width:36px">#</th><th>标题</th><th style="width:120px">歌手</th>
     <th style="width:130px">时间</th><th style="width:56px">操作</th>
@@ -750,7 +750,7 @@ tbody tr.playing td{background:#12243a}
 </div>
 
 <!-- ========== 收藏歌单 ========== -->
-<div class="pane" id="p-f">
+<div class="pane" id="p-f" role="tabpanel" aria-labelledby="tab-f" tabindex="-1">
   <div class="bar">
     <button class="ghost" id="favreload">刷新</button>
     <button class="ghost" id="favdlall" title="把收藏的曲目逐首下载">一键下载</button>
@@ -758,21 +758,21 @@ tbody tr.playing td{background:#12243a}
     <button class="danger sm" id="favclear">清空</button>
     <span class="n" id="favcount"></span>
   </div>
-  <div class="msg" id="favmsg"></div>
+  <div class="msg" id="favmsg" role="status" aria-live="polite"></div>
   <div id="favlist"></div>
 </div>
 
 <!-- ========== 统计 ========== -->
-<div class="pane" id="p-st">
+<div class="pane" id="p-st" role="tabpanel" aria-labelledby="tab-st" tabindex="-1">
   <div class="bar">
     <button class="ghost" id="streload">刷新</button>
     <button class="danger sm" id="stclear">清空统计</button>
     <span class="n">播满 30 秒才计一次</span>
   </div>
-  <div class="msg" id="stmsg"></div>
+  <div class="msg" id="stmsg" role="status" aria-live="polite"></div>
   <div class="statgrid" id="stcards"></div>
   <div class="bar" style="margin-top:14px">
-    <div class="vtog">
+    <div class="vtog" role="radiogroup" aria-label="视图切换">
       <span class="on" data-sv="count">按次数</span>
       <span data-sv="seconds">按时长</span>
     </div>
@@ -787,7 +787,7 @@ tbody tr.playing td{background:#12243a}
 </div>
 
 <!-- ========== 批量 ========== -->
-<div class="pane" id="p-q">
+<div class="pane" id="p-q" role="tabpanel" aria-labelledby="tab-q" tabindex="-1">
   <div class="bar">
     <input type="text" id="bkws" placeholder="多行关键词，逗号或换行分隔" style="min-height:74px;resize:vertical">
   </div>
@@ -802,13 +802,13 @@ tbody tr.playing td{background:#12243a}
 </div>
 
 <!-- ========== 清理 ========== -->
-<div class="pane" id="p-d">
+<div class="pane" id="p-d" role="tabpanel" aria-labelledby="tab-d" tabindex="-1">
   <div class="bar">
     <button id="hscan">健康检查</button>
     <label class="chk"><input type="checkbox" id="hdeep"> 读 ID3（准但慢）</label>
     <button class="ghost" id="hfixcover" title="对「无封面」列表逐首联网补">补封面</button>
   </div>
-  <div class="msg" id="hmsg2"></div>
+  <div class="msg" id="hmsg2" role="status" aria-live="polite"></div>
   <div id="hresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -819,7 +819,7 @@ tbody tr.playing td{background:#12243a}
     <label class="chk"><input type="radio" name="by" value="name" checked> 按名</label>
     <label class="chk"><input type="radio" name="by" value="hash"> 按内容</label>
   </div>
-  <div class="msg" id="dmsg"></div>
+  <div class="msg" id="dmsg" role="status" aria-live="polite"></div>
   <div id="dlist"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -837,7 +837,7 @@ tbody tr.playing td{background:#12243a}
     <label class="chk"><input type="checkbox" id="mtcover" checked> 补封面</label>
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
-  <div class="msg" id="mtmsg"></div>
+  <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -861,14 +861,14 @@ tbody tr.playing td{background:#12243a}
 <!-- 播放器 -->
 <div class="player" id="player">
   <canvas class="pwave" id="pwave" width="600" height="44"></canvas>
-  <div class="pbar" id="pbar"><i></i></div>
+  <div class="pbar" id="pbar" role="progressbar" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
   <div class="pcov" id="pcov">♪</div>
   <div class="pinfo">
     <div class="ptitle" id="ptitle">未播放</div>
     <div class="partist" id="partist"></div>
   </div>
   <div class="pbtns">
-    <div class="pvol" id="pvolBox"><input type="range" id="pvol" min="0" max="100" value="100"></div>
+    <div class="pvol" id="pvolBox"><input type="range" id="pvol" min="0" max="100" value="100" aria-label="音量"></div>
     <div class="pbtn" id="peq" title="均衡器" aria-label="均衡器"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21v-6M5 9V3M12 21v-10M12 5V3M19 21v-4M19 11V3"/><path d="M2 15h6M10 5h4M17 11h4"/></svg></div>
     <div class="pbtn" id="plyr" title="歌词" aria-label="歌词"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
     <div class="pbtn" id="plopen" title="播放列表" aria-label="播放列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
@@ -967,6 +967,7 @@ const PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v
 const MODE_NAME = {list:'列表循环', one:'单曲循环', shuffle:'随机', seq:'顺序播放'};
 function setPlayIcon(on){
   player.classList.toggle('pulsing', !!on);
+  const _t=$('#ptoggle'); if(_t) _t.setAttribute('aria-label', on? '暂停':'播放');
   const t = $('#ptoggle');
   if(t) t.innerHTML = on ? PAUSE_SVG : PLAY_SVG;
 }
@@ -1235,6 +1236,7 @@ $('#pclose').onclick=()=>{
 audio.ontimeupdate=()=>{
   const p=audio.currentTime/(audio.duration||1)*100;
   pbar.firstElementChild.style.width=Math.min(100,p)+'%';
+  pbar.setAttribute('aria-valuenow', Math.round(Math.min(100,Math.max(0,p))));
   lySync();
   // 播满 30 秒记一次统计
   if(!playRecorded && curRel && audio.currentTime >= 30){
@@ -1305,7 +1307,7 @@ function plRender(){
         <div class="t1">${esc(x.title||x.rel.split(/[\\\\/]/).pop())}</div>
         <div class="t2">${esc(x.artists||'')}</div>
       </span>
-      <span class="del" data-del="${i}" title="移除">✕</span>
+      <span class="del" data-del="${i}" title="移除" role="button" aria-label="移除">✕</span>
     </div>`).join('');
   bindPlItems();
 }
@@ -1834,7 +1836,7 @@ async function favLoad(){
         <div class="fops">
           <button class="ghost sm" onclick="favPlay(${i})">播放</button>
           <button class="ghost sm" onclick="favDl1(${i})">下载</button>
-          <button class="ghost sm" onclick="favDel('${esc(x.key||'')}')">✕</button>
+          <button class="ghost sm" onclick="favDel('${esc(x.key||'')}')" aria-label="移除收藏">✕</button>
         </div>
       </div>`).join('');
   }catch(e){ setMsg($('#favmsg'),'加载失败: '+e,'bad'); }
@@ -1973,7 +1975,8 @@ const SM_TIP = {
   mv:'MV 模式：搜 B站视频当 MV 源，下载存为 mp4',
 };
 function applySM(){
-  $$('#smode span').forEach(x=>x.classList.toggle('on', x.dataset.sm===searchMode));
+  $$('#smode span').forEach(x=>{ const on = x.dataset.sm===searchMode;
+    x.classList.toggle('on', on); x.setAttribute('role','radio'); x.setAttribute('aria-checked', on); });
   $('#q').placeholder = searchMode==='all' ? '一个词全搜：晴天 周杰伦'
     : searchMode==='song' ? '歌名 歌手，如：晴天 周杰伦'
     : searchMode==='artist' ? '歌手名，如：周杰伦 / 洛天依'
@@ -2379,6 +2382,7 @@ $('#mtreset').onclick = async()=>{
 
 /* ---------- 设置弹窗（音质/登录/赠金） ---------- */
 let CFG = {};
+let _opener = null;
 async function cfgLoad(){
   try{ CFG = await (await fetch('/api/config')).json(); }catch(e){ CFG = {}; }
   $('#creditv').textContent = (CFG.credit_balance!=null)? CFG.credit_balance : 100;
@@ -2387,8 +2391,11 @@ async function cfgLoad(){
   $('#destsub').value = CFG.dest_sub || '';
   $('#necookie').value = CFG.netease_cookie || '';
 }
-function setOpen(){ document.body.classList.add('ov'); $('#setmodal').classList.add('on'); cfgLoad(); }
-function setClose(){ document.body.classList.remove('ov'); $('#setmodal').classList.remove('on'); }
+function setOpen(){ _opener=document.activeElement; document.body.classList.add('ov');
+  $('#setmodal').classList.add('on'); cfgLoad();
+  const f=$('#setmodal').querySelector('input,button,select'); if(f) setTimeout(()=>f.focus(),30); }
+function setClose(){ document.body.classList.remove('ov'); $('#setmodal').classList.remove('on');
+  if(_opener && _opener.focus) _opener.focus(); }
 $('#btnset').onclick = setOpen;
 $('#setclose').onclick = setClose;
 $('#setclose2').onclick = setClose;
@@ -2422,8 +2429,11 @@ document.addEventListener('keydown', e=>{
 /* ---------- 关于弹窗 ---------- */
 const REPO_URL = 'https://github.com/qingshanjiluo/music3';
 
-function aboutOpen(){ document.body.classList.add('ov'); $('#aboutmodal').classList.add('on'); }
-function aboutClose(){ document.body.classList.remove('ov'); $('#aboutmodal').classList.remove('on'); }
+function aboutOpen(){ _opener=document.activeElement; document.body.classList.add('ov');
+  $('#aboutmodal').classList.add('on');
+  const f=$('#aboutmodal').querySelector('button,a'); if(f) setTimeout(()=>f.focus(),30); }
+function aboutClose(){ document.body.classList.remove('ov'); $('#aboutmodal').classList.remove('on');
+  if(_opener && _opener.focus) _opener.focus(); }
 
 async function copyText(t, btn){
   let ok = false;
