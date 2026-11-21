@@ -33,15 +33,44 @@ _NOISE = re.compile(
 )
 
 
-def parse_name(path):
-    """从文件路径解析 (歌手, 歌名)。"""
-    stem = os.path.splitext(os.path.basename(path))[0]
-    # 常见分隔符
+_NOISE_MARK = re.compile(r"[【\[\(（【]([^】\]\)）]{1,40})[】\]\)）]")
+_NOISE_PFX = re.compile(r"^(无损音质|高音质|精选|盘点|歌曲集|合集|专辑|热门|MV版|Live|现场版|DJ版|Remix|抖音热歌|\d{2,4}年)+", re.I)
+
+
+def _parse_stem(stem):
+    """清理文件名噪声：合集前缀、括号注记、emoji、年份。返回 (artist, title)。"""
+    stem = re.sub(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF]+", " ", stem)  # emoji
+    stem = re.sub(r"\s{2,}", " ", stem).strip()
+    # 常见分隔符 "歌手 - 歌名"（不递归递归——子串本身可能再含分隔符，
+    # 如 "Fade - Alan Walker"，递归会把标题也拆掉导致 artist 丢失）
     for sep in (" - ", "－", " — ", "_"):
         if sep in stem:
             a, t = stem.split(sep, 1)
-            return a.strip(), t.strip()
+            a = _NOISE_PFX.sub("", a).strip(" -—_·、")
+            t = re.sub(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF]+", " ", t).strip()
+            if len(t) >= 2:
+                return a, t
+    # 【歌手】《歌名》 / (歌手) 歌名 —— 优先取括号后主体，括号内作 artist
+    m = _NOISE_MARK.search(stem)
+    if m:
+        inner = m.group(1).strip()
+        outer = (stem[:m.start()] + stem[m.end():]).strip()
+        outer = _NOISE_PFX.sub("", outer).strip(" -—_·、")
+        if len(outer) >= 2:
+            return inner, outer
+        if len(inner) >= 2:
+            return "", inner
+    # 合集/盘点类前缀直接剥掉，剩下的当歌名
+    cleaned = _NOISE_PFX.sub("", stem).strip(" -—_·、")
+    if len(cleaned) >= 2:
+        return "", cleaned
     return "", stem.strip()
+
+
+def parse_name(path):
+    """从文件路径解析 (歌手, 歌名)。"""
+    stem = os.path.splitext(os.path.basename(path))[0]
+    return _parse_stem(stem)
 
 
 def _clean(s):

@@ -1329,3 +1329,29 @@ CSS 269/269、node 0、compile 0、清单 340 行落盘、README 更新。
 **坑**：后台 `run_in_background` 并行两个 pwsh job 时只建立一个（另一个静默丢）——
 关键长任务必须**单独发起** + `job_list` 核对建立成功，不能依赖并行两个都成。
 
+---
+
+## 第33轮（闭环 R18）：maintain 首次跑完一圈 + parse_name 噪声清理
+
+**maintain 全库扫完 `done=True`**（历史首跑）：
+- 61+ 批 1518 首 678s → 歌词 +382、封面 +468
+- **totals 累计 3060 歌词 / 3413 封面**（起点 27/30，全库 5188 首 → ~59% / ~66%）
+- cursor 走完 `_all` 一圈，断点机制经 6 轮续跑验证（job 丢 3 次均无进度丢失）
+
+**parse_name 噪声清理**（新 `_parse_stem` + `_NOISE_PFX/_NOISE_MARK`）：
+- emoji 剥离、`【歌手】《歌名》` 括号提取、合集前缀 `盘点|精选|歌曲集|无损音质…` 剥除
+- **修递归退化 bug**：分隔符分支曾递归调自己，`Fade - Alan Walker` 被二次拆成
+  artist=''/title='Alan Walker'；改不递归后 7/7 单测过（`周杰伦 - 晴天`、
+  `Despacito - Luis Fonsi`、`【周傳雄】《出賣》…` 全对）
+
+**83 首「无匹配」复测（诚实结论）**：parse_name 修后 `act=fill` 仍 **0/60**——
+分类是 **ID3 双缺 60 + 真冷门 21 + 残噪声 2**；60 首的「文件名」本身就是
+**目录名/序号**（双叶、后摇、河北师大附中），不是歌名，搜不到属**数据边界非 bug**。
+清单已给全量 rel，人工可补。
+
+**验收**：端点 28/0、HTML 114358B、JS undefined NONE、CSS 269/269、node 0、
+compile 0、maintain totals 3060/3413、README 更新。
+
+**坑**：`parse_name` 递归剥噪声必须**只对子串做清理不再递归分隔**，否则
+`歌手 - 歌名` 型文件名会退化丢 artist——单测集必须含 `A - B` 型正例。
+
