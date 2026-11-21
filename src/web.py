@@ -2346,7 +2346,10 @@ async function doHealth(){
       if(part.error){ setMsg($('#hmsg2'), '错误: '+part.error, 'bad'); return; }
       d = part; parts.push(part);
       // 聚合 summary / detail
-      for(const [k,v] of Object.entries(part.summary||{})) acc[k] = (acc[k]||0) + v;
+      for(const [k,v] of Object.entries(part.summary||{})){
+        if(k==='重复') { acc[k] = v; continue; }   // 后端每片给全库真值 -> 覆盖(累加 13 片=44122 假数)
+        acc[k] = (acc[k]||0) + v;
+      }
       for(const [k,arr] of Object.entries(part.detail||{})){
         if(k==='dups'){ accDetail[k] = arr; continue; }   // dups 后端每片给全库真值 -> 覆盖
         (accDetail[k] = accDetail[k]||[]).push(...(arr||[]));
