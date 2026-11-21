@@ -933,3 +933,20 @@ JS undefined ids NONE、CSS 245/245。发现 3 个问题进入优化。
 **验收证据**：设计 6/6 marker OK、优化 3/3 OK、端点 24/0、预听 2.0s/206/fLaC、
 HTML 98902B、JS 61400ch undefined NONE、CSS 245/245、node 0、compile 0。
 
+---
+
+## 第17轮（闭环 R2）：检查→优化→设计→验收
+
+**检查**：路由 29→30、无重复函数、search 2.2s / find 0.2s / health 1.3s，无报错。
+
+**优化**：新增 `GET /api/track`（删除+改名）。此前 `browse.delete`/`rename` 有能力但没路由，
+Web 端无法删除/改名。**安全校验全过**：dry-run 不误删（实测文件仍在）、无后缀 400、
+源不存在 404、路径穿越 `../` 400、未知 act 400。
+
+**设计**：加载骨架屏（`.sk` 扫光动画，`prefers-reduced-motion` 关）+ 空状态文案
+（`emptyBox(icon, title, sub, hint, acts)` 带「去搜索」引导按钮）。曲库加载显示 12 卡骨架、
+搜索显示 6 行骨架，替代空白跳动；空分类给出「先搜一首下载」引导。
+
+**验收**：端点 25/0、R2 marker 5/6（`api/track` 后端路由前端无字面量=预期）、
+HTML 100936B、JS undefined NONE、CSS 263/263、node 0、compile 0。
+

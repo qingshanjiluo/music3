@@ -339,6 +339,27 @@ tbody tr.playing td{background:#12243a}
 .favrow .ft1{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .ft2{font-size:11.5px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .fops{display:flex;gap:6px;flex:0 0 auto}
+/* 加载骨架：曲库/表格加载时显示，避免空白跳动 */
+.sk{background:linear-gradient(90deg,#161a21 25%,#1d222b 50%,#161a21 75%);
+  background-size:200% 100%;animation:skSlide 1.2s linear infinite;border-radius:9px}
+@keyframes skSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none;background:#161a21}}
+.skg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.skc{height:170px;display:flex;flex-direction:column}
+.skc .a{height:148px}
+.skc .b{height:13px;margin-top:8px}
+.skc .c{height:11px;margin-top:5px;width:70%}
+.skrow{height:38px;margin-bottom:6px}
+/* 空状态 */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:52px 20px;color:var(--dim);text-align:center;gap:8px;
+}
+.empty .eic{font-size:30px;opacity:.5;letter-spacing:4px}
+.empty .et{font-size:14px;color:var(--fg)}
+.empty .es{font-size:12.5px;line-height:1.7;max-width:420px}
+.empty .eh{font-size:11.5px;color:#5d6577;margin-top:4px}
+.empty .eact{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
 /* 搜索表微交互 */
 #tb tr{transition:background .12s, box-shadow .12s}
 #tb tr:hover{background:#1a2130;box-shadow:inset 3px 0 0 var(--acc)}
@@ -1548,7 +1569,7 @@ document.addEventListener('keydown', (e)=>{
 let last=[];
 async function doSearch(){
   const q=$('#q').value.trim(); if(!q)return;
-  $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); $('#tb').innerHTML='';
+  $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); skTable(6);
   try{
     if(searchMode==='all')         return await doSearchAll(q);
     if(searchMode==='artist')      return await doSearchArtist(q);
@@ -2033,16 +2054,40 @@ function loadCoversFor(container){
   });
 }
 
+function skGrid(n){
+  const g=$('#grid');
+  g.className='skg';
+  g.innerHTML = Array.from({length:n},()=>'<div class="skc"><div class="a sk"></div><div class="b sk"></div><div class="c sk"></div></div>').join('');
+}
+function skTable(n){
+  $('#tb').innerHTML = Array.from({length:n},()=>'<tr><td colspan="7"><div class="sk skrow"></div></td></tr>').join('');
+}
+function emptyBox(icon, title, sub, hint, acts){
+  return `<div class="empty">
+    <div class="eic">${icon}</div>
+    <div class="et">${esc(title)}</div>
+    <div class="es">${esc(sub)}</div>
+    ${hint?`<div class="eh">${esc(hint)}</div>`:''}
+    ${acts?`<div class="eact">${acts}</div>`:''}
+  </div>`;
+}
 async function openDir(sub){
   const same = (curSub===sub);
   curSub=sub;
   // 分类片缺失才拉；已有则只就地高亮 —— 不再 loadChips(它会重画全表)
   if(!document.querySelector('#chips .chip')) { try{ await _loadChipsOnly(); }catch(e){} }
   else chipsRefreshActive();
-  setMsg($('#bmsg'),'加载中…'); $('#grid').innerHTML='';
+  setMsg($('#bmsg'),'加载中…'); skGrid(12);   // 骨架替代空白
   try{
     const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=2000`)).json();
     const items=d.items||[];
+    if(!items.length){
+      $('#grid').innerHTML = emptyBox('♪', '这个分类还没有歌曲',
+        '先用「搜索」页搜一首下载，或点上面的分类片换一个。',
+        '已下载的文件会按来源自动归到 投稿/ 下的子目录',
+        '<button class="ghost sm" onclick="setTab(\'s\')">去搜索</button>');
+      setMsg($('#bmsg'),'空分类'); return;
+    }
     renderGridBatch(items, sub);
     setMsg($('#bmsg'), sub+' · 共 '+items.length+' 首'+(items.length>=2000?'（已达单次上限，用查找缩小）':''));
   }catch(e){setMsg($('#bmsg'),'失败: '+e,'bad');}
@@ -2949,6 +2994,38 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"ok": True, "url": url, "proxy": proxy,
                                        "title": t.title, "artists": t.artists,
                                        "ext": ext or "mp3"})
+
+            # ---- 曲目删除 / 改名（browse 已有能力，补端点）----
+            if u.path == "/api/track":
+                from . import browse as _br, stream as _st3
+                act = g("act", "")
+                rel = g("rel", "")
+                full = _st3.safe_join(library.DEFAULT_ROOT, rel)
+                if act == "delete":
+                    if not full:
+                        return self._send(400, {"error": "invalid path"})
+                    dry = g("dry", "1") == "1"
+                    removed, skipped = _br.delete([full], library.DEFAULT_ROOT, dry=dry)
+                    return self._send(200, {"ok": bool(removed), "dry": dry,
+                                            "removed": [os.path.relpath(x, library.DEFAULT_ROOT).replace(chr(92),"/") for x in removed],
+                                            "skipped": [[a, b] for a, b in skipped]})
+                if act == "rename":
+                    # 新名字替换旧文件（同目录）
+                    new = g("new", "").strip()
+                    if not full or not new or "/" in new or "\\" in new or not new.endswith(".mp3"):
+                        return self._send(400, {"error": "invalid new name"})
+                    if not os.path.exists(full):
+                        return self._send(404, {"error": "not found"})
+                    dst = os.path.join(os.path.dirname(full), new)
+                    if os.path.exists(dst):
+                        return self._send(409, {"error": "target exists"})
+                    try:
+                        os.rename(full, dst)
+                    except Exception as e:
+                        return self._send(500, {"error": repr(e)})
+                    return self._send(200, {"ok": True,
+                                            "rel": os.path.relpath(dst, library.DEFAULT_ROOT).replace(chr(92), "/")})
+                return self._send(400, {"error": "unknown act"})
 
             # ---- 收藏歌单 ----
             if u.path == "/api/favs":
