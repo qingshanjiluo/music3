@@ -45,3 +45,5 @@ musicdl_outputs/
 _commitmsg.txt
 _*.py
 
+_m*.txt
+_m*.py
