@@ -29,8 +29,19 @@ def scan(root, sub="", limit=None, deep=False, offset=0, batch=0):
     all_tracks = browse.list_tracks(root, sub, limit=limit or 1000000)
     if batch and batch > 0:
         tracks = all_tracks[offset: offset + batch]
+        # dups 是跨片关系（同名同歌手散在不同片），片内 seen 会丢 2/3（实测 1139 vs 3394）。
+        # 纯文件名比较不读 ID3，全库快扫 ~1s —— 每片都返回全库真值，前端取末片不累加。
+        _fs, _fd = {}, []
+        for _t in all_tracks:
+            _k = norm((_t.get("artists") or ""))[:12] + "|" + norm((_t.get("title") or ""))
+            if _k in _fs:
+                _fd.append({"key": _k, "a": _fs[_k], "b": _t["rel"]})
+            else:
+                _fs[_k] = _t["rel"]
+        _full_dups = _fd
     else:
         tracks = all_tracks
+        _full_dups = None
     rep = {
         "root": root,
         "sub": sub,
@@ -99,13 +110,14 @@ def scan(root, sub="", limit=None, deep=False, offset=0, batch=0):
             except Exception as e:
                 rep["bad_name"].append({"rel": t["rel"], "why": "读标签失败 %r" % (e,)[:40]})
 
-    rep["dups"] = dups
+    rep["dups"] = _full_dups if _full_dups is not None else dups
+    _dups_n = len(rep["dups"])
     # 英文键计数：前端分批聚合后按英文键重算全库分（summary 是中文键只做显示）
     rep["counts"] = {
         "bad_name": len(rep["bad_name"]),
         "tiny": len(rep["tiny"]),
         "huge": len(rep["huge"]),
-        "dups": len(dups),
+        "dups": _dups_n,
         "no_artist": len(rep["no_artist"]),
         "no_lyric": len(rep["no_lyric"]),
         "no_cover": len(rep["no_cover"]),
@@ -113,7 +125,7 @@ def scan(root, sub="", limit=None, deep=False, offset=0, batch=0):
     rep["summary"] = {
         "缺歌词": len(rep["no_lyric"]),
         "无封面": len(rep["no_cover"]),
-        "重复": len(dups),
+        "重复": _dups_n,
         "命名异常": len(rep["bad_name"]),
         "无歌手": len(rep["no_artist"]),
         "文件过小": len(rep["tiny"]),

@@ -2347,7 +2347,10 @@ async function doHealth(){
       d = part; parts.push(part);
       // 聚合 summary / detail
       for(const [k,v] of Object.entries(part.summary||{})) acc[k] = (acc[k]||0) + v;
-      for(const [k,arr] of Object.entries(part.detail||{})) (accDetail[k] = accDetail[k]||[]).push(...(arr||[]));
+      for(const [k,arr] of Object.entries(part.detail||{})){
+        if(k==='dups'){ accDetail[k] = arr; continue; }   // dups 后端每片给全库真值 -> 覆盖
+        (accDetail[k] = accDetail[k]||[]).push(...(arr||[]));
+      }
       accSize += part.total_size_mb||0;
       doneTotal += part.total||0;
       const elapsed = Math.round((Date.now()-t0)/1000);
@@ -2362,7 +2365,11 @@ async function doHealth(){
     // 按累计英文 counts 重算全库分（acc 是中文键 summary，取英文键恒 0 -> 会算成 100，必须用 counts）
     const T = Math.max(1, d.total_all || doneTotal);
     const cc = {};
-    for(const part2 of parts) for(const [k,v] of Object.entries(part2.counts||{})) cc[k]=(cc[k]||0)+v;
+    for(const part2 of parts) for(const [k,v] of Object.entries(part2.counts||{})){
+      if(k==='dups') continue;      // dups 后端每片给全库真值 -> 取末片，累加会翻倍
+      cc[k]=(cc[k]||0)+v;
+    }
+    cc.dups = ((parts[parts.length-1]||{}).counts||{}).dups || 0;
     const _pen = (cc.bad_name||0)/T*30 + (cc.tiny||0)/T*25
       + (cc.dups||0)/T*20 + (cc.no_artist||0)/T*10
       + (cc.no_lyric ? cc.no_lyric/T*15 : 0);
