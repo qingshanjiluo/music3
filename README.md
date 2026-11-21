@@ -968,3 +968,29 @@ rename 校验 `.mp3` 后缀与 `: * ? " < > |` 非法字符。
 **坑**：清 `__pycache__` 后首启要重编译全部 .pyc，固定等 13 秒会误判 DOWN ——
 验收前先 `compileall -q src` 预热再启服务。
 
+---
+
+## 第19轮（闭环 R4）：接线缺口扫描 + 下载路径 + 文件夹管理
+
+**检查**：44 按钮接线静态扫，`lyfetch`/`pvstop` 别名误报，真缺 `favexport` handler、
+`/api/lib` 端点、设置无下载路径；`dest_dir(t.source)` 写死无覆盖。
+
+**优化**
+- `GET /api/lib` 文件夹管理（新建/改名/删空目录）：路径穿越 400、源缺 404、
+  重复 409、删非空 409——**7 态全过**。
+- **下载路径 `dest_sub`**：config 新字段（GET 返回 + POST 白名单），
+  `/api/get` 读 config 并覆盖 `dest_dir`，根内校验 + 自动建目录。
+- **实测**：POST 200 → GET 回读 `'投稿/_r4dest'` → 下载 5.7s 真落进
+  `D:\音乐\投稿\_r4dest\RyaVocal - 晴天 (原唱 周杰伦).mp3` → 清空回读 `''`。
+- `favexport` handler：收藏列表导出 m3u8（Blob 下载，EXTINF + rel/q）。
+
+**设计**：曲库顶栏 `新建文件夹` / `改名当前` 按钮（prompt → `/api/lib`），
+创建后就地刷新分类片；设置弹窗新增「下载路径」输入 + 说明行。
+
+**验收**：端点 **26/0**、R4 marker 7/7、HTML 105399B、JS undefined NONE、
+CSS 269/269、node 0、compile 0、46 按钮（`lyfetch` 为 `_lyBtn` 别名误报）。
+
+**坑**：`do_POST` 与 GET handler 里两处形似的 `for k in (…)` 白名单元组，
+按首命中 `replace` 会改错那处——多个同形锚点必须带行号/上下文定位
+（`_cfg.load` 调用处才是 POST 分支）。
+

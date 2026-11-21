@@ -591,6 +591,11 @@ tbody tr.playing td{background:#12243a}
       <button class="ghost sm" id="creditset">应用</button>
     </div>
 
+    <div class="setrow" style="flex-direction:column;align-items:stretch">
+      <span class="k">下载路径 <span class="n">（相对曲库根的子目录，留空=按来源自动分类）</span></span>
+      <input type="text" id="destsub" placeholder="如 投稿/QQ音乐 或 投稿/我的收藏">
+      <div class="h">留空 = 按来源自动投到 投稿/ 下各源子目录；填了则全部进该子目录（自动创建）。</div>
+    </div>
     <div class="setrow">
       <span class="k">QQ 音质</span>
       <select id="qquality">
@@ -718,6 +723,8 @@ tbody tr.playing td{background:#12243a}
     <input type="text" id="fq" placeholder="在曲库中查找…">
     <button id="fgo">查找</button>
     <button class="ghost" id="reload">刷新</button>
+    <button class="ghost" id="mkdir">新建文件夹</button>
+    <button class="ghost" id="redir">改名当前</button>
     <div class="vtog">
       <span class="on" data-v="grid">网格</span>
       <span data-v="list">列表</span>
@@ -1854,12 +1861,54 @@ async function favDl1(i){
     if(d.ok) favLoad();
   }catch(e){ setMsg($('#favmsg'),'失败: '+e,'bad'); }
 }
+async function libAct(act, params){
+  const u = new URL('/api/lib', location.origin);
+  u.searchParams.set('act', act);
+  Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  return await (await fetch(u)).json();
+}
+$('#mkdir').onclick = async ()=>{
+  const name = prompt('新文件夹名（相对曲库根，如 投稿/我的收藏）：');
+  if(!name) return;
+  try{
+    const r = await libAct('new', {sub:name});
+    setMsg($('#bmsg'), r.ok? ('已创建 '+r.rel) : ('创建失败: '+(r.error||'')), r.ok?'ok':'bad');
+    if(r.ok){ try{ await _loadChipsOnly(); }catch(e){} if(curSub) openDir(curSub); }
+  }catch(e){ setMsg($('#bmsg'),'创建失败: '+e,'bad'); }
+};
+$('#redir').onclick = async ()=>{
+  if(!curSub){ setMsg($('#bmsg'),'先点开一个分类再改名','bad'); return; }
+  const nn = prompt('「'+curSub+'」改名为（相对曲库根）：', curSub);
+  if(!nn || nn===curSub) return;
+  try{
+    const r = await libAct('rename', {sub:curSub, new:nn});
+    setMsg($('#bmsg'), r.ok? ('已改名 -> '+r.rel) : ('改名失败: '+(r.error||'')), r.ok?'ok':'bad');
+    if(r.ok){ curSub=r.rel; try{ await _loadChipsOnly(); }catch(e){} openDir(r.rel); }
+  }catch(e){ setMsg($('#bmsg'),'改名失败: '+e,'bad'); }
+};
 $('#favreload').onclick = favLoad;
 $('#favdlall').onclick = async ()=>{
   const items = (window._favItems||[]).filter(x=>!x.rel && (x.q||x.title));
   if(!items.length){ setMsg($('#favmsg'),'收藏里没有待下载项','bad'); return; }
   setMsg($('#favmsg'),'开始下载 '+items.length+' 首…');
   for(const x of items){ await favDl1((window._favItems||[]).indexOf(x)); }
+};
+$('#favexport').onclick = ()=>{
+  const items = window._favItems||[];
+  if(!items.length){ setMsg($('#favmsg'),'收藏为空','bad'); return; }
+  const lines = ['#EXTM3U'];
+  items.forEach(x=>{
+    const name = [x.artists, x.title].filter(Boolean).join(' - ');
+    lines.push('#EXTINF:'+(Math.round(x.duration||-1))+','+name);
+    lines.push(x.rel || ((x.q||x.title||'')+(x.source? ' ('+x.source+')':'')));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'audio/x-mpegurl'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'favs.m3u8';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  setMsg($('#favmsg'),'已导出 '+items.length+' 首 -> favs.m3u8','ok');
 };
 $('#favclear').onclick = async ()=>{
   if(!confirm('清空收藏歌单？')) return;
@@ -2335,6 +2384,7 @@ async function cfgLoad(){
   $('#creditv').textContent = (CFG.credit_balance!=null)? CFG.credit_balance : 100;
   if(CFG.qq_quality_order) $('#qquality').value = CFG.qq_quality_order.join(',');
   $('#qqcookie').value = CFG.qq_cookie || '';
+  $('#destsub').value = CFG.dest_sub || '';
   $('#necookie').value = CFG.netease_cookie || '';
 }
 function setOpen(){ document.body.classList.add('ov'); $('#setmodal').classList.add('on'); cfgLoad(); }
@@ -2356,6 +2406,7 @@ $('#setsave').onclick = async ()=>{
     qq_cookie: $('#qqcookie').value.trim(),
     netease_cookie: $('#necookie').value.trim(),
     credit_balance: parseInt($('#creditv').textContent, 10) || 0,
+    dest_sub: $('#destsub').value.trim(),
   };
   try{
     const r = await (await fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
@@ -3036,6 +3087,60 @@ class Handler(BaseHTTPRequestHandler):
                                        "title": t.title, "artists": t.artists,
                                        "ext": ext or "mp3"})
 
+            # ---- 曲库文件夹管理：新建/改名/删除（限 DEFAULT_ROOT 内）----
+            if u.path == "/api/lib":
+                act = g("act", "")
+                root = os.path.abspath(library.DEFAULT_ROOT)
+
+                def _safe(rel):
+                    rel = (rel or "").strip().replace("/", os.sep).replace("\\", os.sep)
+                    if not rel or rel in (os.sep, "."):
+                        return None
+                    full = os.path.abspath(os.path.join(root, rel))
+                    if not full.startswith(root + os.sep):
+                        return None
+                    return full
+
+                if act == "new":
+                    full = _safe(g("sub", ""))
+                    if full is None:
+                        return self._send(400, {"error": "path escape"})
+                    if os.path.exists(full):
+                        return self._send(409, {"error": "exists"})
+                    try:
+                        os.makedirs(full, exist_ok=True)
+                    except Exception as e:
+                        return self._send(500, {"error": repr(e)})
+                    return self._send(200, {"ok": True, "rel": g("sub")})
+                if act == "rename":
+                    sp, dp = _safe(g("sub", "")), _safe(g("new", ""))
+                    if sp is None or dp is None:
+                        return self._send(400, {"error": "path escape"})
+                    if not os.path.isdir(sp):
+                        return self._send(404, {"error": "source not found"})
+                    if os.path.exists(dp):
+                        return self._send(409, {"error": "target exists"})
+                    try:
+                        os.rename(sp, dp)
+                    except Exception as e:
+                        return self._send(500, {"error": repr(e)})
+                    return self._send(200, {"ok": True, "rel": g("new")})
+                if act == "rm":
+                    full = _safe(g("sub", ""))
+                    if full is None:
+                        return self._send(400, {"error": "path escape"})
+                    if not os.path.isdir(full):
+                        return self._send(404, {"error": "not found"})
+                    left = [x for x in os.listdir(full) if not x.startswith(".")]
+                    if left:
+                        return self._send(409, {"error": "not empty (%d)" % len(left)})
+                    try:
+                        os.rmdir(full)
+                    except Exception as e:
+                        return self._send(500, {"error": repr(e)})
+                    return self._send(200, {"ok": True})
+                return self._send(400, {"error": "unknown act"})
+
             # ---- 曲目删除 / 改名（browse 已有能力，补端点）----
             if u.path == "/api/track":
                 from . import browse as _br, stream as _st3
@@ -3107,7 +3212,7 @@ class Handler(BaseHTTPRequestHandler):
                         body = json.loads(self.rfile.read(ln).decode("utf-8") or "{}")
                         d = _cfg.load(reload=True)
                         changed = False
-                        for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance"):
+                        for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance", "dest_sub"):
                             if k in body:
                                 d[k] = body[k]
                                 changed = True
@@ -3125,6 +3230,7 @@ class Handler(BaseHTTPRequestHandler):
                     "netease_cookie": d.get("netease_cookie", ""),
                     "credit_balance": d.get("credit_balance", 100),
                     "credit_spent": d.get("credit_spent", 0),
+                    "dest_sub": d.get("dest_sub", ""),
                     # 服务进程实际生效的登录态（单例 session 的 Cookie 头）
                     "qq_cookie_active": bool(_sq._S.headers.get("Cookie")),
                     "netease_cookie_active": bool(_sn._S.headers.get("Cookie")),
@@ -3474,6 +3580,14 @@ class Handler(BaseHTTPRequestHandler):
                         {"ok": True, "log": "已存在: %s" % old, "path": old},
                     )
                 d = library.dest_dir(t.source)
+                from . import config as _cfgG
+                _ds = g("dest", "") or (_cfgG.load().get("dest_sub") or "")
+                if _ds:
+                    _root_abs = os.path.abspath(library.DEFAULT_ROOT)
+                    _cand = os.path.abspath(os.path.join(_root_abs, _ds))
+                    if _cand.startswith(_root_abs + os.sep):
+                        os.makedirs(_cand, exist_ok=True)
+                        d = _cand
                 ok, m, path = downloader.download(t, d)
                 return self._send(
                     200,
@@ -3502,7 +3616,7 @@ class Handler(BaseHTTPRequestHandler):
             from . import src_qq as _sq, src_netease as _sn
 
             d = _cfg.load(reload=True)
-            for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance"):
+            for k in ("qq_quality_order", "qq_cookie", "netease_cookie", "credit_balance", "dest_sub"):
                 if k in body:
                     d[k] = body[k]
             if _cfg.save(d):
