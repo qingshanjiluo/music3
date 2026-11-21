@@ -2422,17 +2422,19 @@ $('#hfixlyric').onclick = async ()=>{
   const full = (window._health && window._health.detail && window._health.detail.no_lyric) || [];
   const arr = list.length ? list : full;
   if(!arr.length){ setMsg($('#hmsg2'), '先跑一次健康检查，才有「缺歌词」列表', 'bad'); return; }
-  if(!confirm('对 '+arr.length+' 首逐首联网补歌词？（约 '+Math.ceil(arr.length*1.5)+'s）')) return;
+  if(!confirm('对 '+arr.length+' 首逐首联网补歌词？（约 '+Math.ceil(arr.length*0.7)+'s，实测 0.64s/首）')) return;
+  const _t0 = Date.now();
   let ok=0, miss=0;
   for(let i=0;i<arr.length;i++){
     const rel = arr[i];
-    setMsg($('#hmsg2'), `补歌词 ${i+1}/${arr.length} … ${String(rel).split(/[\\/]/).pop()}`);
+    setMsg($('#hmsg2'), `补歌词 ${i+1}/${arr.length} · 成功${ok} 失败${miss} · ${String(rel).split(/[\\/]/).pop()}`);
     try{
       const r = await (await fetch(`/api/lyric-fetch?act=fill&rel=${encodeURIComponent(rel)}&write=1`)).json();
       if(r.ok) ok++; else miss++;
     }catch(e){ miss++; }
   }
-  setMsg($('#hmsg2'), `补歌词完成：成功 ${ok} / 失败 ${miss}`, ok ? 'ok' : 'bad');
+  const _s = Math.round((Date.now()-_t0)/1000);
+  setMsg($('#hmsg2'), `补歌词完成：成功 ${ok} / 失败 ${miss}（${_s}s，${(arr.length/Math.max(1,_s)).toFixed(1)} 首/s）`, ok ? 'ok' : 'bad');
 };
 
 /* 对健康检查里「无封面」列表逐首补封面 */
@@ -2444,17 +2446,20 @@ $('#hfixcover').onclick = async()=>{
   }
   const btn = $('#hfixcover');
   btn.disabled = true;
+  const _t0 = Date.now();
   let ok = 0, miss = 0;
   for(let i=0;i<list.length;i++){
     const rel = list[i].rel;
-    setMsg($('#hmsg2'), `补封面 ${i+1}/${list.length} … ${rel.split(/[\\\\/]/).pop()}`);
+    setMsg($('#hmsg2'), `补封面 ${i+1}/${list.length} · 成功${ok} 失败${miss} · ${rel.split(/[\\\\/]/).pop()}`);
     try{
       const d = await (await fetch('/api/coverfill?rel='+encodeURIComponent(rel)+'&write=1')).json();
-      if(d.ok && d.bytes) ok++; else miss++;
+      if(d.ok && d.bytes) ok++; else if(d.ok) miss++;  // ok 但 bytes=0（已内嵌/embedded）不计成功也不算失败
+      else miss++;
     }catch(e){ miss++; }
   }
   btn.disabled = false;
-  setMsg($('#hmsg2'), `补封面完成：成功 ${ok} / 失败 ${miss}`, ok ? 'ok' : 'bad');
+  const _s = Math.round((Date.now()-_t0)/1000);
+  setMsg($('#hmsg2'), `补封面完成：成功 ${ok} / 失败 ${miss}（${_s}s，${(list.length/Math.max(1,_s)).toFixed(1)} 首/s）`, ok ? 'ok' : 'bad');
   doHealth();   // 重扫
 };
 
