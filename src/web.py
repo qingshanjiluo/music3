@@ -2332,22 +2332,59 @@ $('#stclear').onclick = async()=>{
 async function doHealth(){
   const deep = $('#hdeep').checked;
   const sub = curSub || '';
-  setMsg($('#hmsg2'), deep ? '深度扫描中（读 ID3，可能要几十秒）…' : '扫描中…');
+  const HB = 400;   // 分批大小：每片 400 首，避免 136s 单请求挂死
+  setMsg($('#hmsg2'), deep ? '深度扫描分批中（读 ID3，每片 400 首）…' : '扫描中…');
   $('#hresult').innerHTML = '';
   try{
-    const u = `/api/health?deep=${deep?1:0}&sub=${encodeURIComponent(sub)}`;
-    const d = await (await fetch(u)).json();
-    if(d.error){ setMsg($('#hmsg2'), '错误: '+d.error, 'bad'); return; }
+    // —— 分批循环拉取并聚合 ——
+    let off = 0, d = null, acc = {}, accDetail = {}, accSize = 0, doneTotal = 0, parts = [];
+    let round = 0, t0 = Date.now();
+    while(true){
+      round++;
+      const u = `/api/health?deep=${deep?1:0}&sub=${encodeURIComponent(sub)}&offset=${off}&batch=${HB}`;
+      const part = await (await fetch(u)).json();
+      if(part.error){ setMsg($('#hmsg2'), '错误: '+part.error, 'bad'); return; }
+      d = part; parts.push(part);
+      // 聚合 summary / detail
+      for(const [k,v] of Object.entries(part.summary||{})) acc[k] = (acc[k]||0) + v;
+      for(const [k,arr] of Object.entries(part.detail||{})) (accDetail[k] = accDetail[k]||[]).push(...(arr||[]));
+      accSize += part.total_size_mb||0;
+      doneTotal += part.total||0;
+      const elapsed = Math.round((Date.now()-t0)/1000);
+      if(part.more){
+        setMsg($('#hmsg2'),
+          `扫描进度 ${doneTotal}/${part.total_all} 首（${elapsed}s，片${round}，本片健康分 ${part.score}）…`);
+        off += HB;
+        continue;
+      }
+      break;
+    }
+    // 按累计英文 counts 重算全库分（acc 是中文键 summary，取英文键恒 0 -> 会算成 100，必须用 counts）
+    const T = Math.max(1, d.total_all || doneTotal);
+    const cc = {};
+    for(const part2 of parts) for(const [k,v] of Object.entries(part2.counts||{})) cc[k]=(cc[k]||0)+v;
+    const _pen = (cc.bad_name||0)/T*30 + (cc.tiny||0)/T*25
+      + (cc.dups||0)/T*20 + (cc.no_artist||0)/T*10
+      + (cc.no_lyric ? cc.no_lyric/T*15 : 0);
+    const sc2 = Math.max(0, Math.round((100 - _pen)*10)/10);
+    d = Object.assign({}, d, {
+      total: d.total_all || doneTotal,
+      summary: acc,
+      detail: accDetail,
+      total_size_mb: Math.round(accSize*10)/10,
+      score: sc2,
+    });
     const sc = d.score;
     const cls = sc>=90?'ok':(sc>=70?'':'bad');
     setMsg($('#hmsg2'),
-      `共 ${d.total} 首 / ${d.total_size_mb} MB · 健康分 ${sc}/100${d.deep?'（深度）':'（快速）'}`, cls);
+      `共 ${d.total} 首 / ${d.total_size_mb} MB · 健康分 ${sc}/100${d.deep?'（深度·分批完成）':'（快速）'}`, cls);
     // 卡片
     const cards = Object.entries(d.summary||{}).map(([k,v])=>
       `<div class="statcard"><div class="k">${esc(k)}</div><div class="v" style="${v?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${v}</div></div>`
     ).join('');
     // 明细
     const blocks = [];
+    for(const k in (d.detail||{})) if(Array.isArray(d.detail[k]) && d.detail[k].length>60) d.detail[k]=d.detail[k].slice(0,60);
     window._healthNoCover = (d.detail && d.detail.no_cover) || [];
   window._healthNoLyric = (d.detail && d.detail.no_lyric) || [];
   window._health = d;   // 补歌词/补封面按钮共用这份明细
@@ -2995,16 +3032,24 @@ class Handler(BaseHTTPRequestHandler):
 
                 deep = g("deep", "0") == "1"
                 lim = int(g("limit", "0")) or None
-                r = health.scan(library.DEFAULT_ROOT, g("sub", ""), limit=lim, deep=deep)
+                off = int(g("offset", "0") or 0)
+                batch = int(g("batch", "0") or 0)
+                r = health.scan(library.DEFAULT_ROOT, g("sub", ""), limit=lim, deep=deep,
+                                 offset=off, batch=batch)
                 # 明细太多会撑爆响应，只带前 30 条
                 slim = {}
                 for k in ("no_lyric", "no_cover", "bad_name", "no_artist", "tiny", "huge", "dups"):
                     slim[k] = (r.get(k) or [])[:30]
                 return self._send(200, {
                     "total": r["total"],
+                    "total_all": r["total_all"],
+                    "offset": r["offset"],
+                    "batch": r["batch"],
+                    "more": r["more"],
                     "total_size_mb": round(r["total_size_mb"], 1),
                     "score": r["score"],
                     "summary": r["summary"],
+                    "counts": r.get("counts") or {},
                     "detail": slim,
                     "deep": deep,
                 })

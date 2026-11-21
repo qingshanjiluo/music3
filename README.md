@@ -1167,3 +1167,26 @@ CSS 269/269、node 0、compile 0、测试目录已清。
 **坑**：`coverfill` 正则从 `if u.path ==` 起截会漏掉嵌套 `if act ==`（acts 抓空是
 扫描脚本截断，非功能缺陷）——检查脚本截取范围要跨到下一个同级 `if u.path ==`。
 
+---
+
+## 第27轮（闭环 R12）：maintain 大批推进 + health 深扫分批
+
+**maintain 大批实测（后台 20 批 x 20 首）**：400 首 419s → **歌词 +296、封面 +391**
+（totals 27→323 / 30→421），cursor 同步推进至归档深处，断点文件每批落盘。
+
+**health 深扫分批**（原 136.2s 单请求挂死 → 分片可续）：
+- 后端 `health.scan(+offset, +batch)` + `/api/health` 透传 `offset/batch/total_all/more/counts`。
+- 前端 `doHealth` 循环拉 400 首/片，进度文案 `扫描进度 N/5188（s，片k）`，聚合 summary/detail。
+- 实测：深扫 13 片 239.6s 完成（每片 2.2~38.2s，片间可中断续传）；快扫 3 片 5.5s。
+
+**两连 bug（分批特有）**
+1. `Math.max(0, Math.round((100-pen)*10)/10` 括号少一层 → node --check 报 `Unexpected token ')'`；
+   **教训**：JS 内联进 Python 字符串，node --check 是唯一闸，改算分公式必须过闸。
+2. **中英键错位**：`summary` 是中文键（缺歌词/重复），前端算分取 `acc.bad_name` 恒 0 → 分数恒 100.0
+   （实测 1139 重复却报满分）。修：health.py 加 `rep["counts"]` 英文键、端点透传、前端按
+   `parts[].counts` 聚合 → 85.8 分（与全库单次 77.1 的差 = dups 跨片无法去重，分批语义限制）。
+   **教训**：显示字段与计算字段必须分两套键名，混用必出恒值 bug。
+
+**验收**：快扫分批 3 片 5.5s 计分 85.8、端点 **28/0**、HTML 113389B、JS undefined NONE、
+CSS 269/269、marker 5/5、node 0、compile 0、测试目录清理。
+

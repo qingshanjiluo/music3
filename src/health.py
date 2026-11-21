@@ -20,16 +20,25 @@ BAD_CHARS = re.compile(r'[<>:"|?*\x00-\x1f]')
 SUSPECT_NAME = re.compile(r"(未命名|unknown|track\s*\d+$|^\d+$|副本|copy)", re.I)
 
 
-def scan(root, sub="", limit=None, deep=False):
+def scan(root, sub="", limit=None, deep=False, offset=0, batch=0):
     """扫库。deep=True 时读 ID3（慢），否则只看文件名与大小。
 
+    batch>0 时只扫 offset..offset+batch（分批，返回 total_all 供前端算进度）。
     返回 dict 报告。
     """
-    tracks = browse.list_tracks(root, sub, limit=limit or 1000000)
+    all_tracks = browse.list_tracks(root, sub, limit=limit or 1000000)
+    if batch and batch > 0:
+        tracks = all_tracks[offset: offset + batch]
+    else:
+        tracks = all_tracks
     rep = {
         "root": root,
         "sub": sub,
         "total": len(tracks),
+        "total_all": len(all_tracks),
+        "offset": offset,
+        "batch": batch,
+        "more": (offset + len(tracks)) < len(all_tracks),
         "total_size_mb": 0.0,
         "no_lyric": [],
         "no_cover": [],
@@ -91,6 +100,16 @@ def scan(root, sub="", limit=None, deep=False):
                 rep["bad_name"].append({"rel": t["rel"], "why": "读标签失败 %r" % (e,)[:40]})
 
     rep["dups"] = dups
+    # 英文键计数：前端分批聚合后按英文键重算全库分（summary 是中文键只做显示）
+    rep["counts"] = {
+        "bad_name": len(rep["bad_name"]),
+        "tiny": len(rep["tiny"]),
+        "huge": len(rep["huge"]),
+        "dups": len(dups),
+        "no_artist": len(rep["no_artist"]),
+        "no_lyric": len(rep["no_lyric"]),
+        "no_cover": len(rep["no_cover"]),
+    }
     rep["summary"] = {
         "缺歌词": len(rep["no_lyric"]),
         "无封面": len(rep["no_cover"]),
