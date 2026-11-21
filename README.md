@@ -1018,3 +1018,27 @@ HTML 107594B · JS 66536ch undefined NONE · CSS 269/269 · **端点 26/0** · n
 **坑**：静态检查的"空格快捷键缺失"是正则没写 `case ' '` 导致的假阳性——
 检查脚本必须先跑已知存在项做自校准，否则会把误报当工作项。
 
+---
+
+## 第21轮（闭环 R6）：真实浏览器 E2E 画面验收（补齐历轮欠账）
+
+**工具链**：Python Playwright + 系统 Chrome（`executable_path` 指本机 chrome.exe，
+Playwright 自带 chromium 未装，避免下载 150MB）；accessibility tree 走 CDP
+`Accessibility.getFullAXTree`（新版 Playwright 已删 `page.accessibility`）。
+
+**实测结果**
+- 加载 3.22s · **console error 0** · pageerror 0 · requestfailed 0
+- a11y tree 586 节点：tab 7 / tablist 1 / tabpanel 1(可见) / progressbar 1 / dialog(role 实测)
+- 7 个 tab 全部可见可点；搜索 **38 行 2.24s**；多选 checked=3/picked=3 高亮生效
+- 曲库点分类出 60 卡；设置弹窗 `role=dialog` 可见；截图留档 `docs/shots/` 5 张
+
+**E2E 教训（写入检查脚本规范）**
+1. `wait_for('#tb tr')` 会**被骨架行骗过**（`skrow` 也是 `<tr>`）——必须等
+   `.rsel`/`.card` 等真内容选择器。
+2. 点分类片后必须 `wait_for_function(卡片数>0)`，固定 sleep 1.5s 会误报 cards=0。
+3. **服务"DOWN"先杀光残留 run.py**：多轮 Start-Process 累积 3 个僵尸进程，
+   旧的占端口新 bind 失败（EPERM 静默），清光后 4.5s bind 正常。重启纪律：
+   `Get-CimInstance ... *run.py* | Stop-Process` → 清 pyc → 起 → 轮询端口。
+4. Playwright 环境：`playwright install` 未跑就用系统 Chrome；CDP 替代
+   accessibility API。
+
