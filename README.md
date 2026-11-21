@@ -1094,3 +1094,32 @@ marker 3/3、收藏闭环（add/重复/空400/清理）、node 0、compile 0。
 Playwright launch 在本机并发场景要显式 `timeout=30000`，默认 180s 会把整条
 HTTP 请求挂成超时。
 
+---
+
+## 第24轮（闭环 R9）：歌单下载全链路 + 网易 API 直取 + 多站点适配
+
+**实测（真实外网 + 真实落盘）**
+| 项 | 结果 |
+|---|---|
+| `plimport act=download` 真跑 | job 启动 41.9s（含解析 12 首）→ **8 首真实 mp3 落盘**，日志 `[2][3][4] -> OK`，12 首进行中 ✓ |
+| 网易歌单 **API 直取** | `/api/v6/playlist/detail` **1.9s 200 首原文标题**（绕开字体反爬）✓ |
+| QQ 歌单 Playwright | 22.5s 14 首（复合选择器兜底生效）✓ |
+| 白名单 | 非法域 / 非 http 双拦截 0.0s ✓ |
+
+**路径记录（网易三段）**
+1. 直抓 `.m-table` DOM → 命中 200 行但**字体反爬拆字乱码**（`海 叫号非无 屿你`）✗
+2. iframe 遍历必需：`#/playlist` 是外壳，真内容在 frame[1]（外层 13 li 是导航菜单）→ 误抓风险已记档
+3. **API 直取** `v6/playlist/detail` → 原文标题 0.3-1.9s ✓（选定，Playwright 降级备选）
+
+**修复**
+- `page.frames` 在部分 Playwright 版本是**属性不是方法** → `callable()` 兼容
+- `requests.get(trust_env=...)` 不收该 kwarg → Session 对象上设
+- `launch` 偶发 `TargetClosed`（外部杀/竞态）→ 1.5s 重试 1 次
+- 站点分派 `_SITE[qq|netease|bili]` + 网易反爬检测（PUA/替换符比例）自动判死路
+
+**验收**：三站解析全通、白名单 2/2、compile 0、落盘证据 8 文件、测试目录已清。
+
+**坑**：Playwright 版本差异别想当然——`page.frames` 是属性；`requests` 的
+`trust_env` 挂 Session 不挂 get；外部 kill 会让 launch 报 TargetClosed，
+服务进程里必须重试一次再判死。
+
