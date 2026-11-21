@@ -208,9 +208,10 @@ def find_lyric(title, artist, log=None, timeout=15):
     """从网易云/QQ 找歌词。返回 (lyric, source) 或 ("", "")."""
     title_c, artist_c = _clean(title), _clean(artist)
     if not title_c:
-        return "", ""
+        return "", "无歌名（元数据与文件名都没解析出标题）"
 
     kw = ("%s %s" % (title_c, artist_c)).strip()
+    ne_hit = qq_hit = ne_err = qq_err = False
 
     # ① 网易云
     try:
@@ -223,6 +224,7 @@ def find_lyric(title, artist, log=None, timeout=15):
             if s > best_s:
                 best, best_s = t, s
         if best and best_s >= 0.55:
+            ne_hit = True
             ly = src_netease.get_lyric(best.track_id)
             if _is_real_lyric(ly):
                 if log:
@@ -231,6 +233,7 @@ def find_lyric(title, artist, log=None, timeout=15):
             elif ly and log:
                 log("netease 命中但非真歌词（%.0f 字）" % len(ly))
     except Exception as e:
+        ne_err = True
         if log:
             log("netease ERR %r" % (e,))
 
@@ -245,6 +248,7 @@ def find_lyric(title, artist, log=None, timeout=15):
             if s > best_s:
                 best, best_s = t, s
         if best and best_s >= 0.55:
+            qq_hit = True
             ly = src_qq.get_lyric(best.track_id)
             # QQ 有时给 base64
             if ly and not ly.lstrip().startswith("["):
@@ -263,10 +267,18 @@ def find_lyric(title, artist, log=None, timeout=15):
             elif ly and log:
                 log("qq 命中但非真歌词（%.0f 字）" % len(ly))
     except Exception as e:
+        qq_err = True
         if log:
             log("qq ERR %r" % (e,))
 
-    return "", ""
+    # 失败原因三态：占位命中（打到歌但纯音乐）/ 无匹配（两源打分都 <0.55）/ 两源异常
+    if ne_hit:
+        return "", "网易命中但为占位歌词（纯音乐/伴奏）"
+    if qq_hit:
+        return "", "QQ命中但为占位歌词（纯音乐/伴奏）"
+    if ne_err or qq_err:
+        return "", "两源搜索异常 netease=%s qq=%s" % (ne_err or "ok", qq_err or "ok")
+    return "", "两源无匹配（打分<0.55，疑似无歌词曲目或元数据不准）"
 
 
 def fill_one(path, write_id3=False, log=None):
@@ -281,6 +293,7 @@ def fill_one(path, write_id3=False, log=None):
         if t.get("lyric") and len(t["lyric"]) > 80:
             r["ok"] = True
             r["source"] = "embedded"
+            r["msg"] = "已内嵌"
             return r
     except Exception:
         t = {}
@@ -291,6 +304,7 @@ def fill_one(path, write_id3=False, log=None):
         r["ok"] = True
         r["source"] = "cache"
         r["cached"] = True
+        r["msg"] = "已缓存"
         if write_id3:
             r["wrote"] = _write_id3(path, cached)
         return r
@@ -320,9 +334,11 @@ def fill_one(path, write_id3=False, log=None):
             src = (src or "") + "+swap"
     if ly:
         save_cached(path, ly)
-        r.update(ok=True, source=src, cached=True)
+        r.update(ok=True, source=src, cached=True, msg="ok")
         if write_id3:
             r["wrote"] = _write_id3(path, ly)
+    else:
+        r["msg"] = src or "两源无匹配（打分<0.55）"   # find_lyric 失败时第二返回值=原因
     return r
 
 

@@ -2424,17 +2424,19 @@ $('#hfixlyric').onclick = async ()=>{
   if(!arr.length){ setMsg($('#hmsg2'), '先跑一次健康检查，才有「缺歌词」列表', 'bad'); return; }
   if(!confirm('对 '+arr.length+' 首逐首联网补歌词？（约 '+Math.ceil(arr.length*0.7)+'s，实测 0.64s/首）')) return;
   const _t0 = Date.now();
-  let ok=0, miss=0;
+  let ok=0, miss=0; const why={};
   for(let i=0;i<arr.length;i++){
     const rel = arr[i];
     setMsg($('#hmsg2'), `补歌词 ${i+1}/${arr.length} · 成功${ok} 失败${miss} · ${String(rel).split(/[\\/]/).pop()}`);
     try{
       const r = await (await fetch(`/api/lyric-fetch?act=fill&rel=${encodeURIComponent(rel)}&write=1`)).json();
-      if(r.ok) ok++; else miss++;
-    }catch(e){ miss++; }
+      if(r.ok){ ok++; }
+      else { miss++; const w=(r.msg||'未知').replace(/（.*/,'').slice(0,14); why[w]=(why[w]||0)+1; }
+    }catch(e){ miss++; why['网络异常']=(why['网络异常']||0)+1; }
   }
   const _s = Math.round((Date.now()-_t0)/1000);
-  setMsg($('#hmsg2'), `补歌词完成：成功 ${ok} / 失败 ${miss}（${_s}s，${(arr.length/Math.max(1,_s)).toFixed(1)} 首/s）`, ok ? 'ok' : 'bad');
+  const whyTxt = Object.entries(why).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}×${v}`).join(' · ');
+  setMsg($('#hmsg2'), `补歌词完成：成功 ${ok} / 失败 ${miss}（${_s}s，${(arr.length/Math.max(1,_s)).toFixed(1)} 首/s）` + (whyTxt?' — '+whyTxt:''), ok ? 'ok' : 'bad');
 };
 
 /* 对健康检查里「无封面」列表逐首补封面 */
