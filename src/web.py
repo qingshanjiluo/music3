@@ -2212,16 +2212,32 @@ function emptyBox(icon, title, sub, hint, acts){
     ${acts?`<div class="eact">${acts}</div>`:''}
   </div>`;
 }
-async function openDir(sub){
+const PAGE = 400;               // 曲库分页：每页 400，触底续拉（归档 4708 全可见）
+let _libTotal = 0;
+async function _libPage(sub, offset){
+  const d = await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=${PAGE}&offset=${offset}`)).json();
+  return {items: d.items||[], got: (d.items||[]).length};
+}
+async function openDir(sub, keepScroll){
   const same = (curSub===sub);
   curSub=sub;
-  // 分类片缺失才拉；已有则只就地高亮 —— 不再 loadChips(它会重画全表)
+  _libTotal = 0;
+  // 分类片缺失才拉；已有则只地高亮 —— 不再 loadChips(它会重画全表)
   if(!document.querySelector('#chips .chip')) { try{ await _loadChipsOnly(); }catch(e){} }
   else chipsRefreshActive();
-  setMsg($('#bmsg'),'加载中…'); skGrid(12);   // 骨架替代空白
+  setMsg($('#bmsg'),'加载中…'); if(!keepScroll) skGrid(12);   // 骨架替代空白
   try{
-    const d=await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=2000`)).json();
-    const items=d.items||[];
+    // 分页拉满：每页 400 顺序续拉，直到拿完（后端 offset 分页已验证）
+    let items = [], off = 0;
+    while(true){
+      const pg = await _libPage(sub, off);
+      items = items.concat(pg.items);
+      if(pg.got < PAGE) break;
+      off += pg.got;
+      setMsg($('#bmsg'), sub+' · 已加载 '+items.length+' 首…');
+      if(off > 8000) break;      // 安全阀
+    }
+    _libTotal = items.length;
     if(!items.length){
       $('#grid').innerHTML = emptyBox('♪', '这个分类还没有歌曲',
         '先用「搜索」页搜一首下载，或点上面的分类片换一个。',
@@ -2230,7 +2246,7 @@ async function openDir(sub){
       setMsg($('#bmsg'),'空分类'); return;
     }
     renderGridBatch(items, sub);
-    setMsg($('#bmsg'), sub+' · 共 '+items.length+' 首'+(items.length>=2000?'（已达单次上限，用查找缩小）':''));
+    setMsg($('#bmsg'), sub+' · 共 '+items.length+' 首');
   }catch(e){setMsg($('#bmsg'),'失败: '+e,'bad');}
 }
 $('#reload').onclick=loadChips;
