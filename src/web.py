@@ -810,6 +810,8 @@ tbody tr.playing td{background:#12243a}
     <button id="hscan">健康检查</button>
     <label class="chk"><input type="checkbox" id="hdeep"> 读 ID3（准但慢）</label>
     <button class="ghost" id="hfixcover" title="对「无封面」列表逐首联网补">补封面</button>
+    <button class="ghost" id="hfixlyric" title="对「缺歌词」列表逐首联网补">补歌词</button>
+    <span class="n" id="hdeeptip">深扫全库约 136s（读 ID3）；快扫按文件名约 5s</span>
   </div>
   <div class="msg" id="hmsg2" role="status" aria-live="polite"></div>
   <div id="hresult"></div>
@@ -2347,6 +2349,8 @@ async function doHealth(){
     // 明细
     const blocks = [];
     window._healthNoCover = (d.detail && d.detail.no_cover) || [];
+  window._healthNoLyric = (d.detail && d.detail.no_lyric) || [];
+  window._health = d;   // 补歌词/补封面按钮共用这份明细
     const LABEL = {no_lyric:'缺歌词', no_cover:'无封面', bad_name:'命名异常',
                    no_artist:'无歌手', tiny:'文件过小', huge:'文件过大', dups:'重复'};
     for(const k in LABEL){
@@ -2364,6 +2368,25 @@ async function doHealth(){
   }catch(e){ setMsg($('#hmsg2'), '失败: '+e, 'bad'); }
 }
 $('#hscan').onclick = doHealth;
+
+/* 对健康检查里「缺歌词」列表逐首补歌词（同 hfixcover 模式） */
+$('#hfixlyric').onclick = async ()=>{
+  const list = (window._healthNoLyric = window._healthNoLyric || []);
+  const full = (window._health && window._health.detail && window._health.detail.no_lyric) || [];
+  const arr = list.length ? list : full;
+  if(!arr.length){ setMsg($('#hmsg2'), '先跑一次健康检查，才有「缺歌词」列表', 'bad'); return; }
+  if(!confirm('对 '+arr.length+' 首逐首联网补歌词？（约 '+Math.ceil(arr.length*1.5)+'s）')) return;
+  let ok=0, miss=0;
+  for(let i=0;i<arr.length;i++){
+    const rel = arr[i];
+    setMsg($('#hmsg2'), `补歌词 ${i+1}/${arr.length} … ${String(rel).split(/[\\/]/).pop()}`);
+    try{
+      const r = await (await fetch(`/api/lyric-fetch?act=pick&source=netease&rel=${encodeURIComponent(rel)}&write=1`)).json();
+      if(r.ok) ok++; else miss++;
+    }catch(e){ miss++; }
+  }
+  setMsg($('#hmsg2'), `补歌词完成：成功 ${ok} / 失败 ${miss}`, ok ? 'ok' : 'bad');
+};
 
 /* 对健康检查里「无封面」列表逐首补封面 */
 $('#hfixcover').onclick = async()=>{

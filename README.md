@@ -1143,3 +1143,27 @@ HTTP 请求挂成超时。
 
 **验收**：track 7/7、分页 4708 全见、compile 0、node 0、CSS 平、截图留档、测试文件清理。
 
+---
+
+## 第26轮（闭环 R11）：maintain 批量实测 + 健康页补歌词入口
+
+**实测（真实联网补写 ID3）**
+- `maintain tick` x3 真跑：**3 批补进 27 歌词 + 30 封面**（单批 8-9s，10 首/批
+  → 约 1 首/s），log 逐条 `歌词+ 封面+`，totals 累计正确。
+- **断点续证实**：`maintain_state.json` cursor 落盘（`_all` 指向
+  归档深处 Whistle.mp3），重启后从断点继续不重扫。
+- `coverfill` 单曲 0.1s（embedded 命中，bytes=0 因已在 ID3 内）。
+
+**优化+设计**
+- 健康页补 **「补歌词」按钮**（对 `no_lyric` 5176 首逐首联网补，复用
+  `lyric-fetch act=pick` 管线）——此前只有补封面，歌词缺口 0 入口。
+- `window._healthNoLyric/_health` scan 后赋值，两按钮共用明细。
+- **深扫耗时提示**：`深扫全库约 136s（读 ID3）；快扫约 5s` —— health deep
+  实测 136.2s 是读 5176 首 ID3 的固有成本，文案先行免得用户干等。
+
+**验收**：marker 5/5、端点 **28/0**、HTML 111720B、JS 70234ch undefined NONE、
+CSS 269/269、node 0、compile 0、测试目录已清。
+
+**坑**：`coverfill` 正则从 `if u.path ==` 起截会漏掉嵌套 `if act ==`（acts 抓空是
+扫描脚本截断，非功能缺陷）——检查脚本截取范围要跨到下一个同级 `if u.path ==`。
+
