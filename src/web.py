@@ -339,6 +339,16 @@ tbody tr.playing td{background:#12243a}
 .favrow .ft1{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .ft2{font-size:11.5px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .favrow .fops{display:flex;gap:6px;flex:0 0 auto}
+/* 卡片删改按钮 */
+.cardops{position:absolute;top:6px;right:6px;display:flex;gap:4px;
+  opacity:0;transition:opacity .15s}
+.card:hover .cardops{opacity:1}
+.cop{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);
+  background:rgba(15,17,23,.86);color:var(--dim);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.cop:hover{background:#242a36;color:var(--fg);border-color:#39415248}
+.cop[data-act="del"]:hover{color:var(--bad)}
+.card{position:relative}
 /* 加载骨架：曲库/表格加载时显示，避免空白跳动 */
 .sk{background:linear-gradient(90deg,#161a21 25%,#1d222b 50%,#161a21 75%);
   background-size:200% 100%;animation:skSlide 1.2s linear infinite;border-radius:9px}
@@ -2001,7 +2011,15 @@ function renderGridBatch(items, sub){
           <div class="cardbody">
             <div class="cardtitle">${esc(t.title||t.rel.split(/[\\\\/]/).pop())}</div>
             <div class="cardartist">${esc(t.artists||'')}${t.size!==undefined?' · '+mb(t.size):''}</div>
+          </div>
+          <div class="cardops">
+            <button class="cop" title="改名" data-act="ren" aria-label="改名">✎</button>
+            <button class="cop" title="删除" data-act="del" aria-label="删除">×</button>
           </div>`;
+        div.querySelectorAll('.cop').forEach(b=>{
+          b.onclick = (ev)=>{ ev.stopPropagation();
+            b.dataset.act==='del' ? trkDelete(t.rel, t.title) : trkRename(t.rel, t); };
+        });
         div.onclick = ()=>play(t.rel, t.title, t.artists, items, i);
         frag.appendChild(div);
       }
@@ -2054,6 +2072,29 @@ function loadCoversFor(container){
   });
 }
 
+async function trkDelete(rel, title){
+  if(!confirm('删除《'+(title||rel)+'》？（先 dry 预览，确认才真删）')) return;
+  try{
+    let r = await (await fetch('/api/track?act=delete&rel='+encodeURIComponent(rel)+'&dry=1')).json();
+    setMsg($('#bmsg'),'将删除: '+(r.removed||[]).join(', ')||'无','bad');
+    if(!confirm('确认真删？文件将移到回收站外的永久删除。')) return;
+    r = await (await fetch('/api/track?act=delete&rel='+encodeURIComponent(rel)+'&dry=0')).json();
+    setMsg($('#bmsg'), r.ok? '已删除 1 首' : '删除失败', r.ok?'ok':'bad');
+    if(r.ok && curSub) openDir(curSub);
+  }catch(e){ setMsg($('#bmsg'),'删除失败: '+e,'bad'); }
+}
+async function trkRename(rel, t){
+  const cur = t.title||rel.split(/[\\/]/).pop();
+  let nn = prompt('新文件名（含 .mp3）：', cur);
+  if(!nn) return;
+  if(!/\.mp3$/i.test(nn)) nn += '.mp3';
+  if(/[\\/:*?"<>|]/.test(nn.replace(/\.mp3$/i,''))){ setMsg($('#bmsg'),'含非法字符 : * ? " < > |','bad'); return; }
+  try{
+    const r = await (await fetch('/api/track?act=rename&rel='+encodeURIComponent(rel)+'&new='+encodeURIComponent(nn))).json();
+    setMsg($('#bmsg'), r.ok? '已改名 → '+r.rel : ('改名失败: '+(r.error||'')), r.ok?'ok':'bad');
+    if(r.ok && curSub) openDir(curSub);
+  }catch(e){ setMsg($('#bmsg'),'改名失败: '+e,'bad'); }
+}
 function skGrid(n){
   const g=$('#grid');
   g.className='skg';

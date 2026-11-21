@@ -950,3 +950,21 @@ Web 端无法删除/改名。**安全校验全过**：dry-run 不误删（实测
 **验收**：端点 25/0、R2 marker 5/6（`api/track` 后端路由前端无字面量=预期）、
 HTML 100936B、JS undefined NONE、CSS 263/263、node 0、compile 0。
 
+---
+
+## 第18轮（闭环 R3）：曲库卡片删除/改名接线
+
+**检查**：路由 30、无重复函数、5xx 全无、下载 OK（5.2s）；真缺口 = `/api/track`
+有后端无前端按钮。
+
+**优化+设计**：曲库卡片 hover 浮现 ✎改名 / ×删除 按钮（`.cardops` 悬浮层 +
+`.card relative`，不挤网格布局）。delete 先 dry 预览 + 二次确认再真删；
+rename 校验 `.mp3` 后缀与 `: * ? " < > |` 非法字符。
+
+**验收**：端点 25/0、marker 7/8（`act=playlist` 实测 200 + 前端 `set('act','playlist')`
+存在 = 字面量误报）、HTML 103072B、JS undefined NONE、CSS 269/269、node 0、compile 0。
+歌单后台 job 实测 done（BV1xx411c7mD -> OK）。
+
+**坑**：清 `__pycache__` 后首启要重编译全部 .pyc，固定等 13 秒会误判 DOWN ——
+验收前先 `compileall -q src` 预热再启服务。
+
