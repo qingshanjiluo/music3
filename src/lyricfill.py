@@ -67,6 +67,32 @@ def _parse_stem(stem):
     return "", stem.strip()
 
 
+# 通用目录名（不能当歌手）：命中就往上探一级
+_DIR_GENERIC = {
+    "热门歌曲", "红心收藏", "纯音乐", "英文歌", "摇滚民谣", "民谣", "流行",
+    "翻唱", "DJ", "合集", "精选", "歌曲集", "SD卡版", "thisistruemusic",
+    "_归档_封存", "投稿", "QQ音乐", "网易云", "bilibili", "B站", "MV",
+    "新建文件夹", "音乐", "下载",
+}
+
+
+def guess_meta(path, max_up=3):
+    """ID3 双缺修复：返回 (artist, title, artist_src)。
+    title = _parse_stem 清洗文件名；artist = 最近的非通用父目录。"""
+    _, title = _parse_stem(os.path.splitext(os.path.basename(path))[0])
+    artist, src = "", "无"
+    d = os.path.dirname(path)
+    for _ in range(max_up):
+        if not d:
+            break
+        base = os.path.basename(d).strip()
+        if base and base not in _DIR_GENERIC and not re.match(r"^\d+$", base):
+            artist, src = base, "父目录"
+            break
+        d = os.path.dirname(d)
+    return artist, title, src
+
+
 def parse_name(path):
     """从文件路径解析 (歌手, 歌名)。"""
     stem = os.path.splitext(os.path.basename(path))[0]

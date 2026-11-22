@@ -811,6 +811,7 @@ tbody tr.playing td{background:#12243a}
     <label class="chk"><input type="checkbox" id="hdeep"> 读 ID3（准但慢）</label>
     <button class="ghost" id="hfixcover" title="对「无封面」列表逐首联网补">补封面</button>
     <button class="ghost" id="hfixlyric" title="对「缺歌词」列表逐首联网补">补歌词</button>
+    <button class="ghost" id="hfixmeta" title="ID3 双缺批量修复：标题=清洗文件名，歌手=非通用父目录">修ID3</button>
     <span class="n" id="hdeeptip">深扫全库约 136s（读 ID3）；快扫按文件名约 5s</span>
   </div>
   <div class="msg" id="hmsg2" role="status" aria-live="polite"></div>
@@ -2465,6 +2466,39 @@ $('#hfixcover').onclick = async()=>{
   doHealth();   // 重扫
 };
 
+/* ID3 双缺批量修复：dry 预览 → 确认 → 写回 TIT2/TPE1 */
+$('#hfixmeta').onclick = async ()=>{
+  const HB = 500;  // 每片 500 首（全库读 ID3 分批，避免单请求 >120s 超时）
+  setMsg($('#hmsg2'), '扫描 ID3 双缺（分批 500/片）…');
+  let off=0, todo=0, scanned=0, total=0, ex='', d=null;
+  try{
+    while(true){
+      d = await (await fetch(`/api/fixmeta?dry=1&offset=${off}&batch=${HB}`)).json();
+      if(d.error){ setMsg($('#hmsg2'), '错误: '+d.error, 'bad'); return; }
+      scanned += d.scanned; todo += d.todo; total = d.total_all;
+      if(!ex && (d.items||[]).length) ex = d.items.slice(0,5).map(x=>x.title+' ← '+x.artist).join(' | ');
+      if(!d.more) break;
+      off += HB;
+      setMsg($('#hmsg2'), `扫描进度 ${scanned}/${total} · 待修 ${todo}…`);
+    }
+  }catch(e){ setMsg($('#hmsg2'), '扫描失败: '+e, 'bad'); return; }
+  if(!todo){ setMsg($('#hmsg2'), '没有 ID3 双缺曲目（扫 '+scanned+' 首）', 'ok'); return; }
+  if(!confirm('扫描 '+scanned+' 首，发现 '+todo+' 首 ID3 双缺。\n写入（歌名←文件名，歌手←父目录）：\n'+ex+'\n\n确认写入？')) return;
+  setMsg($('#hmsg2'), '写入 '+todo+' 首 ID3…');
+  let written=0, wtodo=0;
+  try{
+    off=0;
+    while(true){
+      const r = await (await fetch(`/api/fixmeta?dry=0&offset=${off}&batch=${HB}`)).json();
+      written += r.written; wtodo += r.todo;
+      if(!r.more) break;
+      off += HB;
+      setMsg($('#hmsg2'), `写入进度 ${off}/${total} · 已修 ${written}…`);
+    }
+    setMsg($('#hmsg2'), '修ID3完成：扫描 '+scanned+' · 修复 '+written+'/'+wtodo+' 首', written?'ok':'bad');
+  }catch(e){ setMsg($('#hmsg2'), '失败: '+e, 'bad'); }
+};
+
 /* ---------- 维护守护 ---------- */
 async function mtRun(){
   const btn = $('#mtrun');
@@ -3301,6 +3335,40 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(400, {"error": "unknown act"})
 
             # ---- 曲目删除 / 改名（browse 已有能力，补端点）----
+            if u.path == "/api/fixmeta":
+                # ID3 双缺批量修复：title=清洗文件名，artist=非通用父目录 → 写回 TIT2/TPE1
+                from . import tagger as _tg, lyricfill as _lf2, browse as _br, tagreader as _tr2
+                sub = g("sub", "")
+                dry = g("dry", "1") == "1"
+                off = int(g("offset", "0") or 0)
+                batch = int(g("batch", "0") or 0)
+                _all = _br.list_tracks(library.DEFAULT_ROOT, sub, limit=1000000)
+                total_all = len(_all)
+                tracks = _all[off: off + batch] if batch > 0 else _all
+                todo = []
+                for t in tracks:
+                    try:
+                        tg = _tr2.read_tags(t["path"])
+                        if not (tg.get("title") or "").strip() and not (tg.get("artists") or "").strip():
+                            a2, ti, src2 = _lf2.guess_meta(t["path"])
+                            if ti and len(ti) >= 2:
+                                todo.append({"path": t["path"], "rel": t["rel"],
+                                             "artist": a2, "title": ti, "src": src2})
+                    except Exception:
+                        continue
+                results = {"scanned": len(tracks), "todo": len(todo),
+                           "written": 0, "dry": dry, "items": todo[:40],
+                           "total_all": total_all, "offset": off, "batch": batch,
+                           "more": (off + len(tracks)) < total_all}
+                if not dry:
+                    for it in todo:
+                        try:
+                            if _tg.tag(it["path"], title=it["title"], artists=it["artist"]):
+                                results["written"] += 1
+                        except Exception:
+                            pass
+                return self._send(200, results)
+
             if u.path == "/api/track":
                 from . import browse as _br, stream as _st3
                 act = g("act", "")
