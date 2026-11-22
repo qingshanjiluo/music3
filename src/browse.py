@@ -30,8 +30,10 @@ def list_dirs(root):
     return out
 
 
-def list_tracks(root, sub="", limit=2000, offset=0):
-    """列出某子目录下的曲目（相对 root 的路径前缀）。"""
+def list_tracks(root, sub="", limit=2000, offset=0, read_id3=False):
+    """列出某子目录下的曲目（相对 root 的路径前缀）。
+    read_id3=True 时用 ID3 的 title/artists 覆盖文件名视图（mtime 缓存零成本）——
+    R19 fixmeta 写入的 TPE1 只有走 ID3 才显示得出来。"""
     base = os.path.join(root, sub) if sub else root
     if not os.path.isdir(base):
         return []
@@ -61,7 +63,22 @@ def list_tracks(root, sub="", limit=2000, offset=0):
                     "path": full,
                 }
             )
-    return out[offset : offset + limit]
+    page = out[offset : offset + limit]
+    if read_id3:
+        # ID3 兜底只读本页（≤limit 行）——整目录（4708 文件）读 ID3 必超 180s
+        try:
+            from . import tagreader
+        except Exception:
+            tagreader = None
+        if tagreader is not None:
+            for r in page:
+                try:
+                    tg = tagreader.read_tags(r["path"]) or {}
+                    r["title"] = (tg.get("title") or "").strip() or r["title"]
+                    r["artists"] = (tg.get("artists") or "").strip() or r["artists"]
+                except Exception:
+                    pass
+    return page
 
 
 def find(root, keyword, limit=100):

@@ -1432,3 +1432,31 @@ HTML 116106B、JS undefined NONE、CSS 269/269、marker detail_limit、node 0、
 同源同步截断**（或参数化），导出后必跑 `assert len(detail)==counts` 覆盖率核对，
 否则清单静默缺 94% 还以为导全了。
 
+---
+
+## 第37轮（闭环 R22）：曲库卡片显示 ID3 歌手 + 批量清空队列
+
+**根因**：`browse.list_tracks` 的 `artists` 只解析文件名 `" - "`（文件名视图）——
+R19 `fixmeta` 写入的 TPE1 在曲库卡片上**显示不出来**。
+
+**修**：`list_tracks(..., read_id3=False)` + `/api/ls?id3=1` + `openDir` 带 `id3=1`。
+ID3 兜底放在**分页切片之后**只读本页（≤limit 行，mtime 缓存）——
+第一版放在 os.walk 循环里对整目录 4708 文件读 ID3，`/api/ls` **180s 超时**。
+
+**实测对照**（`万能青年旅店` 目录 35 首）：
+| | id3=0 | id3=1 |
+|---|---|---|
+| 有歌手 | **0** | **34**（2.9s） |
+| 卡片显示 | — | `万能青年旅店 · 7.5MB` ×35 |
+
+**画面**：曲库卡片第二行现在显示 ID3 歌手（fixmeta 修复的 4805 首全库可见）；
+批量页新增**「清空队列」**（关 EventSource + 清 jobbox + 禁用停止）。
+
+**验收**：端点 **29/0**（/api/ls 不再超时）、HTML 116325B、JS undefined NONE、
+CSS 269/269、marker `bclear/openDir id3/切片后` 3/3、node 0、compile 0、console 0、截图 2 张。
+
+**坑（三连）**：① ID3 兜底这类「按文件读」的逻辑必须放在**分页切片之后**——放
+walk 循环里等于每次请求全目录读，必超时（同 R12/R19 分批教训的列表视图版）；
+② grep 核对实测锚前先 `read` 拿真实缩进（本处 16/0/4 空格 vs 我凭印象写的 18/6 空格，
+三处 MISS）；③ E2E 下钻 `text=` 选择器对深层目录会超时，改 `evaluate('openDir(...)')` 直调。
+

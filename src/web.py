@@ -800,6 +800,7 @@ tbody tr.playing td{background:#12243a}
     <label class="chk"><input type="checkbox" id="bbili"> 含B站</label>
     <button id="bstart">开始下载</button>
     <button class="ghost" id="bstop">停止</button>
+    <button class="ghost sm" id="bclear" title="关掉事件流并清空已完成的下载卡片">清空队列</button>
   </div>
   <div id="jobbox"></div>
 </div>
@@ -2218,7 +2219,7 @@ function emptyBox(icon, title, sub, hint, acts){
 const PAGE = 400;               // 曲库分页：每页 400，触底续拉（归档 4708 全可见）
 let _libTotal = 0;
 async function _libPage(sub, offset){
-  const d = await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=${PAGE}&offset=${offset}`)).json();
+  const d = await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=${PAGE}&offset=${offset}&id3=1`)).json();
   return {items: d.items||[], got: (d.items||[]).length};
 }
 async function openDir(sub, keepScroll){
@@ -2725,6 +2726,12 @@ $('#bstop').onclick=async()=>{
   if(!curJob)return;
   await fetch('/api/job/cancel?id='+curJob);
   $('#bstop').disabled=true;
+};
+$('#bclear').onclick=()=>{
+  if(es){es.close();es=null;}
+  curJob=null;
+  $('#bstop').disabled=true;
+  $('#jobbox').innerHTML='';
 };
 function subscribe(jid, total){
   if(es){es.close();es=null;}
@@ -3803,6 +3810,7 @@ class Handler(BaseHTTPRequestHandler):
                     sub,
                     limit=int(g("limit", "200")),
                     offset=int(g("offset", "0")),
+                    read_id3=g("id3", "0") == "1",
                 )
                 return self._send(200, {"sub": sub, "count": len(rows), "items": rows})
 
