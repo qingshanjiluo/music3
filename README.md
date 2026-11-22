@@ -1380,3 +1380,29 @@ marker 按钮+分批 2/2、node 0、compile 0、README 更新。
 ③ 无 artist 的曲目占全库 92%（4805/5188），打分引擎 `_score` 的 artist 项长期空转——
 修 ID3 后下轮复测 `act=fill` 命中率应显著回升。
 
+---
+
+## 第35轮（闭环 R20）：修 ID3 成效实测 no_artist 4802→520 + 命中率 +78%
+
+**对照实验（修 ID3 后复测）**
+| 指标 | 修前 | 修后 | 结论 |
+|---|---|---|---|
+| `no_artist`（deep 深扫） | 4802 | **520** | R19 写入的 TPE1 生效，仅余 520 首真无歌手（冷门曲/目录名即歌名） |
+| 340 首清单 `act=fill` 命中 | 67 (19.7%) | **119 (35.0%)** | **+78%**，embedded 79 + netease 24 + qq 9 + swap 7 |
+| `no_lyric`（deep） | 579 | 516 | 持续下降 |
+
+**根因修复（health 看不到 fixmeta 写入）**：`browse.list_tracks` 的 `artists` 只解析
+文件名 `" - "`，**不读 ID3**——health 判「无歌手」永远看不到 TPE1。修：`health.scan`
+在 `deep` 分支用 `tagreader.read_tags`（mtime 缓存零成本）兜底 artist/title。
+
+**设计**：维护守护 statgrid 新增 **「ID3已修」卡**（绿色高亮当 `meta_fixed>0`），
+`fixmeta` 真写时把 written 累计进 `maintain_state.totals.meta_fixed`。
+
+**验收**：deep 13 片 332.8s、`no_artist=520`、`act=fill 119/340`、
+fixmeta dry todo=0、marker 3/3、端点 **29/0**、HTML 116106B、JS undefined NONE、
+CSS 269/269、node 0、compile 0、README 更新。
+
+**坑**：`edit` 工具同文件连续改必须**每次改前重读**（grep 读不算，FS 版本会判 stale）；
+`browse.list_tracks` 是「文件名视图」不是「ID3 视图」——两套字段语义混用会让
+上游修复静默失效于下游统计，deep 类统计一律要 ID3 兜底。
+

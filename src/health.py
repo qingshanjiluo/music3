@@ -68,6 +68,14 @@ def scan(root, sub="", limit=None, deep=False, offset=0, batch=0):
         rep["total_size_mb"] += size / 1048576.0
         artist = (t.get("artists") or "").strip()
         title = (t.get("title") or "").strip()
+        # deep 用 ID3 兜底：browse.list_tracks 只解析文件名 " - "（看不到 fixmeta 写入的 TPE1）
+        if deep:
+            try:
+                _tg0 = tagreader.read_tags(p) or {}
+            except Exception:
+                _tg0 = {}
+            artist = artist or (_tg0.get("artists") or "").strip()
+            title = title or (_tg0.get("title") or "").strip()
         base = os.path.basename(p)
 
         # 命名问题

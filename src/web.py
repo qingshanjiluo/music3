@@ -2530,6 +2530,7 @@ async function mtStat(){
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
+        <div class="statcard"><div class="k">ID3已修</div><div class="v" style="${t.meta_fixed?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${t.meta_fixed||0}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
   }catch(e){}
@@ -3365,6 +3366,14 @@ class Handler(BaseHTTPRequestHandler):
                         try:
                             if _tg.tag(it["path"], title=it["title"], artists=it["artist"]):
                                 results["written"] += 1
+                        except Exception:
+                            pass
+                    if results["written"]:
+                        try:
+                            from . import maintain as _mt2
+                            _st2b = _mt2._read_state()
+                            _st2b["totals"]["meta_fixed"] = _st2b["totals"].get("meta_fixed", 0) + results["written"]
+                            _mt2._write_state(_st2b)
                         except Exception:
                             pass
                 return self._send(200, results)
