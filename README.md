@@ -1406,3 +1406,29 @@ CSS 269/269、node 0、compile 0、README 更新。
 `browse.list_tracks` 是「文件名视图」不是「ID3 视图」——两套字段语义混用会让
 上游修复静默失效于下游统计，deep 类统计一律要 ID3 兜底。
 
+---
+
+## 第36轮（闭环 R21）：健康分 66.8→83.9 + 两份收尾清单全量落盘
+
+**修 ID3 成效全景（deep 深扫对照）**
+| 指标 | R14 修前 | 现在 |
+|---|---|---|
+| 全库健康分 | 66.8 | **83.9**（+17.1） |
+| no_artist | 4802 | **520** |
+| no_cover | 3352 | **124** |
+
+**修 detail 截断 bug**：`/api/health` 后端 `slim[k][:30]` 每类只回 30 条——
+两份清单首导只拿到 156/307（counts 520/516）。修：`detail_limit` 参数化
+（默认 30 防页面爆，清单导出传 99999），复测 **覆盖率 assert OK（detail==counts）**。
+
+**两份收尾清单全量落盘**
+- `docs/cold_no_artist.txt` — **520 首**真冷门无歌手（父目录也是通用名/文件名即歌名，人工可补 TPE1）
+- `docs/missing_lyric_current.txt` — **516 首**当前缺歌词（三态上游原因见 no_lyric_report.txt）
+
+**验收**：deep+detail_limit 全量 672s、覆盖率 assert 通过、端点 **29/0**、
+HTML 116106B、JS undefined NONE、CSS 269/269、marker detail_limit、node 0、compile 0。
+
+**坑**：`slim[:30]` 防爆截断让「清单导出」拿到的是假全量——**counts 和 detail 必须
+同源同步截断**（或参数化），导出后必跑 `assert len(detail)==counts` 覆盖率核对，
+否则清单静默缺 94% 还以为导全了。
+

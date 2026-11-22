@@ -3084,6 +3084,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 deep = g("deep", "0") == "1"
                 lim = int(g("limit", "0")) or None
+                dlim = int(g("detail_limit", "30") or 30)   # 每类明细条数上限（默认30防页面爆，清单导出传99999）
                 off = int(g("offset", "0") or 0)
                 batch = int(g("batch", "0") or 0)
                 r = health.scan(library.DEFAULT_ROOT, g("sub", ""), limit=lim, deep=deep,
@@ -3091,7 +3092,7 @@ class Handler(BaseHTTPRequestHandler):
                 # 明细太多会撑爆响应，只带前 30 条
                 slim = {}
                 for k in ("no_lyric", "no_cover", "bad_name", "no_artist", "tiny", "huge", "dups"):
-                    slim[k] = (r.get(k) or [])[:30]
+                    slim[k] = (r.get(k) or [])[:max(1, min(dlim, 200000))]
                 return self._send(200, {
                     "total": r["total"],
                     "total_all": r["total_all"],
