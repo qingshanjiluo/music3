@@ -1638,3 +1638,27 @@ CSS 271/271、marker saveQueue/restoreQueue 2/2、node 0、compile 0、console 0
 **坑**：① `const DEMO_WORDS` 必须定义在冷启动**调用之前**（TDZ ReferenceError 炸整脚本）；
 ② 0 结果断言必须在 **song 模式**——all 模式下 B站歌手/MV 对乱码模糊命中 5 条是模糊匹配不是 bug。
 
+---
+
+## 第46轮（前端 R32 · goal round9）：移动端五档归零核对 + 播放器窄屏收纳（⋯ 更多）
+
+**移动核对（375/390/768/1024/1440 五档）**：`hScroll` 全档 False（drawer/eqpanel 固定定位
+离屏不算横向滚动条，正常）；但 **375/390 播放器按钮组 3 个被挤出视口**（`btnsOut=3`，
+`.pbtns@489 > 375`）——窄屏真 bug。
+
+**修（3 处 3/3 落）**：
+- 新增 `⋯` 更多按钮（桌面隐藏）+ `.pmorebox` 弹层（歌词/播放列表/均衡器/模式/速度/关闭）
+- `@media (max-width:640px)` 收纳：隐藏 `peq/plyr/plopen/prate/pmode/pclose/pvol`，
+  只留 **上/播/下 + ⋯**；`.pmorebox` 绝对定位上浮 `bottom:46px`
+- JS：`pcloseBtn()` + 点外部关菜单 + `aria-expanded` 开合
+
+**E2E 复验**：
+- 375/390：`btnsOut=0`（修前 3）、`visibleBtns=4`、`moreShown=True`、`⋯` 点开 `menuItems=6`
+- 768：9 按钮全显示、`moreShown=False`（桌面形态保留）
+- 五档 `hScroll=False`、console 0、端点 **29/0**、HTML 123264B、JS undefined NONE、
+  CSS 281/281、marker pmore/收纳CSS/JS 3/3、node 0、compile 0、截图 r32_more_375.png。
+
+**坑**：① 移动核对的 `over` 计数会把**固定定位离屏抽屉**（plist/eqpanel translateX(100%)）
+算成溢出——真信号看 `documentElement.scrollWidth > clientWidth`；
+② 窄屏收纳判按钮出视口必须在**播放启动后**量（idle 态按钮隐藏会假通过）。
+

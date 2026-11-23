@@ -553,6 +553,24 @@ tbody tr.playing td{background:#fbe9e4}
 
 .rowops{display:flex;gap:5px;justify-content:flex-start}
 .rowops button{min-width:30px;padding:6px 7px;font-size:12.5px;line-height:1}
+/* 更多控制(窄屏): 桌面隐藏, ≤640 反转 */
+.pmore,.pmorebox{display:none}
+@media (max-width:640px){
+  /* 收纳: 次要按钮隐藏, 只留 上/播/下 + ⋯ */
+  #peq,#plyr,#plopen,#prate,#pmode,#pclose,.pvol{display:none !important}
+  .pmore{display:flex !important}
+  .pbtns{position:relative;flex:0 0 auto}
+  .pmorebox{
+    display:none;position:absolute;right:0;bottom:46px;
+    background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    padding:6px;flex-direction:column;gap:5px;z-index:150;
+    box-shadow:0 12px 32px rgba(28,26,23,.2);min-width:118px;
+  }
+  .pmorebox.on{display:flex}
+  .pmorebox button{width:100%;text-align:left}
+  .pcov{width:40px;height:40px}
+  .ptitle{font-size:12.5px}
+}
 /* 移动端 */
 @media (max-width:640px){
   .wrap{padding:12px 10px 30px}
@@ -894,6 +912,15 @@ tbody tr.playing td{background:#fbe9e4}
     <div class="pbtn main" id="ptoggle" aria-label="播放"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></div>
     <div class="pbtn" id="pnext" title="下一首" aria-label="下一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg></div>
     <div class="pbtn" id="pclose" title="关闭播放" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    <div class="pbtn pmore" id="pmore" title="更多控制" aria-label="更多控制" aria-expanded="false">⋯</div>
+    <div class="pmorebox" id="pmorebox" role="menu" hidden>
+      <button class="ghost sm" onclick="lyOpen()" role="menuitem">歌词</button>
+      <button class="ghost sm" onclick="plOpen()" role="menuitem">播放列表</button>
+      <button class="ghost sm" onclick="eqOpen()" role="menuitem">均衡器</button>
+      <button class="ghost sm" onclick="pmode.click()" role="menuitem">模式</button>
+      <button class="ghost sm" onclick="prate.click()" role="menuitem">速度</button>
+      <button class="ghost sm" onclick="pcloseBtn()" role="menuitem">关闭</button>
+    </div>
   </div>
 </div>
 <audio id="audio" preload="none" crossorigin="anonymous"></audio>
@@ -955,6 +982,20 @@ const srcCls=s=>['qq','netease','bilibili'].includes(s)?s:'';
 const mb=b=>(b/1048576).toFixed(1)+'MB';
 const setMsg=(el,t,cls)=>{el.textContent=t;el.className='msg'+(cls?' '+cls:'');};
 
+/* 窄屏「⋯」更多控制开合(点外部关闭) */
+function pcloseBtn(){ if(curRel) $('#pclose').click(); $('#pmorebox').classList.remove('on'); $('#pmore').setAttribute('aria-expanded','false'); }
+document.addEventListener('click', (e)=>{
+  const box=$('#pmorebox'), btn=$('#pmore');
+  if(!box || box.hidden!==undefined && !box.classList.contains('on')) return;
+  if(!box.classList.contains('on')) return;
+  if(box.contains(e.target) || btn.contains(e.target)) return;
+  box.classList.remove('on'); btn.setAttribute('aria-expanded','false');
+});
+document.addEventListener('DOMContentLoaded', ()=>{ const b=$('#pmore'); if(b) b.onclick=(e)=>{
+  e.stopPropagation();
+  const box=$('#pmorebox'); const on=box.classList.toggle('on');
+  b.setAttribute('aria-expanded', on?'true':'false');
+};});
 /* ---------- 标签切换：往返保留滚动位置(结构硬规则4) + 有数据不整页重拉 ---------- */
 const _scrollMem = {};   // p -> 离开时 scrollY
 function _restoreScroll(p){
