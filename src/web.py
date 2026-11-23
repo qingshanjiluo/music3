@@ -550,6 +550,8 @@ tbody tr.playing td{background:#fbe9e4}
 .cardtitle{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cardartist{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 
+.rowops{display:flex;gap:5px;justify-content:flex-start}
+.rowops button{min-width:30px;padding:6px 7px;font-size:12.5px;line-height:1}
 /* 移动端 */
 @media (max-width:640px){
   .wrap{padding:12px 10px 30px}
@@ -710,7 +712,7 @@ tbody tr.playing td{background:#fbe9e4}
   <table><thead><tr>
     <th style="width:30px"><input type="checkbox" id="selallh" title="全选"></th>
     <th style="width:40px">#</th><th style="width:44px">分</th><th style="width:48px">时长</th>
-    <th style="width:66px">来源</th><th>标题</th><th style="width:170px">操作</th>
+    <th style="width:66px">来源</th><th>标题</th><th style="width:116px">操作</th>
   </tr></thead><tbody id="tb"></tbody></table>
   </div>
 </div>
@@ -1475,7 +1477,15 @@ async function lyLoad(rel, title){
   lyRender();
 }
 
-function lyOpen(){ document.body.classList.add('ov'); $('#lyrics').classList.add('on'); if(curRel) lyLoad(curRel, $('#ptitle').textContent); }
+function lyOpen(){
+  document.body.classList.add('ov'); $('#lyrics').classList.add('on');
+  if(curRel){ lyLoad(curRel, $('#ptitle').textContent); return; }
+  $('#lybody').innerHTML = '<div class="lyempty" style="padding-top:14vh">'+
+    '<div style="font-size:30px;opacity:.4;letter-spacing:4px">♪</div>'+
+    '<div style="margin-top:10px;color:var(--fg);font-size:14px">还没开始播放</div>'+
+    '<div style="margin-top:6px;font-size:12.5px;line-height:1.8">先在搜索 / 曲库点一首歌<br>播放时歌词逐行高亮 · 点词可跳转进度</div>'+
+    '<div style="margin-top:10px;font-size:11.5px;color:#9a938a">没内嵌歌词时点右上「手动取词」联网补</div></div>';
+}
 function lyClose(){ document.body.classList.remove('ov'); $('#lyrics').classList.remove('on'); }
 $('#plyr').onclick = lyOpen;
 $('#lyclose').onclick = lyClose;
@@ -1658,18 +1668,18 @@ function renderRows(rows, grouped){
     const score = (t.score===null||t.score===undefined) ? '—'
       : `<span class="sc ${scCls(t.score)}">${Number(t.score).toFixed(2)}</span>`;
     const btn = isMV
-      ? `<button class="ghost sm" onclick="dlMV(${i})">下载MV</button>`
-      : `<button class="ghost sm" onclick="dlOne(${i})">下载</button>`;
-    const pv = isMV ? `<button class="ghost sm" onclick="previewBig(${i})" title="看大图">大图</button>`
-      : `<button class="ghost sm" onclick="previewOne(${i})" title="在线试听">试听</button>`;
-    const fv = `<button class="ghost sm" onclick="favAdd(${i})" title="加入收藏">★</button>`;
+      ? `<button class="ghost sm" onclick="dlMV(${i})" title="下载MV" aria-label="下载MV">⬇</button>`
+      : `<button class="ghost sm" onclick="dlOne(${i})" title="下载" aria-label="下载">⬇</button>`;
+    const pv = isMV ? `<button class="ghost sm" onclick="previewBig(${i})" title="看大图" aria-label="看大图">⛶</button>`
+      : `<button class="ghost sm" onclick="previewOne(${i})" title="在线试听" aria-label="在线试听">▶</button>`;
+    const fv = `<button class="ghost sm" onclick="favAdd(${i})" title="加入收藏" aria-label="加入收藏">★</button>`;
     return `<tr id="r${i}">
       <td><input type="checkbox" class="rsel" data-i="${i}"></td>
       <td>${i+1}</td><td>${score}</td>
       <td class="n">${fmtDur(t.duration)}</td>
       <td><span class="src ${srcCls(t.source)}">${t.source}</span></td>
       <td>${tag}${esc(t.title)}<div class="n">${esc(t.artists||'-')}${t.bvid?' · '+esc(t.bvid):''}</div></td>
-      <td>${pv} ${fv} ${btn}</td></tr>`;
+      <td class="rowops">${pv}${fv}${btn}</td></tr>`;
   }).join('');
   $$('#tb .rsel').forEach(c=>c.onchange=()=>markPick(c));
 }

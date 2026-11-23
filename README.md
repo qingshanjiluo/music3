@@ -1552,3 +1552,23 @@ HTML 117425B、JS undefined NONE、CSS 269/269、marker 4/4、node 0、compile 0
 **坑**：① HTML 属性 onclick 引 JS 串内字符串——**别嵌引号**，提函数 + `onclick="_fn()"` 最稳；
 ② E2E 收藏 `act=remove` 参数是 **`key=`** 不是 `rel=`（残留 1 条死链清场才验出空态）。
 
+---
+
+## 第42轮（前端 R28 · goal round5）：歌词面板冷启动引导 + 操作列 icon 化 170→116px
+
+**歌词面板冷启动**：原来无播放时 `lyOpen()` 只 classList.add，`lybody` **空白**（点了看不到任何东西）。
+修：`!curRel` 分支填引导——♪ 图标 + 「还没开始播放」+ 两行说明（逐行高亮/点词跳转）+
+「没内嵌歌词点右上手动取词」；`ly_empty=True`。
+
+**搜索表操作列 icon 化（简洁性）**：三文字按钮「试听/★/下载」占 170px →
+icon `▶ ★ ⬇`（带 `title`+`aria-label`）占 **116px**，省 54px 给标题列；
+`.rowops` flex 紧排 30px 触控。截图 r28_rowops.png 确认三图标渲染。
+
+**验收**：`ly_empty=True`、表头 `[#,分,时长,来源,标题,操作]`、`opw=116px`、
+端点 **29/0**、HTML 118132B、JS undefined NONE、CSS **271/271**（+rowops 对齐）、
+marker 冷启动/rowops/116 3/3、node 0、compile 0、console 0、截图 2 张。
+
+**坑**：E2E `#tb tr:first-child .rowops button` 返回 `[]` 是撞**骨架屏**（R6 同款
+`skrow` 假行）——断言操作列必须 `wait_for_function` 真实行（`.rowops` 出现）或直接
+以截图为证；空态/图标类改动**截图优先于 DOM 断言**。
+
