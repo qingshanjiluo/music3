@@ -2638,6 +2638,20 @@ $('#hfixmeta').onclick = async ()=>{
   }catch(e){ setMsg($('#hmsg2'), '失败: '+e, 'bad'); }
 };
 
+/* 数字滚动: 仅维护统计 5 卡的一次编排(前端准则—动效只留一处回应"值已载入"); reduced-motion 直接落值 */
+function countUp(el, to, ms){
+  to = +to || 0;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce || !to || ms<=0){ el.textContent = to; return; }
+  const t0 = performance.now();
+  const step = (t)=>{
+    const k = Math.min(1, (t - t0) / ms);
+    const e = 1 - Math.pow(1 - k, 3);          // ease-out cubic
+    el.textContent = Math.round(to * e);
+    if(k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 /* ---------- 维护守护 ---------- */
 async function mtRun(){
   const btn = $('#mtrun');
@@ -2672,6 +2686,11 @@ async function mtStat(){
         <div class="statcard"><div class="k">ID3已修</div><div class="v" style="${t.meta_fixed?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${t.meta_fixed||0}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
+    /* 数字滚动: 5 卡值 0→终值 单次编排(500ms, reduced-motion 直落) */
+    $('#mtresult').querySelectorAll('.statcard .v').forEach(v=>{
+      const to = parseInt(String(v.textContent).replace(/,/g,''), 10);
+      if(!isNaN(to)) countUp(v, to, 500);
+    });
   }catch(e){}
 }
 async function mtLog(){

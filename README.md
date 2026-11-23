@@ -1704,3 +1704,23 @@ node 0、compile 0、console 0、截图 r34_about_kbd.png。
 **坑**：单行 grep `快捷键.*Space` 跨行匹配必 0——HTML 落盘核对用 **E2E 断言文本**（`textContent.includes`）别用单行正则；
 浅色主题**必须** `color-scheme:light`，否则系统深色模式下原生控件反色撕裂（藏到 E2E 模拟才发现）。
 
+---
+
+## 第49轮（前端 R35 · goal round12）：统计卡数字滚动（单次编排）+ 4708 归档长列表滚动采样
+
+**画面**：维护统计 5 卡数字 `countUp()`——**单次编排**（前端准则：动效只留一处回应「值已载入」），
+ease-out cubic 500ms；`prefers-reduced-motion` 直落终值。
+E2E：中途 `['63','866','966','0','0']` → 末 `['224','3060','3413','0','0']`（中途<末=True）；
+reduced-motion 150ms 即终值 `['224','3060','3413',...]`。
+
+**流畅性（4708 归档长列表采样）**：切曲库 tab + 先证页面够高（`docH 2409 > viewport`）→
+16 次 wheel：**card 60 → 1020（+960，16 次 60/批稳定续批）**、`scrollY 1509→30187`、
+`docH 1156→32865`、17.1s、帧序 `[120,180,240,300,360,420]` 无跳批、console 0。
+
+**验收**：数字滚动/减动效双分支 + 长列表续批全绿、端点 **29/0**、HTML 125864B、
+JS undefined NONE、CSS 281/281、marker countUp、node 0、compile 0、截图 2 张。
+
+**坑（同 R29 二连）**：长列表采样**停在清理 tab** 时 `60→60 docH=1156` 假阴——
+隐藏 pane 里 IntersectionObserver 不触发、wheel 滚的是清理页；**先切到目标 tab + 证 `scrollHeight>viewport`** 再滚；
+减动效 `reduced_motion=reduce` 必须单页测（page 一次设置），marker 字符串多括号 grep 易 0 假红。
+
