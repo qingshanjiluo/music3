@@ -803,6 +803,7 @@ tbody tr.playing td{background:#fbe9e4}
     <label class="chk">每词下载 <input type="number" id="bn" value="1" min="1" max="10" style="width:56px;flex:0 0 auto;padding:6px 8px"> 首</label>
     <label class="chk">并发 <input type="number" id="bw" value="3" min="1" max="8" style="width:52px;flex:0 0 auto;padding:6px 8px"> 线程</label>
     <label class="chk"><input type="checkbox" id="bbili"> 含B站</label>
+    <label class="chk">到 <input type="text" id="bdest" placeholder="目标子目录（留空=按来源分目录）" style="min-width:150px;width:200px;flex:0 0 auto;padding:7px 9px;font-size:12.5px"></label>
     <button id="bstart">开始下载</button>
     <button class="ghost" id="bstop">停止</button>
     <button class="ghost sm" id="bclear" title="关掉事件流并清空已完成的下载卡片">清空队列</button>
@@ -2719,7 +2720,7 @@ $('#bstart').onclick=async()=>{
     const r=await fetch('/api/queue',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({keywords:kws, n:+$('#bn').value||1, workers:+$('#bw').value||3, bili:$('#bbili').checked})
+      body:JSON.stringify({keywords:kws, n:+$('#bn').value||1, workers:+$('#bw').value||3, bili:$('#bbili').checked, dest:($('#bdest').value||'').trim()})
     });
     const d=await r.json();
     if(d.error){alert('错误: '+d.error);return;}
@@ -3954,6 +3955,14 @@ class Handler(BaseHTTPRequestHandler):
             bili = bool(body.get("bili", False))
             force = bool(body.get("force", False))
             retries = int(body.get("retries", 2))
+            dest = str(body.get("dest") or "").strip().replace("/", os.sep)
+            root = library.DEFAULT_ROOT
+            if dest:
+                cand = os.path.abspath(os.path.join(library.DEFAULT_ROOT, dest))
+                if cand.startswith(os.path.abspath(library.DEFAULT_ROOT) + os.sep):
+                    root = cand
+                else:
+                    return self._send(400, {"error": "dest outside library"})
             sources = body.get("sources") or (["qq", "netease", "bilibili"] if bili else ["qq", "netease"])
 
             from . import jobs
@@ -3974,6 +3983,7 @@ class Handler(BaseHTTPRequestHandler):
                         retries=retries,
                         force=force,
                         job_id=jid,
+                        root=root,
                     )
                     jobs.log(
                         jid,

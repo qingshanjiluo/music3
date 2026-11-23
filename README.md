@@ -1509,3 +1509,26 @@ marker `loadCoversFor(grid)/snap/prose` 3/3、node 0、compile 0、console 0、�
 在 append **之前**做，或改观察目标为真正父容器；此 bug 藏了 20+ 轮（R22 封面按钮
 下发阶段就该暴露），教训是**有 API 数据就要断言前端 img 数，不能只查 200**。
 
+---
+
+## 第40轮（前端 R26 · goal round3）：全链路连贯性 E2E + 批量目标目录 dest
+
+**E2E v3 全绿**（搜索→批量下载→入库→元数据/播放→收藏→清理）：
+`search 8 hits → job done ok=1 → lib_visible 晴天 → id3='周杰伦' → cover 200/183KB
+→ stream 206 audio/mpeg → player_dom audio/pbar/plist 3/3 → fav_added True → cleanup 0`
+
+**修 1 · 批量下载目标目录（连贯性真缺口）**：`/api/batch` 不读 `body.dest` →
+`queue.run(root=)` 已支持却从没被传；首测 `skip=1` 且目标子目录空（文件落默认目录）。
+修：handler 读 `dest`（`os.path.abspath` 防穿越出库）→ `q.run(root=root)`；
+批量页新增「到 [目标子目录]」输入（留空=按来源分目录）。
+
+**E2E 姿势修正（非产品 bug）**：`favs` 加歌是 **GET `act=add_multi&items=JSON`**
+（前端 1795 行同款），POST `act=add` 不是这条路 → 首测 `fav_added=False` 是我调用姿势；
+`lib rm` 只删空目录，清场须先 `track delete` 再 `rm`（首测 `cleanup=1` 同因）。
+
+**验收**：E2E v3 9 项全绿、`bdest_visible=True`、端点 **29/0**、HTML 116851B、
+JS undefined NONE、CSS 269/269、marker 3/3、node 0、compile 0、console 0、截图 r26_batch_dest.png。
+
+**坑**：E2E 断言姿势必须抄产品前端真实调用（favs 是 GET+JSON query，不是 POST body）；
+「rm 目录」类接口先查是删空目录还是连文件删——首测 cleanup 假红来自脚本不是代码。
+
