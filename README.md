@@ -1572,3 +1572,24 @@ marker 冷启动/rowops/116 3/3、node 0、compile 0、console 0、截图 2 张�
 `skrow` 假行）——断言操作列必须 `wait_for_function` 真实行（`.rowops` 出现）或直接
 以截图为证；空态/图标类改动**截图优先于 DOM 断言**。
 
+---
+
+## 第43轮（前端 R29 · goal round6）：tab 往返保留滚动位置 + tab 吸顶
+
+**流畅性根因**：每次切 tab 无条件 `loadHistory/stLoad/favLoad` 整页重拉 → 滚动复位，
+列表↔详情往返丢位置（违反结构硬规则4）。
+
+**修**：`_scrollMem[p]` 离开前记 `scrollY`、回来 `_restoreScroll(p)`（rAF 回写）；
+**数据在则不重拉**（`#htb/#sttb/#favlist` 有子节点/曲库 chips 在 → 只回位），首次才 load；
+**tab 吸顶** `position:sticky;top:0;z-index:90`——原 tab 不吸顶，滚到 600 后
+Playwright/真实用户都得先滚回顶才能点 tab，离开时 scrollY 已 0（`mem.h=0` 拿不到位置）；
+`_restoreScroll` 仅 `y>0` 回写（原 `y=0` 也 `scrollTo(0)` 会清用户位置）。
+
+**验收**：历史页往返回位 **600→600（mem=600 ✓）**、曲库 0→0（卡片不足一屏，断言盲区）、
+端点 **29/0**、HTML 118911B、JS undefined NONE、CSS 271/271、marker scrollMem/restore、
+node 0、compile 0、console 0、截图 r29_sticky.png。
+
+**坑**：① E2E 滚动断言前必须先证页面够高（`scrollHeight > 目标+viewport`），
+否则 scrollY 恒 0 是假通过/假失败；② 滚动交互组件要 **tab 吸顶**，否则「先滚回顶再点 tab」
+把离开时 scrollY 归 0，记忆机制拿不到位置。
+

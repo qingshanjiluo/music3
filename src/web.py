@@ -102,6 +102,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
   display:flex;gap:3px;background:var(--panel);padding:4px;border-radius:11px;
   margin-bottom:14px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  position:sticky;top:0;z-index:90;box-shadow:0 1px 0 var(--line);
 }
 .tabs::-webkit-scrollbar{display:none}
 .tab{
@@ -954,15 +955,34 @@ const srcCls=s=>['qq','netease','bilibili'].includes(s)?s:'';
 const mb=b=>(b/1048576).toFixed(1)+'MB';
 const setMsg=(el,t,cls)=>{el.textContent=t;el.className='msg'+(cls?' '+cls:'');};
 
-/* ---------- 标签切换 ---------- */
+/* ---------- 标签切换：往返保留滚动位置(结构硬规则4) + 有数据不整页重拉 ---------- */
+const _scrollMem = {};   // p -> 离开时 scrollY
+function _restoreScroll(p){
+  requestAnimationFrame(()=>{ const y = _scrollMem[p]|0; if(y>0) window.scrollTo(0, y); });
+}
 $$('.tab').forEach(t=>t.onclick=()=>{
+  const prev = document.querySelector('.tab.on');
+  if(prev) _scrollMem[prev.dataset.p] = window.scrollY;   // 离开前记住位置
   $$('.tab').forEach(x=>x.classList.remove('on'));
   $$('.pane').forEach(x=>x.classList.remove('on'));
   t.classList.add('on'); $('#p-'+t.dataset.p).classList.add('on');
-  if(t.dataset.p==='b' && !document.querySelector('#chips .chip')) loadChips().then(()=>{ if(curSub) openDir(curSub); });
-  if(t.dataset.p==='h') loadHistory();
-  if(t.dataset.p==='st') stLoad();
-  if(t.dataset.p==='f') favLoad();
+  const p = t.dataset.p;
+  if(p==='b'){
+    if(!document.querySelector('#chips .chip')) loadChips().then(()=>{ if(curSub) openDir(curSub).then(()=>_restoreScroll('b')); });
+    else if(curSub) _restoreScroll('b');                    // 曲库已有数据: 只回位不重拉
+  }
+  if(p==='h'){
+    if($('#htb') && $('#htb').children.length) _restoreScroll('h');   // 历史已有: 回位
+    else loadHistory().then(()=>_restoreScroll('h'));
+  }
+  if(p==='st'){
+    if($('#sttb') && $('#sttb').children.length) _restoreScroll('st');
+    else stLoad().then(()=>_restoreScroll('st'));
+  }
+  if(p==='f'){
+    if($('#favlist') && $('#favlist').children.length) _restoreScroll('f');
+    else favLoad().then(()=>_restoreScroll('f'));
+  }
 });
 
 /* ---------- 播放器 ---------- */
