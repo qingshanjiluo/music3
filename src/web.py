@@ -1852,7 +1852,7 @@ async function favLoad(){
     window._favItems = items.map(x=>({rel:x.rel||'', title:x.title, artists:x.artists,
       source:x.source, duration:+x.duration||0, q:x.q, n:x.n}));
     if(!items.length){
-      $('#favlist').innerHTML = '<div class="n" style="padding:30px;text-align:center">还没有收藏<br>在搜索结果里点 ★ 加入</div>';
+      $('#favlist').innerHTML = emptyBox('★', '还没有收藏', '在搜索结果或曲库卡片上点 ★ 加入', '收藏跨页保留，刷新不丢');
       return;
     }
     $('#favlist').innerHTML = items.map((x,i)=>`
@@ -2737,8 +2737,11 @@ $('#bclear').onclick=()=>{
   if(es){es.close();es=null;}
   curJob=null;
   $('#bstop').disabled=true;
-  $('#jobbox').innerHTML='';
+  $('#jobbox').innerHTML=emptyBox('⇩','队列已清空','在上方填写关键词后点「开始下载」','支持多行 / 逗号分隔多个关键词','<button class="ghost sm" onclick="_focusKw()">填关键词</button>');
 };
+function _focusKw(){ const e=$('#bkws'); if(e){ e.focus(); e.scrollIntoView({block:'center'}); } }
+/* 批量页冷启动空态 */
+$('#jobbox').innerHTML=emptyBox('⇩','还没有下载任务','多行或逗号分隔关键词 → 每词下载几首 → 点「开始下载」','下载进度、成功/跳过/失败实时显示在这张卡片上','<button class="ghost sm" onclick="_focusKw()">填关键词</button>');
 function subscribe(jid, total){
   if(es){es.close();es=null;}
   const card=document.createElement('div');
@@ -2783,15 +2786,18 @@ function subscribe(jid, total){
 }
 
 /* ---------- 清理 ---------- */
+$('#dlist').innerHTML=emptyBox('⌕','还没扫描','选一种比对方式 → 点「扫描重复」','会找出重复组与临时残留文件，删除前先预览');
 $('#scan').onclick=async()=>{
   const by=document.querySelector('input[name=by]:checked').value;
   setMsg($('#dmsg'),'扫描中…'); $('#dlist').innerHTML='';
   try{
     const d=await (await fetch(`/api/dup?by=${by}&top=15`)).json();
     setMsg($('#dmsg'),`重复组 ${d.dup_groups} · 临时残留 ${d.tmp_files}`);
-    $('#dlist').innerHTML=(d.sample||[]).map(g=>
+    $('#dlist').innerHTML = (d.sample||[]).length
+      ? (d.sample||[]).map(g=>
       `<div class="jobcard"><div class="mono" style="color:var(--fg);margin-bottom:5px">${esc(g.key)}</div>`+
-      g.paths.map(p=>`<div class="mono" style="padding-left:12px">${esc(p)}</div>`).join('')+`</div>`).join('');
+      g.paths.map(p=>`<div class="mono" style="padding-left:12px">${esc(p)}</div>`).join('')+`</div>`).join('')
+      : emptyBox('✓', '没有重复曲目', `按「${by}」比对全库，暂无重复组`, `临时残留 ${d.tmp_files} 个`);
   }catch(e){setMsg($('#dmsg'),'失败: '+e,'bad');}
 };
 

@@ -1532,3 +1532,23 @@ JS undefined NONE、CSS 269/269、marker 3/3、node 0、compile 0、console 0、
 **坑**：E2E 断言姿势必须抄产品前端真实调用（favs 是 GET+JSON query，不是 POST body）；
 「rm 目录」类接口先查是删空目录还是连文件删——首测 cleanup 假红来自脚本不是代码。
 
+---
+
+## 第41轮（前端 R27 · goal round4）：空态引导统一三页 + 内联 onclick 引号三连修
+
+**问题**：空态三套写法（收藏裸 `.n` / 统计 setMsg 一行 / 批量·清理页冷启动空白），
+用户点进来看不到下一步。统一到 `emptyBox()` 助手（图标+标题+副文+操作指引），5 处 5/5 落盘：
+收藏 `还没有收藏·点★加入·跨页保留` / 批量冷启动 `还没有下载任务`+**填关键词按钮** /
+批量清空后 `队列已清空`+按钮 / 清理冷启动 `还没扫描·选比对→扫描重复·删除前预览` /
+清理无重复 `✓没有重复组·临时残留N个`。
+
+**内联 onclick 引号三连修**：JS 单引号串里塞 HTML 属性引号必炸
+（`'#bkws'`→`$("..")`→`'..'` 三写法全 `missing ) after argument list`）；
+终解 **属性内裸标识符** `onclick="_focusKw()"` + JS 侧 `function _focusKw(){ $('#bkws').focus() }`。
+
+**验收**：三空态 E2E `batch/clean/fav=True`、按钮点击 `focus=bkws`、端点 **29/0**、
+HTML 117425B、JS undefined NONE、CSS 269/269、marker 4/4、node 0、compile 0、console 0、截图 3 张。
+
+**坑**：① HTML 属性 onclick 引 JS 串内字符串——**别嵌引号**，提函数 + `onclick="_fn()"` 最稳；
+② E2E 收藏 `act=remove` 参数是 **`key=`** 不是 `rel=`（残留 1 条死链清场才验出空态）。
+
