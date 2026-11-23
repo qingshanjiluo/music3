@@ -1619,3 +1619,22 @@ CSS 271/271、marker saveQueue/restoreQueue 2/2、node 0、compile 0、console 0
 **坑**：恢复**必须暂停态**（不自动播）——autoplay 策略会拦且用户刷完页不该突然出声；
 `localStorage` 存**节流**（换歌 force、进度 5s），每 timeupdate 写一遍会把主线程写卡。
 
+---
+
+## 第45轮（前端 R31 · goal round8）：搜索冷启动/0结果空态 + 可点示例词闭环 + 键盘流核对
+
+**简洁性/完善性**：搜索页冷启动与 0 结果都只留一行 `共 0 条`——新用户不知道搜什么。
+
+**修**（2 处 2/2 落）：`emptyRows(title, sub)` + `DEMO_WORDS` 5 个可点示例词
+（周杰伦 晴天 / 五月天 突然好想你 / 稻香 / 起风了 / Alan Walker Fade），`_demo()` 点词即搜；
+冷启动 `搜一首歌开始·三源说明+示例词`；`renderRows(0)` `没有匹配结果+换词/含B站/示例词`。
+
+**键盘流核对**（已有 8 键，E2E 实测）：空格/←→/↑↓/E 均衡器开/`Esc` 关/`[`/`]` 速率/`L` 歌词/`N`/`P` 上下曲——
+实测 `E 开/关=True,True`、N/P 无异常、console 0。
+
+**E2E**：冷启动 `cold=True demo=5`→点词 `rows=21`；song 模式乱码 `zero=True demo=5`→点词 `rows=17`；
+端点 **29/0**、HTML 121166B、JS undefined NONE、CSS 271/271、marker 3/3、node 0、compile 0、console 0、截图 3 张。
+
+**坑**：① `const DEMO_WORDS` 必须定义在冷启动**调用之前**（TDZ ReferenceError 炸整脚本）；
+② 0 结果断言必须在 **song 模式**——all 模式下 B站歌手/MV 对乱码模糊命中 5 条是模糊匹配不是 bug。
+

@@ -1641,6 +1641,16 @@ document.addEventListener('keydown', (e)=>{
 
 /* ---------- 搜索 ---------- */
 let last=[];
+/* 冷启动/0结果空态: 可点示例词直接搜 (const DEMO_WORDS 定义必须在调用之前 — TDZ) */
+const DEMO_WORDS = ['周杰伦 晴天', '五月天 突然好想你', '稻香', '起风了', 'Alan Walker Fade'];
+function _demo(kw){ $('#q').value = kw; doSearch(); }
+function emptyRows(title, sub){
+  return `<div class="empty"><div class="eic">⌕</div><div class="et">${esc(title)}</div>`+
+    `<div class="es">${esc(sub)}</div>`+
+    `<div class="eh">试试这些：</div>`+
+    `<div class="eact">${DEMO_WORDS.map(w=>`<button class="ghost sm" onclick="_demo(this.textContent)">${esc(w)}</button>`).join('')}</div></div>`;
+}
+$('#tb').innerHTML = `<tr><td colspan="7">${emptyRows('搜一首歌开始','支持 QQ音乐 / 网易云 / B站三源 · 勾「含B站」扩到视频源')}</td></tr>`;
 async function doSearch(){
   const q=$('#q').value.trim(); if(!q)return;
   $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); skTable(6);
@@ -1694,6 +1704,10 @@ async function doSearchArtist(q){
 /* 统一表格渲染（带分组标签与按类型下载）；fmtDur 复用统计页已定义的 */
 const TYPE_TAG = {song:'曲', artist:'歌手', mv:'MV'};
 function renderRows(rows, grouped){
+  if(!rows || !rows.length){
+    $('#tb').innerHTML = `<tr><td colspan="7">${emptyRows('没有匹配结果','换个关键词，或勾「含B站」扩到三源 / 点下方示例词试搜')}</td></tr>`;
+    return;
+  }
   $('#tb').innerHTML = rows.map((t,i)=>{
     const tag = grouped ? `<span class="gtag g-${t.type}">${TYPE_TAG[t.type]||''}</span>` : '';
     const isMV = t.type==='mv';
