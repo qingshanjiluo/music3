@@ -151,7 +151,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--acc);cursor:pointer}
 /* 表格 */
 .tablewrap{background:var(--panel);border-radius:var(--radius);overflow:hidden;min-height:44px}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line)}
 th{color:var(--dim);font-weight:500;font-size:11.5px;background:var(--panel2);position:sticky;top:0;z-index:1}
 tr:last-child td{border-bottom:0}
 tbody tr:hover td{background:#efece5}
@@ -767,7 +767,7 @@ tbody tr.playing td{background:#fbe9e4}
   <div class="msg" id="msg" role="status" aria-live="polite"></div>
   <div class="tablewrap">
   <table><thead><tr>
-    <th style="width:30px"><input type="checkbox" id="selallh" title="全选"></th>
+    <th style="width:38px"><input type="checkbox" id="selallh" title="全选"></th>
     <th style="width:40px">#</th><th style="width:44px">分</th><th style="width:48px">时长</th>
     <th style="width:66px">来源</th><th>标题</th><th style="width:116px">操作</th>
   </tr></thead><tbody id="tb"></tbody></table>

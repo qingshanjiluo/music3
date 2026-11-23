@@ -1745,3 +1745,22 @@ CSS 299/299、marker hover-none/heroCSS/heroJS 3/3、node 0、compile 0、consol
 **坑**：hover-only 揭示的按钮**触屏是死的**——`opacity:0` 且无 hover 事件，必须
 `@media(hover:none)` 常驻显示 + 44px；hero 断言要量 `fontSize`（88px）而非只看文本在。
 
+---
+
+## 第51轮（前端 R37 · goal round14）：卡片热区审计 + 搜索表行密度
+
+**热区审计（E2E 4 断言全绿）**：卡片内部按钮是否冒烟到播放、点卡片主体是否正确触发播放：
+- `点改名✎` → `ren_no_play=True`（`stopPropagation` 生效，curRel 不变）
+- `点卡片标题` → `body_plays=True player_on=True`（正确触发播放）
+- `播放中点删除×`（dismiss 确认）→ `alive=True`（页面不崩）
+- console 0
+
+**行密度（简洁性）**：`th,td` 9→**11px** 垂直（触控密度），全选列 30→38px；
+`tr_h=61`（原 ~57，仍紧凑）。
+
+**验收**：热区 4/4 + 端点 **29/0**、HTML 127637B、JS undefined NONE、CSS 299/299、
+marker 行密度/stopProp、node 0、compile 0、console 0、截图 r37_hotzone.png。
+
+**坑**：E2E `#tb tbody tr` 选择器不对——**`#tb` 本身就是 tbody**（应 `#tb tr`）；
+行高断言撞骨架屏前须 `wait_for_selector('#tb tr td .src')` 等真行。
+
