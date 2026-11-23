@@ -2863,6 +2863,23 @@ document.addEventListener('keydown', (e)=>{
   setMsg($('#dmsg'), '正在导出 ' + fmt + extra + (sub ? '（' + sub + '）' : '（全库）') + '…');
 }
 
+/* 相对时间: 刚刚/N分钟前/N小时前/昨天/N天前/N个月前; title 挂绝对时间(简洁性: 首读少一步心算) */
+function relTime(at){
+  if(!at) return '';
+  const d = new Date(String(at).replace(' ', 'T'));
+  if(isNaN(d)) return String(at).replace(/^\d{4}-/, '');
+  const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
+  let txt;
+  if(s < 60) txt = '刚刚';
+  else if(s < 3600) txt = Math.floor(s/60) + ' 分钟前';
+  else if(s < 86400 && d.getDate() === new Date().getDate()) txt = Math.floor(s/3600) + ' 小时前';
+  else if(s < 172800) txt = '昨天';
+  else if(s < 2592000) txt = Math.floor(s/86400) + ' 天前';
+  else if(s < 31536000) txt = Math.floor(s/2592000) + ' 个月前';
+  else txt = Math.floor(s/31536000) + ' 年前';
+  return txt;
+}
+function absTime(at){ try{ return new Date(String(at).replace(' ','T')).toLocaleString(); }catch(e){ return at||''; } }
 /* ---------- 历史 ---------- */
 async function loadHistory(){
   setMsg($('#hmsg'),'加载中…');
@@ -2875,7 +2892,7 @@ async function loadHistory(){
       <td>${i+1}</td>
       <td>${esc(x.title||x.rel.split(/[\\\\/]/).pop())}</td>
       <td class="n">${esc(x.artists||'')}</td>
-      <td class="n">${esc((x.at||'').replace(/^\\d{4}-/,''))}</td>
+      <td class="n"><span title="${esc(absTime(x.at))}">${esc(relTime(x.at))}</span></td>
       <td><button class="ghost sm" onclick="playHist(${i})">播放</button></td>
     </tr>`).join('');
     setMsg($('#hmsg'), items.length? '' : '还没有播放记录');

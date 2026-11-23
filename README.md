@@ -1764,3 +1764,21 @@ marker 行密度/stopProp、node 0、compile 0、console 0、截图 r37_hotzone.
 **坑**：E2E `#tb tbody tr` 选择器不对——**`#tb` 本身就是 tbody**（应 `#tb tr`）；
 行高断言撞骨架屏前须 `wait_for_selector('#tb tr td .src')` 等真行。
 
+---
+
+## 第52轮（前端 R38 · goal round15）：历史时间列相对时间化 relTime
+
+**简洁性**：历史表时间列原 `MM-DD HH:mm`（还得心算「3 天前是哪天」）。
+
+**修**：`relTime(at)` 6 档（刚刚/N 分钟前/N 小时前/昨天/N 天前/N 个月前/N 年前）+
+`absTime` 挂 `title` 悬浮显绝对时间（首读少一步心算、要精确仍可达）。
+
+**E2E**：relTime 单元 6 档全对（`刚刚/5 分钟前/3 小时前/3 天前/2 个月前/1 年前`）；
+历史列 `['16 分钟前','3 小时前','2 天前',...]`、`title=['2026/11/24 05:00:03',...]`、
+**旧格式残留=False**、console 0；端点 **29/0**、HTML 128456B、JS undefined NONE、
+CSS 299/299、node 0、compile 0、截图 r38_hist_reltime.png。
+
+**坑**：补丁里 `\d{4}` 转义层数要数对（pwsh here-string + py str 双层，
+错一层锚 MISS）——复杂锚改用 **read 出现文本 + edit 精确替换**最稳；
+本轮又遇占位工具名/输出被吞，照规矩逐个单发重跑。
+
