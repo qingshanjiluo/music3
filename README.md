@@ -1485,3 +1485,27 @@ HTML 116075B、JS undefined NONE、CSS 269/269、skin marker bg/acc/grain 3/3、
 STRUCT 7 锚 MISS——**结构性锚必须写在映射后的现文本上**（body::before 即此例，
 改完必须 grep 旧色值残留 0 收口）。
 
+---
+
+## 第39轮（前端 R25 · goal round2）：版心/栅格 token 化 + 封面渲染率 0→100%
+
+**布局 token（web-layout-creative 硬约束落地）**
+- 版心四档 `--content-prose(65ch)/grid(960)/wide(1180)/full`、4px 基间距阶梯
+  `--space-1..6`、栅格 `--gap:clamp(8,1.4vw,16)`、`--gap-grid`、节距 `--sect`
+- `.wrap/.grid/.statgrid/.skg/.bar` 全部走 token（裸 gap:10px 清零）
+- **tab 轨 → scroll-snap 横向轨道**（范式08）：`scroll-snap-type:x mandatory`
+  + 子项 `scroll-snap-align:center`、触控目标 **44px**（`min-height:44px`，触控红线）
+
+**根因修复：封面渲染率 0% → 100%**
+- 症状：`/api/cover` 实测 **8/8 全 200 有图**，但页面 8 张卡片全 ♪ 占位、`img=0`
+- 探针定位：`loadCoversFor(frag)` 在 `grid.appendChild(frag)` **之后**调——
+  子节点已迁入 grid，**frag 此时为空**，IntersectionObserver 观察 0 个元素
+- 修：`loadCoversFor(grid)`（`dataset.done` 防重取）→ 复测 **img=8 note=0 rate=100%**
+
+**验收**：封面 8/8、端点 **29/0**、HTML 116636B、JS undefined NONE、CSS 269/269、
+marker `loadCoversFor(grid)/snap/prose` 3/3、node 0、compile 0、console 0、截图 r25_covers_fixed.png。
+
+**坑**：`appendChild(frag)` 后 frag 必空——对 DocumentFragment 的一切查询/观察必须
+在 append **之前**做，或改观察目标为真正父容器；此 bug 藏了 20+ 轮（R22 封面按钮
+下发阶段就该暴露），教训是**有 API 数据就要断言前端 img 数，不能只查 200**。
+

@@ -52,9 +52,12 @@ PAGE = r"""<!doctype html>
   --fg:#1c1a17; --dim:#77706a; --acc:#c4381f; --acc2:#2f4f44;
   --ok:#2f7d55; --warn:#96650a; --bad:#a3261a; --radius:3px;
   --glass:rgba(247,245,240,.94);
-  /* 版心与间距 token */
-  --content-wide:1180px;
+  /* 版心四档（prose 65ch / grid 960 / wide 1180 / full 100%） */
+  --content-prose:65ch; --content-grid:960px; --content-wide:1180px;
+  /* 4px 基间距阶梯 + 栅格 gap（12 栏可除 2/3/4/6，破格留余量） */
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px;
+  --gap:clamp(8px, 1.4vw, 16px); --gap-grid:clamp(8px, 1vw, 12px);
+  --sect:clamp(1.5rem, 3vw, 2.5rem);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -70,7 +73,7 @@ body{
   font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   padding-bottom:calc(84px + env(safe-area-inset-bottom));
 }
-.wrap{max-width:1180px;margin:0 auto;padding:16px 14px 40px}
+.wrap{max-width:var(--content-wide);margin:0 auto;padding:var(--space-4) var(--space-4) 40px}
 /* 焦点可见（键盘可达） */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
   outline:2px solid var(--acc);outline-offset:2px;
@@ -98,18 +101,20 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
 .tabs{
   display:flex;gap:3px;background:var(--panel);padding:4px;border-radius:11px;
   margin-bottom:14px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
 }
 .tabs::-webkit-scrollbar{display:none}
 .tab{
-  flex:1;text-align:center;padding:8px 6px;border-radius:8px;cursor:pointer;
+  flex:1;text-align:center;padding:11px 8px;border-radius:8px;cursor:pointer;
   color:var(--dim);font-size:13px;transition:.15s;user-select:none;white-space:nowrap;
+  scroll-snap-align:center;min-height:44px;box-sizing:border-box;
 }
 .tab.on{background:var(--fg);color:var(--bg);font-weight:700}
 .pane{display:none}.pane.on{display:block}
 
 /* 消抖动：消息条/内容区常占位，刷新不顶动页面 */
 .msg{min-height:20px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar{display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center;margin-bottom:var(--space-3)}
 input[type=text],input[type=number]{
   flex:1;min-width:170px;background:var(--panel);border:1px solid var(--line);
   color:var(--fg);padding:11px 13px;border-radius:10px;font-size:14px;outline:none;transition:.15s;
@@ -252,7 +257,7 @@ tbody tr.playing td{background:#fbe9e4}
 .lt2{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lsz{font-size:11px;color:var(--dim);flex:0 0 auto}
 /* 统计卡片 */
-.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--gap-grid)}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
@@ -354,7 +359,7 @@ tbody tr.playing td{background:#fbe9e4}
   background-size:200% 100%;animation:skSlide 1.2s linear infinite;border-radius:9px}
 @keyframes skSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.sk{animation:none;background:#eeebe4}}
-.skg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.skg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:var(--gap-grid)}
 .skc{height:170px;display:flex;flex-direction:column}
 .skc .a{height:148px}
 .skc .b{height:13px;margin-top:8px}
@@ -529,7 +534,7 @@ tbody tr.playing td{background:#fbe9e4}
 }
 
 /* 网格卡（曲库） */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;min-height:120px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:var(--gap-grid);min-height:120px}
 .card{
   background:var(--panel);border-radius:var(--radius);overflow:hidden;
   cursor:pointer;transition:.15s;border:1px solid transparent;
@@ -2129,10 +2134,10 @@ function renderGridBatch(items, sub){
       }
     }
     if(sentinel.parentNode) sentinel.remove();
-    grid.appendChild(frag);
+    grid.appendChild(frag);          // 子节点迁入 grid 后 frag 变空
     shown = end;
     if(shown < items.length) grid.appendChild(sentinel);
-    loadCoversFor(frag);
+    loadCoversFor(grid);             // 必须观察 grid：frag 此时已空（原 loadCoversFor(frag) 恒 0 张 → 封面全 ♪）
     setMsg($('#bmsg'), `${sub||'结果'} · 已显示 ${shown}/${items.length}`);
   };
 
