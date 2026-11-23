@@ -1593,3 +1593,29 @@ node 0、compile 0、console 0、截图 r29_sticky.png。
 否则 scrollY 恒 0 是假通过/假失败；② 滚动交互组件要 **tab 吸顶**，否则「先滚回顶再点 tab」
 把离开时 scrollY 归 0，记忆机制拿不到位置。
 
+---
+
+## 第44轮（前端 R30 · goal round7）：播放队列跨刷新持久化 + 清空确认流核对
+
+**完善性缺口**：`playList/playIdx` 只存内存——刷新页面队列丢，标题/进度/队列全无。
+
+**修**（4 处 4/4 落）：
+- `_saveQueue(force)`：`localStorage['m3_queue']` 存 `rel/idx/当前秒/title/artist/list`，
+  **换歌不节流(force)、timeupdate 节流 5s**；超 5MB 配额静默放弃（不阻塞播放）
+- `play()` 换歌时 `_saveQueue(true)`；`audio.timeupdate` 走 `_saveQueue(false)`
+- `restoreQueue()`（启动脚本）：读回队列 → **暂停态**恢复（`audio.src` 设好不 play，
+  避 autoplay 策略/用户预期），`loadedmetadata` 一次回填 `currentTime`，
+  提示 `已恢复上次队列 · 第 N 首（共 M 首）· 点 ▶ 续播`
+
+**E2E 实测**：播放《城南花已开》4s → `queue rel=…三亩地 - 城南花已开 idx=0 list=8` →
+**刷新** → `title='城南花已开' paused=True src=/api/stream?rel=… msg=已恢复上次队列·第1首(共8首)·点▶续播 console=0`。
+
+**清空确认流核对**（4 处一致）：播放列表/收藏歌单/播放统计/播放历史 全有 `confirm('清空…？')`——
+无需新增，本轮只补持久化。
+
+**验收**：恢复暂停态+进度+队列全绿、端点 **29/0**、HTML 120354B、JS undefined NONE、
+CSS 271/271、marker saveQueue/restoreQueue 2/2、node 0、compile 0、console 0、截图 r30_queue_restore.png。
+
+**坑**：恢复**必须暂停态**（不自动播）——autoplay 策略会拦且用户刷完页不该突然出声；
+`localStorage` 存**节流**（换歌 force、进度 5s），每 timeupdate 写一遍会把主线程写卡。
+

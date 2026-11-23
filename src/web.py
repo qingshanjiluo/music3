@@ -1154,9 +1154,20 @@ function fitWave(){
   }
 }
 window.addEventListener('resize', fitWave);
+audio.addEventListener('timeupdate', ()=>{ _saveQueue(false); });   // 播放中节流存进度
 
 function fmtT(s){if(!isFinite(s))return '--:--';s=Math.max(0,Math.floor(s));return (Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0');}
 
+let _qLastSave = 0;
+function _saveQueue(force){
+  if(!force && Date.now()-_qLastSave < 5000) return;   // 节流: 5s 一次
+  _qLastSave = Date.now();
+  try{ localStorage.setItem('m3_queue', JSON.stringify({
+    rel: curRel, idx: playIdx, t: audio.currentTime|0,
+    title: $('#ptitle').textContent, artist: $('#partist').textContent,
+    list: playList
+  })); }catch(e){ /* 队列超 localStorage 配额(约5MB)时静默放弃, 不影响播放 */ }
+}
 function play(rel, title, artist, list, idx){
   curRel=rel; playList=list||[]; playIdx=(idx==null?-1:idx);
   player.classList.add('on');
@@ -1169,6 +1180,7 @@ function play(rel, title, artist, list, idx){
   if(actx && actx.state === 'suspended') actx.resume();
 
   audio.src='/api/stream?rel='+encodeURIComponent(rel);
+  _saveQueue(true);   // 换歌即存队列(不节流: 换歌是关键点)
   // 保留速度设置（切歌后 audio 属性会重置）
   try{ audio.playbackRate = playRate; }catch(e){}
   audio.play().then(()=>{
@@ -2846,6 +2858,25 @@ plLoad();
 eqInit();
 applyMode();
 applyRate();
+
+/* 恢复上次播放队列(暂停态, 不自动播——浏览器 autoplay 策略 + 用户预期) */
+(function restoreQueue(){
+  try{
+    const q = JSON.parse(localStorage.getItem('m3_queue') || 'null');
+    if(!q || !q.rel) return;
+    curRel=q.rel; playList=q.list||[]; playIdx=(q.idx==null?-1:q.idx);
+    $('#ptitle').textContent = q.title || q.rel.split(/[\\/]/).pop();
+    $('#partist').textContent = q.artist || '';
+    player.classList.add('on');   // 常驻占位: 未播时 .player:not(.on) 降透明度, 这里点亮
+    audio.src = '/api/stream?rel=' + encodeURIComponent(q.rel);
+    try{ audio.playbackRate = playRate; }catch(e){}
+    if(q.t > 0) audio.addEventListener('loadedmetadata', ()=>{
+      try{ audio.currentTime = q.t; }catch(e){}
+    }, {once:true});
+    setMsg($('#msg'), '已恢复上次队列 · 第 '+((playIdx<0?1:playIdx+1))+' 首（共 '+playList.length+' 首）· 点 ▶ 续播', 'ok');
+    fitWave();
+  }catch(e){}
+})();
 
 /* PWA：注册 service worker */
 if('serviceWorker' in navigator && location.protocol === 'http:' || location.protocol === 'https:'){
