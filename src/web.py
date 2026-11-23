@@ -354,6 +354,13 @@ tbody tr.playing td{background:#fbe9e4}
   background:rgba(255,255,255,.93);color:var(--dim);font-size:13px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;padding:0}
 .cop:hover{background:#efece5;color:var(--fg);border-color:rgba(28,26,23,.18)}
+/* 触屏(无hover设备): 揭示按钮常驻可见 + 触控44px红线(hover-only在触屏不可达=可交互硬伤) */
+@media (hover:none){
+  .cardops{opacity:1}
+  .cop{width:44px;height:44px;font-size:15px;border-radius:4px}
+  .rowops button{min-width:44px;min-height:44px;padding:8px;font-size:14px}
+  .lrow,.plitem{min-height:48px}
+}
 .cop[data-act="del"]:hover{color:var(--bad)}
 .card{position:relative}
 /* 加载骨架：曲库/表格加载时显示，避免空白跳动 */
@@ -572,6 +579,28 @@ tbody tr.playing td{background:#fbe9e4}
   .pcov{width:40px;height:40px}
   .ptitle{font-size:12.5px}
 }
+/* 健康分 hero(破格1处 · 范式15超大字): 全库核心指标单独立一面 */
+.healthhero{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  padding:26px 28px 22px;margin-bottom:14px;position:relative;overflow:hidden;
+}
+.healthhero::after{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--dim);
+}
+.healthhero.hero-ok::after{background:var(--ok)}
+.healthhero.hero-mid::after{background:var(--warn)}
+.healthhero.hero-bad::after{background:var(--bad)}
+.healthhero .hk{font-size:12px;color:var(--dim);letter-spacing:.5px}
+.healthhero .hv{line-height:1;margin:8px 0 6px;display:flex;align-items:baseline;gap:8px}
+.healthhero .hv b{
+  font-size:clamp(3.2rem,7vw,5.5rem);font-weight:800;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;color:var(--fg);
+}
+.healthhero.hero-ok .hv b{color:var(--ok)}
+.healthhero.hero-mid .hv b{color:var(--warn)}
+.healthhero.hero-bad .hv b{color:var(--bad)}
+.healthhero .hden{font-size:1.3rem;color:var(--dim);font-weight:600}
+.healthhero .hmeta{font-size:12px;color:var(--dim)}
 /* 移动端 */
 @media (max-width:640px){
   .wrap{padding:12px 10px 30px}
@@ -2528,6 +2557,13 @@ async function doHealth(){
     const cls = sc>=90?'ok':(sc>=70?'':'bad');
     setMsg($('#hmsg2'),
       `共 ${d.total} 首 / ${d.total_size_mb} MB · 健康分 ${sc}/100${d.deep?'（深度·分批完成）':'（快速）'}`, cls);
+    /* 健康分 hero(破格1处): 全库核心指标给超大数字 + 小标签(前端准则:大数字配小标签) */
+    const heroCls = sc>=90?'hero-ok':(sc>=70?'hero-mid':'hero-bad');
+    const heroHTML = `<div class="healthhero ${heroCls}" role="img" aria-label="全库健康分 ${sc} 分（满分 100）">
+      <div class="hk">全库健康分</div>
+      <div class="hv"><b>${sc}</b><span class="hden">/100</span></div>
+      <div class="hmeta">${d.deep?'深度扫描':'快速扫描'} · ${d.total} 首 · ${d.total_size_mb} MB</div>
+    </div>`;
     // 卡片
     const cards = Object.entries(d.summary||{}).map(([k,v])=>
       `<div class="statcard"><div class="k">${esc(k)}</div><div class="v" style="${v?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${v}</div></div>`
@@ -2551,7 +2587,7 @@ async function doHealth(){
       }).join('');
       blocks.push(`<div class="jobcard"><div class="jobtitle" style="margin-bottom:6px">${LABEL[k]} (${arr.length})</div>${rows}</div>`);
     }
-    $('#hresult').innerHTML = `<div class="statgrid">${cards}</div>` + blocks.join('');
+    $('#hresult').innerHTML = heroHTML + `<div class="statgrid">${cards}</div>` + blocks.join('');
   }catch(e){ setMsg($('#hmsg2'), '失败: '+e, 'bad'); }
 }
 $('#hscan').onclick = doHealth;

@@ -1724,3 +1724,24 @@ JS undefined NONE、CSS 281/281、marker countUp、node 0、compile 0、截图 2
 隐藏 pane 里 IntersectionObserver 不触发、wheel 滚的是清理页；**先切到目标 tab + 证 `scrollHeight>viewport`** 再滚；
 减动效 `reduced_motion=reduce` 必须单页测（page 一次设置），marker 字符串多括号 grep 易 0 假红。
 
+---
+
+## 第50轮（前端 R36 · goal round13）：触屏可交互硬伤修复 + 健康分 hero 破格大数字
+
+**触屏硬伤**（可交互红线）：`.cardops`（改名/删除）**hover-only 揭示**——触屏无 hover，
+按钮 `opacity:0` 永不可达；`.cop` 26×26、`.rowops` 按钮 <44px 不达触控红线。
+修：`@media (hover:none)` 下 `cardops` **常驻可见** + `.cop` 44×44、`.rowops` 44px、
+`.lrow/.plitem min-height:48px`。E2E（390×844 `hasTouch=true`）：`cardops op=1 w=92 h=44`、
+`cop 44×44`——红线达标。
+
+**健康分 hero（破格 · 范式15 超大字）**：核心指标「全库健康分」原先只挤在 5 卡里一个 `.v`。
+挂 `hresult` 顶部 hero 卡：`clamp(3.2rem,7vw,5.5rem)` 大数字 + 小标签 `全库健康分` +
+`快速/深度扫描 · 5188 首 · 36545.9 MB` + 左侧状态竖条（≥90 ok / 70-90 warn / <70 bad）。
+E2E：`score=77.1 cls=hero-mid fs=88 color=rgb(150,101,10)`、截图 r36_hero.png 确认 88px 琥珀大数。
+
+**验收**：触屏红线 + hero 渲染双绿、端点 **29/0**、HTML 127636B、JS undefined NONE、
+CSS 299/299、marker hover-none/heroCSS/heroJS 3/3、node 0、compile 0、console 0、截图 2 张。
+
+**坑**：hover-only 揭示的按钮**触屏是死的**——`opacity:0` 且无 hover 事件，必须
+`@media(hover:none)` 常驻显示 + 44px；hero 断言要量 `fontSize`（88px）而非只看文本在。
+
