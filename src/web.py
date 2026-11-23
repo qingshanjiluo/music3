@@ -893,7 +893,7 @@ tbody tr.playing td{background:#fbe9e4}
 </div>
 
 <!-- 播放器 -->
-<div class="player" id="player">
+<div class="player" id="player" role="toolbar" aria-label="播放器控制条">
   <canvas class="pwave" id="pwave" width="600" height="44"></canvas>
   <div class="pbar" id="pbar" role="progressbar" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
   <div class="pcov" id="pcov">♪</div>
@@ -996,6 +996,32 @@ document.addEventListener('DOMContentLoaded', ()=>{ const b=$('#pmore'); if(b) b
   const box=$('#pmorebox'); const on=box.classList.toggle('on');
   b.setAttribute('aria-expanded', on?'true':'false');
 };});
+/* 键盘可达: .pbtn 是 div, 补 role/tabindex + Enter/Space 激活 (原 Tab 到不了播放器) */
+function _makeFocusablePbtns(){
+  $$('.pbtn').forEach(el=>{
+    if(el.getAttribute('tabindex')!=null) return;
+    if(!el.getAttribute('role')) el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){
+        e.preventDefault(); e.stopPropagation();   // 拦掉全局空格=播放, 走当前聚焦钮
+        el.click();
+        if(el.id==='pmore'){ const f=$('#pmorebox button'); if(f) f.focus(); }
+      }
+    });
+  });
+}
+_makeFocusablePbtns();
+/* ⋯ 弹层键盘流: Esc 关闭并把焦点还给 ⋯ (menu role 合规) */
+document.addEventListener('keydown', (e)=>{
+  if(e.key!=='Escape') return;
+  const box=$('#pmorebox');
+  if(box && box.classList.contains('on')){
+    box.classList.remove('on');
+    $('#pmore').setAttribute('aria-expanded','false');
+    $('#pmore').focus();
+  }
+});
 /* ---------- 标签切换：往返保留滚动位置(结构硬规则4) + 有数据不整页重拉 ---------- */
 const _scrollMem = {};   // p -> 离开时 scrollY
 function _restoreScroll(p){

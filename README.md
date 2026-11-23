@@ -1662,3 +1662,25 @@ CSS 271/271、marker saveQueue/restoreQueue 2/2、node 0、compile 0、console 0
 算成溢出——真信号看 `documentElement.scrollWidth > clientWidth`；
 ② 窄屏收纳判按钮出视口必须在**播放启动后**量（idle 态按钮隐藏会假通过）。
 
+---
+
+## 第47轮（前端 R33 · goal round10）：播放器键盘流 + role=toolbar + ⋯ 弹层 Esc 回焦点
+
+**可访问性缺口**：`.pbtn` 全是 **div**（无 tabindex/role）——**Tab 根本到不了播放器按钮**，
+键盘用户按不了 ⋯ 更多；Esc 关弹层焦点丢失。
+
+**修**（2/2）：
+- `player` 加 `role="toolbar" aria-label="播放器控制条"`（WAI-ARIA toolbar 语义）
+- `_makeFocusablePbtns()`：10 个 `.pbtn` 全补 `role=button tabindex=0`，
+  `Enter/Space` 激活（**`stopPropagation` 拦全局空格=播放**，走当前聚焦钮）；
+  ⋯ 内 Enter 后自动把焦点送进弹层首项
+- ⋯ 弹层 `Esc` 关闭 + `aria-expanded=false` + **焦点还给 ⋯**（menu role 合规）
+
+**E2E 实测**：`toolbar=toolbar`、`pbtn_focusable=10`、`rolebtn=10`、
+`Tab 19 次到达 ⋯`、`Enter 开=True expanded=true`、`Esc 关=True focus_back=pmore`、
+`Space 开=True`、console 0；端点 **29/0**、HTML 124199B、JS undefined NONE、
+CSS 281/281、marker toolbar/focusable/esc 3/3、node 0、compile 0、截图 r33_kbd.png。
+
+**坑**：div 按钮必须 `role=button + tabindex` 才进 Tab 序；pbtn 内 Enter/Space 要
+`preventDefault+stopPropagation`——否则全局空格（播放/暂停）抢跑，焦点钮点不着。
+
