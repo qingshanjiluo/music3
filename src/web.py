@@ -47,6 +47,7 @@ PAGE = r"""<!doctype html>
 <title>music3 · 三源音乐</title>
 <style>
 :root{
+  color-scheme:light;   /* 系统深色模式下强制原生控件(checkbox/select/scrollbar)走浅色, 免与纸白皮撕裂 */
   /* 唱片内页（liner notes）：纸白底 · 墨黑字 · 朱砂红唱片标签 */
   --bg:#f7f5f0; --panel:#ffffff; --panel2:#efece5; --line:#e2ddd3;
   --fg:#1c1a17; --dim:#77706a; --acc:#c4381f; --acc2:#2f4f44;
@@ -681,6 +682,14 @@ tbody tr.playing td{background:#fbe9e4}
       <button class="ghost sm" id="copywx">复制微信号</button>
     </div>
 
+    <div class="mrow" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div class="mk" style="width:auto">快捷键</div>
+      <div class="mv" style="font-size:12px;line-height:1.9;color:var(--dim)">
+        <span class="kbd">Space</span> 播放/暂停 · <span class="kbd">←</span><span class="kbd">→</span> 快退/快进 5s · <span class="kbd">↑</span><span class="kbd">↓</span> 音量<br>
+        <span class="kbd">N</span>/<span class="kbd">P</span> 下/上曲 · <span class="kbd">L</span> 歌词 · <span class="kbd">E</span> 均衡器 · <span class="kbd">[</span><span class="kbd">]</span> 倍速<br>
+        <span class="kbd">Esc</span> 关闭浮层 · <span class="kbd">Tab</span> 走到播放器按钮，<span class="kbd">Enter</span>/<span class="kbd">Space</span> 按下 · 窄屏 <span class="kbd">⋯</span> 收纳次要控制
+      </div>
+    </div>
     <div class="mnote">
       这个工具从第一行代码到 46 条踩坑记录都是实打实趟出来的。<br>
       觉得有用就点个 ⭐ Star，这是最直接的鼓励。<br>

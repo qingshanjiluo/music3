@@ -1684,3 +1684,23 @@ CSS 281/281、marker toolbar/focusable/esc 3/3、node 0、compile 0、截图 r33
 **坑**：div 按钮必须 `role=button + tabindex` 才进 Tab 序；pbtn 内 Enter/Space 要
 `preventDefault+stopPropagation`——否则全局空格（播放/暂停）抢跑，焦点钮点不着。
 
+---
+
+## 第48轮（前端 R34 · goal round11）：关于弹窗快捷键速查 + color-scheme:light 深色回退核对
+
+**完善性**：11 个快捷键（Space/←→/↑↓/N/P/L/E/[/]/Esc/Tab/⋯）**没有任何帮助面**——
+`Esc 关闭`提示只在歌词面板一处。关于弹窗新增**快捷键速查卡**（`mrow` 分组、
+`.kbd` 键帽排版、三行 11 键 + 窄屏 ⋯ 收纳说明）。
+
+**画面 bug（深色回退核对）**：主题是浅色「唱片内页」，但 `:root` 没有 `color-scheme`——
+**系统开深色模式时浏览器把原生控件（checkbox/select/scrollbar）套深色**，
+与纸白皮撕裂。修：`:root{color-scheme:light}` 显式声明。
+`emulateMedia(colorScheme=dark)` 实测 `bodyBG=rgb(247,245,240)` 纸白保持、`color-scheme='light'`。
+
+**验收**：快捷键速查 `=True`（Space/Tab/⋯ 三关键词全中）、端点 **29/0**、
+HTML 125067B、JS undefined NONE、CSS 281/281、marker colorScheme/速查 2/2、
+node 0、compile 0、console 0、截图 r34_about_kbd.png。
+
+**坑**：单行 grep `快捷键.*Space` 跨行匹配必 0——HTML 落盘核对用 **E2E 断言文本**（`textContent.includes`）别用单行正则；
+浅色主题**必须** `color-scheme:light`，否则系统深色模式下原生控件反色撕裂（藏到 E2E 模拟才发现）。
+
