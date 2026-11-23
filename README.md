@@ -1460,3 +1460,28 @@ walk 循环里等于每次请求全目录读，必超时（同 R12/R19 分批教
 ② grep 核对实测锚前先 `read` 拿真实缩进（本处 16/0/4 空格 vs 我凭印象写的 18/6 空格，
 三处 MISS）；③ E2E 下钻 `text=` 选择器对深层目录会超时，改 `evaluate('openDir(...)')` 直调。
 
+---
+
+## 第38轮（前端重做 R24 · 新 goal round1）：深色 AI 感 → 「唱片内页」纸白/墨黑/朱砂
+
+**方向（两 pass 自检后定）**：现主题 `#0b0d12` 近黑+蓝紫 = AI 默认特征②「近黑+亮accent」，
+正是「深色AI感」根源。按 frontend-design 主题贴合原则改走**唱片内页（liner notes）**：
+纸白 `#f7f5f0` 底 / 墨黑 `#1c1a17` 字 / **朱砂 `#c4381f`** 唱片标签色 + 墨绿 `#2f4f44` 副色。
+避开特征①奶油衬线+陶土、特征④ SaaS 圆角卡全套。
+
+**改法（选择器名 0 改动，JS 绑定零影响）**
+- token 重写 + 40+ 色值映射（深面→纸面、蓝紫→朱砂、深字→墨字、徽章浅底化）
+- 去 AI 默认 tell：蓝紫渐变 logo→朱砂方标、统计卡渐变字→墨黑 800、
+  卡片 hover 上浮→边框变墨、`body::before` 三块径向光晕→**纸纹 grain（feTurbulence）**
+- 印刷感：`--radius` 10px→3px（外卡直角）、tab 选中墨底反白、chip 选中墨底、
+  h1 字重 650→**800 + 负字距**、正文 13.5→14px
+- 浮层（弹窗/抽屉）深玻璃→纸面+浅阴影（阴影只给浮层，面靠边框）
+
+**验收**：截图 3 张（home/library/stats，console error 0）、端点 **29/0**、
+HTML 116075B、JS undefined NONE、CSS 269/269、skin marker bg/acc/grain 3/3、
+深色值残留 **grep 0**、node 0、compile 0。
+
+**坑**：换肤补丁「MAP 色值映射先跑、STRUCT 锚后跑」→ MAP 把锚里的色值先改掉导致
+STRUCT 7 锚 MISS——**结构性锚必须写在映射后的现文本上**（body::before 即此例，
+改完必须 grep 旧色值残留 0 收口）。
+
