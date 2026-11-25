@@ -180,6 +180,8 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     st["runs"] = int(st.get("runs", 0)) + 1
     for k, kk in (("lyric_ok", "lyric"), ("cover_ok", "cover"), ("cleaned", "clean")):
         st["totals"][kk] = int(st["totals"].get(kk, 0)) + res[k]
+    st["last"] = {"lyric_ok": res["lyric_ok"], "cover_ok": res["cover_ok"],
+                  "cleaned": res["cleaned"], "scanned": res.get("scanned", 0), "at": time.time()}
     _write_state(st)
 
     log("本轮完成: 歌词+%d 歌词-%d 封面+%d 封面-%d 清理%d"
@@ -198,6 +200,7 @@ def status():
         "totals": st.get("totals", {}),
         "cursor": st.get("cursor", {}),
         "log_lines": len(tail_log(99999)),
+        "last": st.get("last", {}),
     }
     return s
 

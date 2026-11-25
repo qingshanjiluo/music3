@@ -2472,3 +2472,21 @@ JS undefined NONE、CSS 310/310、node 0、console 0、截图 r72_refresh.png。
 **坑**：① 验收脚本 `p.evaluate("=>…")` 箭头语法错（要 `"()=>{…}"`）——evaluate 首参必须是函数表达式字符串
 ② `#mtrefresh` 刷新若 `#mtjumplog` 已被 `mtStat` 的 `#mtresult` 重铺清掉，要 `hadJump` 记状态 + 重挂异常率卡点击。
 
+---
+
+## 第87轮（前端 R73 · goal round50）：第 9 卡「本轮补 N」（最新 tick 即时补数）
+
+**完善性（本轮即时反馈）**：维护页 8 卡都是累计/占比，「刚跑这一 tick 补了几首」看不到。
+加**第 9 卡「本轮补（最新 tick）」**——`maintain.tick()` 存 `st["last"]={lyric_ok,cover_ok,cleaned,scanned,at}`，
+`status()` 回 `last`，前端第 9 卡显 `lastN = lyric_ok+cover_ok`（`>0` 绿、`=0` 灰），点「刷新」重拉。
+
+**E2E**：9 卡全出（`已跑 416 / 歌词 3091 / 封面 3440 / 清理 0 / ID3 已核 / 缓存三合 42 / 取链命中 0% /
+异常率 0% / 本轮补（最新 tick）0`）；端点 **30/0**、HTML 146888B、JS undefined NONE、CSS 310/310、
+node 0、console 0、截图 r73_lastcard.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 412→416`，断点 `英文歌\21 Guns.mp3`。
+
+**坑**：① `tick()` 存 `st["last"]` + `status()` 回 `last`（两端都要改，单改 status 拿不到）② 重启后
+首次 tick 前 `state` 无 `last` 字段 → `s.last||{}` 兜底（本轮补显 0，不崩）；③ 第 9 卡 4 列 3 行
+（4+4+1），第 5/9 卡 `grid-column:1` 归位（R71 已加 nth-child(5/9)）。
+

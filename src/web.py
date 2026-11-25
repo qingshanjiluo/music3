@@ -3005,6 +3005,13 @@ async function mtStat(){
           };
         });
       }catch(e){}
+      /* 第 9 卡「本轮补 N」: 最近一次 tick 的 lyric_ok+cover_ok(从 s.last), 刷新重拉 */
+      try{
+        const last=s.last||{};
+        const lastN=(last.lyric_ok||0)+(last.cover_ok||0);
+        $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
+          `<div class="statcard" title="最近一次维护 tick 的即时补数 = 歌词 +${last.lyric_ok||0} · 封面 +${last.cover_ok||0}（点了跑维护/刷新后更新）"><div class="k">本轮补（最新 tick）</div><div class="v" style="${lastN>0?'color:var(--ok);-webkit-text-fill-color:var(--ok)':'color:var(--dim);-webkit-text-fill-color:var(--dim)'}">${lastN}</div></div>`);
+      }catch(e){}
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
