@@ -104,7 +104,7 @@ def _pv_load_hits():
 
 def _pv_flush_hits():
     """节流写盘(距上次 >=1s 才落, 免高频 IO)。"""
-    global _PV_HITS_DIRTY, _PV_HITS_LAST_FLUSH
+    global _PV_HITS, _PV_HITS_DIRTY, _PV_HITS_LAST_FLUSH
     import time as _t
     if not _PV_HITS_DIRTY:
         return
@@ -2868,6 +2868,16 @@ async function mtRun(){
     setMsg($('#mtmsg'),
       `本轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}`
       + (r.done ? ' · 已跑完一圈' : ''), 'ok');
+    /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
+    try{
+      const st2 = await (await fetch('/api/maintain')).json();
+      const rc = (st2.recent||[]).slice(0,3);
+      if(rc.length){
+        let el = $('#mtlast');
+        if(!el){ el = document.createElement('div'); el.id='mtlast'; el.className='n'; el.style.cssText='margin-top:4px;font-size:12px;color:var(--dim)'; $('#mtmsg').insertAdjacentElement('afterend', el); }
+        el.textContent = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' '+x.name).join(' · ');
+      }
+    }catch(e){}
     await mtStat();
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
   finally{ btn.disabled = false; }

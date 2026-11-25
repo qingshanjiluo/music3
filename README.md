@@ -2186,3 +2186,27 @@ CSS 302/302、node 0、console 0、截图 r58_recenttime.png。
 
 **完善性（游标续推）**：全库 8 批 batch=20 `runs 324→332`，断点 `整理后分类\thisistruemusic\英文歌\pure imagination.mp3`。
 
+---
+
+## 第73轮（前端 R59 · goal round36）：flush global 全量 audit + 维护页「本批补」即时回显
+
+**完善性（global 完整性审计）**：R58 修了 `_pv_on_call` 漏 `_PV_CALLS_LAST_FLUSH`。同源隐患：
+`_pv_flush_hits` 也漏了 `_PV_HITS`（它 `_f.write(str(_PV_HITS))` 但 global 只声明
+`_PV_HITS_DIRTY, _PV_HITS_LAST_FLUSH`）——之前没炸因为 `/api/cache` 读时调它时 `_PV_HITS`
+碰巧在模块级可读（Python 只读不 global 也行，但写就要）。**补 `_PV_HITS` 进 global**，
+并 E2E 源码 audit 断言 `def _pv_flush_hits` 的 global 行含 `_PV_HITS`（防再退）。
+
+**完善性（本批补即时回显）**：`mtRun` 跑一轮后只报「歌词 +N」数量，补了什么看不见。
+加 `#mtlast` 即时回显（拉 `/api/maintain` 的 `recent` 前 3 条挂 `mtmsg` 下）
+——`本批补: 歌词 周杰伦/晴天 · 封面 邓紫棋/新的心跳`，不用等 5 卡重拉。
+
+**E2E**：`_pv_flush_hits` global audit 过（含 `_PV_HITS`）；seed 2 条 recent → 点「跑维护」
+→ `#mtlast` 显「本批补: 歌词 周杰伦/晴天 · 封面 邓紫棋/新的心跳」绿 → 还原；
+端点 **30/0**、HTML 136751B、CSS 302/302、node 0、console 0、截图 r59_batchlast.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `runs 332→340`，断点 `华语经典\周杰伦\搁浅.mp3`。
+
+**坑**：节流写盘函数 global 完整性——`_f.write(str(X))` 要 global `X`（写）；只读不 global 也行。
+`_pv_flush_hits` 写 `_PV_HITS` 但 global 漏它，同 R58 `_pv_on_call` 漏 `_PV_CALLS_LAST_FLUSH` 一类
+（R57 加 calls 落盘没同步 audit hits 的 flush）。E2E 加**源码级 global 断言**防退。
+
