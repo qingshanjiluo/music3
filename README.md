@@ -2998,3 +2998,22 @@ HTML 163377B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r99
 按钮 `▸ 展开`），首访无 key 不折叠 ④ 折叠时 `#mtstat` 仍点了会重铺 `#mtresult`（内容在，只是 display:none
 不显，展开即现）——不阻断数据刷新。
 
+---
+
+## 第115轮（前端 R101 · goal round78）：维护卡片 hover 微交互（抬升 + 阴影 + 边框）
+
+**流畅性（卡片可点体感）**：维护卡片静态平铺，hover 没反馈，扫卡片不知「这卡能不能点」。
+`#mtresult .statcard` 加**微交互**（作用域限维护区，不影响曲库/批量卡片）——悬停 `translateY(-2px)` 抬升 +
+`box-shadow:0 6px 18px -8px rgba(0,0,0,.25)` + 边框 `var(--acc)`，`transition:transform/box-shadow/border-color
+.15s`——扫卡片有「可点」体感，跳日志卡（异常率/取链）hover 更醒目。
+
+**E2E**：真 hover → `translateY=-2 + shadow=rgba(0,0,0,.25) 0 6px 18px -8px + trans=transform,box-shadow,border-color`
+（绿）；端点 **30/0**、HTML 164493B、JS undefined NONE、CSS **315/315**、node 0、console 0、截图 r101_hover.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 487→489`，断点 `_归档_封存\SD卡版\…\Rather Be.mp3`。
+
+**坑**：① hover 只挂**维护卡片**（`#mtresult .statcard` 作用域），`.statcard` 本身不动（曲库/批量/历史同用，
+避免误抬升）② 抬升 `translateY(-2px)`（不 `scale`，网格列宽不变形）+ 阴影 `-8px` 收窄（`0 6px 18px -8px`
+不糊整张卡）③ `border-color:var(--acc)` hover 时边框亮 accent（可点暗示，非跳日志卡也一致）④ `.mtspark-hover`
+末点圆点放大暂不做（hover 定位层随 mousemove 已显，抬升 + 阴影够体感，圆点放大留后轮）。
+

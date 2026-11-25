@@ -392,6 +392,10 @@ tbody tr.playing td{background:#fbe9e4}
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
 }
+/* 维护卡片 hover 微交互: 抬升 + 阴影 + 末点圆点放大(#mtresult 作用域, 不影响曲库/批量卡片) */
+#mtresult .statcard{transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease}
+#mtresult .statcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px -8px rgba(0,0,0,.25);border-color:var(--acc)}
+#mtresult .statcard:hover .mtspark .mtspark-hover{transition:width .12s ease,height .12s ease}
 .statcard .k{font-size:11px;color:var(--dim);margin-bottom:6px}
 .statcard .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;
   font-weight:800;letter-spacing:-.5px;color:var(--fg)}
