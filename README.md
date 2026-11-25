@@ -1917,3 +1917,24 @@ HTML 131611B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r44
 **坑**：① 封面 img 选择器是 **`.cardcov img`**（`#grid img[src*=cover]` 0 匹配——src 是 blob: 不是 /api/cover）
 ② 缓存「增长」断言在基线已满（571）时恒 0——改断言 `基线>=500 且 grid imgs>0`，新增 delta 只作记录。
 
+---
+
+## 第60轮（前端 R46 · goal round23）：双缓存透明化（封面+歌词）+ 清缓存按钮
+
+**完善性（缓存双面）**：`/api/cache` 原来只报封面；实际 `lyricfill` 也有对称落盘
+（`_cache/lyrics/<md5>.lrc`，**3208 条 / 7.8 MB**，命中免联网查歌词）。改 `/api/cache` 返回
+`{covers:{files,bytes}, lyrics:{files,bytes}}` 双缓存 + `clear_all=1` 双清（`clear=1` 保留只清封面）。
+
+**简洁性（维护页操作面）**：R45 快照行升级为**双缓存 + 「清缓存」按钮**：
+`封面缓存 572 张 · 356.8 MB  歌词缓存 3208 条 · 7.8 MB [清缓存]`
+（confirm 文案写清「文件本身不动, 只清 _cache」）。
+
+**E2E 全链路**：清前 `572+3208` → 点清缓存 → **双 0**（API + 页面快照同步）→ 开库重建
+`covers 8 张`；`lyrics 补回 0` 是**预期行为**——清掉的 3208 条对应曲目 ID3 已内嵌歌词，
+`fill_one` 走 `embedded` 分支跳过 `save_cached`，歌词缓存只在「新补成功」时重建（渐进），
+5 卡 `lyric=3064` 证明词在文件内，**清缓存安全**。
+端点 **29/0**、HTML 132808B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r46_cache2.png。
+
+**坑**：① 歌词缓存 0 条 ≠ 坏——「嵌入优先」架构下它是加速层不是唯一真相，断言别写「清后必须回填 N 条」
+② `confirm` 弹窗 E2E 要 `p.on("dialog", accept)` 放行，否则清缓存按钮点了无下文。
+

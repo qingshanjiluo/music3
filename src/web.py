@@ -2780,12 +2780,27 @@ async function mtStat(){
         <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
-    /* 缓存快照: /api/cache 封面落盘缓存(文件数/体积), 挂 5 卡下方一行 */
+    /* 缓存快照: 双缓存(图免解 ID3 / lrc 免联网) + 清空按钮, 挂 5 卡下方 */
     try{
       const c = await (await fetch('/api/cache')).json();
-      const mb = ((+c.bytes||0)/1048576).toFixed(1);
+      const cv = c.covers||{}, ly = c.lyrics||{};
+      const mbC = ((+cv.bytes||0)/1048576).toFixed(1), lbL = ((+ly.bytes||0)/1048576).toFixed(1);
       $('#mtresult').insertAdjacentHTML('beforeend',
-        `<div class="n" style="margin-top:6px">封面缓存: ${c.files||0} 张 · ${mb} MB（_cache/covers，命中免解 ID3）</div>`);
+        `<div class="n" style="margin-top:6px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">`+
+        `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB`+
+        ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
+        `</div>`);
+      $('#mtcacheclr').onclick = async ()=>{
+        const btn = $('#mtcacheclr');
+        if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
+        btn.disabled = true;
+        try{
+          const r = await (await fetch('/api/cache?clear_all=1')).json();
+          setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0}`, 'ok');
+          await mtStat();
+        }catch(e2){ setMsg($('#mtmsg'),'清缓存失败: '+e2,'bad'); }
+        finally{ btn.disabled = false; }
+      };
     }catch(e){}
     /* 数字滚动: 5 卡值 0→终值 单次编排(500ms, reduced-motion 直落) */
     $('#mtresult').querySelectorAll('.statcard .v').forEach(v=>{
@@ -4091,12 +4106,20 @@ class Handler(BaseHTTPRequestHandler):
 
             # ---- 封面缓存管理 ----
             if u.path == "/api/cache":
-                from . import covercache
+                from . import covercache, lyricfill
 
+                if g("clear_all", "") == "1":
+                    n1 = covercache.cover_cache_clear()
+                    n2 = lyricfill.cache_clear()
+                    return self._send(200, {"cleared_covers": n1, "cleared_lyrics": n2})
                 if g("clear", "") == "1":
                     n = covercache.cover_cache_clear()
                     return self._send(200, {"cleared": n})
-                return self._send(200, covercache.cover_cache_stats())
+                # 双缓存: covers(图, 命中免解 ID3) + lyrics(lrc, 命中免联网)
+                return self._send(200, {
+                    "covers": covercache.cover_cache_stats(),
+                    "lyrics": lyricfill.cache_stats(),
+                })
 
             # ---- 标签（标题/歌手/时长/歌词） ----
             if u.path == "/api/tags":
