@@ -57,7 +57,7 @@ def _pv_load_calls():
 
 
 def _pv_on_call():
-    global _PV_CALLS, _PV_CALLS_DIRTY
+    global _PV_CALLS, _PV_CALLS_DIRTY, _PV_CALLS_LAST_FLUSH
     _PV_CALLS += 1
     _PV_CALLS_DIRTY = True
     import time as _t
@@ -2951,11 +2951,12 @@ async function mtStat(){
       /* 非数值卡(如"已核")跳过滚动, 直保 */
       if(/^\d+$/.test(raw)) countUp(v, parseInt(raw,10), 500);
     });
-    /* 最近补的 N 首(歌词/封面, 来自 maintain recent, 保最近 5) */
+    /* 最近补的 N 首(歌词/封面, 来自 maintain recent, 保最近 5; 带相对时间) */
     try{
       const rc = s.recent||[];
       if(rc.length){
-        const rl = rc.slice(0,5).map(x=>`<span class="n">${x.what==='lyric'?'歌词':'封面'} · ${esc(x.name||'')}</span>`).join(' &nbsp;');
+        const ago=(t)=>{ if(!t) return ''; const s=(Date.now()/1000 - t); if(s<60) return '刚刚'; if(s<3600) return Math.round(s/60)+' 分钟前'; if(s<86400) return Math.round(s/3600)+' 小时前'; return Math.round(s/86400)+' 天前'; };
+        const rl = rc.slice(0,5).map(x=>`<span class="n">${x.what==='lyric'?'歌词':'封面'} · ${esc(x.name||'')}<span style="color:var(--dim)">（${ago(x.at)}）</span></span>`).join(' &nbsp;');
         $('#mtresult').insertAdjacentHTML('beforeend', `<div class="n" style="margin-top:6px;color:var(--dim)">最近补: ${rl}</div>`);
       }
     }catch(e){}

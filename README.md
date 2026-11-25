@@ -2168,3 +2168,21 @@ node 0、console 0、截图 r57_recent.png。
 `_pv_flush_calls` 兜）；② `hit_rate` 不封顶会 250%（hits 跨重启旧累计 / calls 本进程新分母）——`min(100)` 封顶；
 ③ 维护页「最近补」只在 `recent` 非空显，本轮 0 补不显 = 正确（不是 bug）。
 
+---
+
+## 第72轮（前端 R58 · goal round35）：最近补相对时间 + 修 _pv_on_call UnboundLocalError
+
+**简洁性（最近补可读性）**：R57 最近补列表只有「歌词 · X / 封面 · Y」，没时间——补的哪会了看不见。
+加**相对时间**（`at` 字段 → `刚刚 / N 分钟前 / N 小时前 / N 天前`），seed 验证 `歌词 · 周杰伦/晴天（3 分钟前） 封面 · 邓紫棋/新的心跳（刚刚）`。
+
+**修**：R57 `_pv_on_call` global 只声明 `_PV_CALLS, _PV_CALLS_DIRTY`，漏 `_PV_CALLS_LAST_FLUSH`
+→ `/api/preview` 每次调 `_pv_on_call` 触发 `UnboundLocalError: cannot access local variable
+'_PV_CALLS_LAST_FLUSH'` → `/api/preview` 全 500（R57 验收时 preview 没被单独打，端点 29/1 才暴露）。
+补 global 即修。教训：加节流写盘必把 `*_LAST_FLUSH` 也进 global（`_pv_on_hit` 同样漏了但 hits 的
+`_pv_on_hit` 没做 flush，只标脏——calls 把 flush 内联进 `_pv_on_call` 才炸）。
+
+**E2E**：最近补相对时间绿；preview 修复 200；端点 **30/0**、HTML 136189B、JS undefined NONE、
+CSS 302/302、node 0、console 0、截图 r58_recenttime.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `runs 324→332`，断点 `整理后分类\thisistruemusic\英文歌\pure imagination.mp3`。
+
