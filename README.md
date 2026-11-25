@@ -3667,3 +3667,24 @@ hover）④ hover 抬升 2px 矩阵（`matrix(1,0,0,1,0,-2)`，`translateY(-1px)
 ⑤ 验 E2E 时卡 `y=955` 在**视口外**（`viewport height=900`），`mouse.move` 到视口外不触发该卡 `mousemove` →
 `scrollIntoView({block:center})` 把卡滚进视口再 hover（`yInVp=True`）。
 
+---
+
+## 第149轮（前端 R135 · goal round112）：sparkline 末点值标开关（`#mtspklabel`，窄屏可关免挤，记 `localStorage`）
+
+**简洁性（按需显）**：各卡 sparkline 末点值标（`_valLabel`，末点圆点上方值数字）**常驻常亮**，窄屏 11 卡挤时
+值标更添乱。加**开关** `#mtspklabel`（维护区顶栏 `#mtcards` 旁）——默认**开**（末点值标显），点切**关**（各卡
+`.mtspark-lastval` 全隐，`body._nosplabel`），记 `localStorage._mtSparkLabel`（`0`=关）——窄屏可关免挤，宽屏默认
+开看末值量级，与 11 卡折叠同「按需显」风格。
+
+**E2E**：`on=block（默认显）+ offCls=True（`body._nosplabel`）+ off=none（切关隐）+ store=0 + btnTxt=「末点值标: 关」`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 319/319、node 0、console 0、截图 r135_label.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 558→560`，断点 `_归档_封存\SD卡版\华语经典\林俊杰\不潮不用花钱.mp3`。
+
+**坑**：① 末点值标加 **class `.mtspark-lastval`**（`_valLabel` 3057），CSS `body._nosplabel .mtspark-lastval{display:none}`
+控制——**不用** `span[style*="translate(-50%,-160%)"]` 选（inline style 序列化可能加空格 `translate(-50%, -160%)`，
+`[style*=]` 匹配不稳，class 最稳）② 开关只切**末点值标**（`.mtspark-lastval`），不动 hover 数值跟随（R134
+`mtspark-hoverlbl`，`display:none` 默认，hover 才亮）——关末点值标后 hover 跟随仍可用（两标签独立）③ 载入 IIFE 按
+`localStorage._mtSparkLabel==='0'` 加 `body._nosplabel` + 按钮初文案（`mtStat` 铺卡后 `apply` 同步）④ `mtSparkLabelToggle`
+切 `body._nosplabel` + `localStorage` 记 + 按钮文案「开/关」（与 `mtCardsFold` 同「记状态」模式）。
+

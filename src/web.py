@@ -390,6 +390,8 @@ tbody tr.playing td{background:#fbe9e4}
 .mtgrid.fold .statcard:nth-child(n+6){display:none}
 #mtcards{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--acc);cursor:pointer;margin-top:6px;padding:2px 8px;background:var(--bg2);border-radius:10px}
 #mtcards:hover{background:var(--panel);border-color:var(--acc)}
+/* sparkline 末点值标开关: body._nosplabel 时末点值标 .mtspark-lastval 全隐, 窄屏免挤(记 localStorage._mtSparkLabel=0) */
+body._nosplabel .mtspark-lastval{display:none}
 /* 维护卡 hover 抬升: 悬停看 title 详情有视觉锚点(轻抬1px+阴影+边框 accent), 与曲库卡同语言, 作用域限维护区 */
 #mtresult .statcard{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
 #mtresult .statcard:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.10);border-color:var(--acc)}
@@ -3054,7 +3056,7 @@ async function mtStat(){
       const _dot=(topPct,leftPct,size)=>`<span style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${size}px;height:${size}px;margin:${-size/2}px 0 0 ${-size/2}px;border-radius:50%;background:${color}"></span>`;
       /* 末点值标签: 最新值数字, 悬在末点圆点上方(transform 上移不占布局, 不随 svg 拉伸) */
       const _lastVal=tr[tr.length-1];
-      const _valLabel=`<span style="position:absolute;left:100%;top:${yOf(_lastVal)}%;transform:translate(-50%,-160%);font-size:10px;font-weight:600;color:${color};white-space:nowrap">${_lastVal}</span>`;
+      const _valLabel=`<span class="mtspark-lastval" style="position:absolute;left:100%;top:${yOf(_lastVal)}%;transform:translate(-50%,-160%);font-size:10px;font-weight:600;color:${color};white-space:nowrap">${_lastVal}</span>`;
       /* 折线下面积渐变填充: 折线点 + 底边两点闭合成 polygon, linearGradient 纵向(顶透明->底 color@0.16), 每卡唯一 gid 免多卡冲突 */
       const _gid='spk'+(++_sparkSeq);
       const _area=pts+' '+w+','+h+' 0,'+h;
@@ -3098,6 +3100,7 @@ async function mtStat(){
       <div id="mtdigest" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)" title="维护小结: 本轮补入(歌词/封面)+ 累计轮次 + 全库进度; 挂卡片网格上方扫一眼全貌">${_digest}</div>
       ${_recBar}
       <button type="button" id="mtcards" onclick="mtCardsFold()" title="窄屏折叠: 默认前 5 卡, 展开全部 11 卡 / 收起" style="display:${_recBar?'':'none'}">▾ 展开全部卡片</button>
+      <button type="button" id="mtspklabel" onclick="mtSparkLabelToggle()" title="sparkline 末点值标开/关: 关则各卡折线末点数字隐(窄屏免挤), 记 localStorage">末点值标: 开</button>
       <div class="statgrid mtgrid" id="mtcardgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div>${_runSpark}</div>
         <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉${delta('lyric')?'，本次 '+delta('lyric'):''}"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}${delta('lyric')?`<span style="font-size:11px;color:${delta('lyric')[0]==='+'?'var(--ok)':'var(--bad)'};margin-left:6px">${delta('lyric')}</span>`:''}</div>${_lyrSpark}</div>
@@ -3475,6 +3478,19 @@ document.querySelectorAll('[data-lf]').forEach(c=>{
   c.onclick=()=>{ const f=document.querySelector('#mtlogfilter'); if(!f) return; f.value=c.dataset.lf;
     if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); };
 });
+/* sparkline 末点值标开关: 切 body._nosplabel(末点值标全隐, 窄屏免挤), 记 localStorage._mtSparkLabel(0=关 1=开, 缺省=开) */
+function mtSparkLabelToggle(){
+  const off=document.body.classList.toggle('_nosplabel');
+  localStorage.setItem('_mtSparkLabel', off?'0':'1');
+  const b=$('#mtspklabel'); if(b){ b.textContent='末点值标: '+(off?'关':'开'); }
+}
+/* 载入: 按 localStorage._mtSparkLabel 应用 body._nosplabel + 按钮初值 */
+(function(){ try{
+  const off=localStorage.getItem('_mtSparkLabel')==='0';
+  if(off) document.body.classList.add('_nosplabel');
+  const apply=()=>{ const b=$('#mtspklabel'); if(!b) return; const curOff=document.body.classList.contains('_nosplabel'); b.textContent='末点值标: '+(curOff?'关':'开'); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply); else apply();
+}catch(e){} })();
 /* 11 卡窄屏折叠: #mtcards 点切 .fold(前5卡/全11卡); 默认窄屏(clientWidth<1100)+未展开(localStorage._mtCards!=1)折, 宽屏全显 */
 function mtCardsFold(){
   const g=$('#mtcardgrid'); if(!g) return;
