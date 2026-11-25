@@ -2792,12 +2792,25 @@ async function mtStat(){
     try{
       const c = await (await fetch('/api/cache')).json();
       const cv = c.covers||{}, ly = c.lyrics||{}, pv = c.previews||{};
-      const mbC = ((+cv.bytes||0)/1048576).toFixed(1), lbL = ((+ly.bytes||0)/1048576).toFixed(1);
+      const mbC = ((+cv.bytes||0)/1048576).toFixed(1), lbL = ((+ly.bytes||0)/1048576).toFixed(1), mbP = ((+pv.bytes||0)/1048576).toFixed(1);
+      const totCache = ((+cv.bytes||0) + (+ly.bytes||0) + (+pv.bytes||0)) / 1048576;
+      /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
+      let libMB = 0, libCount = 0;
+      if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
+      if(!libMB){
+        try{
+          const hz = await (await fetch('/api/health')).json();
+          libMB = (+hz.total_size_mb||0); libCount = hz.total_all||0;
+          window._health = window._health || hz;
+        }catch(e){}
+      }
+      const ratio = (libMB > 0) ? (totCache / libMB * 100).toFixed(1) : '0';
       $('#mtresult').insertAdjacentHTML('beforeend',
         `<div class="n" style="margin-top:6px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">`+
-        `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条`+
+        `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条 · ${mbP} MB`+
         ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词+取链缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
-        `</div>`);
+        `</div>`+
+        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB / ${libCount||'-'} 首的 <b>${ratio}%</b>（缓存仅加速，清掉无损）</div>`);
       $('#mtcacheclr').onclick = async ()=>{
         const btn = $('#mtcacheclr');
         if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)+取链('+(pv.files||0)+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
@@ -4184,9 +4197,15 @@ class Handler(BaseHTTPRequestHandler):
                 # 取链缓存: _cache 根下 qq_*.json / netease_*.json(TTL 1800s)
                 def _pv_stats():
                     fn = 0
+                    bz = 0
                     for pat in ("qq_*.json", "netease_*.json"):
-                        fn += len(_glob.glob(os.path.join(_cd, pat)))
-                    return fn
+                        for f in _glob.glob(os.path.join(_cd, pat)):
+                            try:
+                                fn += 1
+                                bz += os.path.getsize(f)
+                            except Exception:
+                                pass
+                    return {"files": fn, "bytes": bz}
 
                 if g("clear_all", "") == "1":
                     n1 = covercache.cover_cache_clear()
@@ -4206,7 +4225,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {
                     "covers": covercache.cover_cache_stats(),
                     "lyrics": lyricfill.cache_stats(),
-                    "previews": {"files": _pv_stats()},
+                    "previews": _pv_stats(),
                 })
 
             # ---- 标签（标题/歌手/时长/歌词） ----

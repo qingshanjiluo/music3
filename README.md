@@ -2019,3 +2019,26 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 **坑**：`previews` 取链缓存落 `_cache` 根（`cache_dir` config 值），清要用 glob `qq_*.json/netease_*.json`，
 不是子目录（R49 已证）。
 
+---
+
+## 第65轮（前端 R51 · goal round28）：缓存占比行（缓存体积/全库体积）+ previews 带 bytes
+
+**完善性（缓存健康度）**：`/api/cache` `previews` 加 `bytes`（取链缓存也有体积）；维护页
+5 卡 + 快照行下挂**占比行**：`缓存共 X MB · 占全库 36548 MB / 5188 首的 0.0%（缓存仅加速，清掉无损）`。
+全库体积优先吃 `window._health`（health tab 已扫过免重扫），否则 fetch `/api/health`（`total_size_mb`）
+——`/api/stat` 只有每目录计数**没有体积**，不能用它算占比。
+
+**E2E**：`previews {files:1,bytes:284}` 形状正；占比行含 `全库 36548 MB / 5188 首` 绿；
+端点 **30/0**、HTML 134493B、JS undefined NONE、CSS 302/302、node 0、console 0、
+截图 r51_cacheratio.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `lyric 3064→3067 · cover 3417→3419 · runs 276`，
+断点 `摇滚民谣\草东没有派对\模样.mp3`。
+
+**坑**：① `/api/stat` 返回 `{_归档_封存:N, 投稿:N}` **只有计数无体积**——占比必须走 `/api/health`
+的 `total_size_mb`（`/api/stat.sum_mb` 是假想字段，前端取到 undefined→NaN）
+② `_pv_stats` 改返 `{files,bytes}` 后，`/api/cache` 返回面 `previews:{files:_pv_stats()}` 漏改
+→ 嵌套成 `{files:{files,bytes}}`（R50 形状是标量，R51 升级字典必须同步改调用处）
+③ 服务偶发拒连（ThreadingHTTPServer 单 handler 被 health 深扫占满？requests 连 127.0.0.1 仍拒）
+→ 验脚本加**连接重试 4×3s**，别一次拒连就整轮报废。
+
