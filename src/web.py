@@ -3054,6 +3054,8 @@ async function mtStat(){
           const r = await (await fetch('/api/cache?clear_all=1')).json();
           setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0} · 取链 ${r.cleared_previews||0} · 命中计数${r.cleared_hits?'已清':''}`, 'ok');
           await mtStat();
+          /* 清缓存后清 localStorage._mtLast 基准(在 mtStat 之后, 否则被其 setItem 写回) */
+          try{ localStorage.removeItem('_mtLast'); }catch(e){}
         }catch(e2){ setMsg($('#mtmsg'),'清缓存失败: '+e2,'bad'); }
         finally{ btn.disabled = false; }
       };

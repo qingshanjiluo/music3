@@ -2548,3 +2548,24 @@ HTML 149205B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r76
 `prev=0` 时 `prev[k]||0` 也 0 但 `undefined` 语义更清）；`-N` 判断 `delta('k')[0]==='+'` 区分红绿
 （负号 `-` 开头 → 红）。
 
+---
+
+## 第91轮（前端 R77 · goal round54）：清缓存联动清 `_mtLast`（delta 基准复位）
+
+**完善性（delta 基准一致）**：R76 清缓存后 `_mtLast` 保留旧基准 → 下次 delta 全显 `-N`（封面清 0 但
+累计 `cover` 没变，`c-p` 全 0；若清后重建 cover 变了就误导）。清缓存（`#mtcacheclr`）后**联动清
+`localStorage._mtLast`**——delta 基准随缓存复位，下次看状态是干净对比（不拿清前基准比清后值）。
+
+**修**：`removeItem('_mtLast')` 原在 `await mtStat()` **前**（`mtStat` 的 `setItem` 又写回新值 → 清不掉），
+移到 `mtStat` **后**（最后清，不被写回）。
+
+**E2E**：`mtstat` 建 `_mtLast` → `mtcacheclr` 清缓存（hook `window.confirm=()=>true` 放行）→
+`_mtLast=None` 绿；端点 **30/0**、HTML 149344B、JS undefined NONE、CSS 310/310、node 0、console 0、
+截图 r77_cacheclr.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 425→427`，断点 `英文歌\Unstable.mp3`。
+
+**坑**：① 清缓存有 native `confirm`（headless 默认返 false 挡掉）——验收要 `window.confirm=()=>true`
+hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**，否则被写回；③ `localStorage` 操作
+全 `try{...}catch`（隐私模式/禁用时不崩）。
+
