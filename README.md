@@ -2715,3 +2715,23 @@ HTML 152365B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r84
 miss 率用**本轮** `res` 的 `lyric_miss+cover_miss`（不是累计），`scanned=0` 时 rate=0（除零兜底）③
 全库跑顺 miss 全 0 → `rate_trend` 全 0（画平线，正确）；有异常才见斜率。
 
+---
+
+## 第100轮（前端 R86 · goal round63）：4 张趋势卡 sparkline 对齐（`.mtspark` 容器）
+
+**简洁性（趋势对齐）**：R82–R85 给「已跑轮次/累计歌词/累计封面/异常率」4 卡各挂 sparkline，
+但折线宽/高不一（内联 `width=110` 死值、边距散），视觉不齐。改**容器类 `.mtspark`**
+（`width:100% + height:22px + overflow:hidden`，svg `display:block;width:100%;height:22px` +
+`preserveAspectRatio=none`）——4 卡折线**同宽（卡 100%）同高（22px）**，4 条折线在网格里上下对齐成一行，
+扫一眼看 4 个趋势。
+
+**E2E**：4 张趋势卡 `.mtspark` 容器尺寸 `[{h:22,w:244}×4]` 全同（绿）；端点 **30/0**、HTML 152694B、
+JS undefined NONE、CSS 312/312、node 0、console 0、截图 r86_aligned.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 453→455`，断点 `投稿\周杰伦\爱的飞行日记.mp3`。
+
+**坑**：① sparkline 从**内联 svg 死值 `width=110`** 改成**容器 100% 宽**（`_sparkSvg` 返回
+`<div class="mtspark"><svg viewBox…width:100%></div>`，`preserveAspectRatio=none` 拉伸铺满卡宽）②
+`preserveAspectRatio=none` 让折线横向铺满但**纵向不变形**（viewBox 高 22 固定，只 X 拉伸）③ 验收
+`getBoundingClientRect` 取 4 卡 `.mtspark` 尺寸比对 `同高同宽`（headless 1440 视口下卡宽 244）。
+

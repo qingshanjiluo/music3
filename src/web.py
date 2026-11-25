@@ -384,6 +384,9 @@ tbody tr.playing td{background:#fbe9e4}
 .mtgrid{grid-template-columns:repeat(4,1fr)}
 .mtgrid .statcard:nth-child(5){grid-column:1}
 .mtgrid .statcard:nth-child(9){grid-column:1}
+/* 趋势 sparkline 容器: 4 卡统一 100% 宽 + 等高 22px + 底部对齐(挂趋势卡时 4 折线一条线对齐) */
+.mtspark{display:block;width:100%;height:22px;margin-top:6px;overflow:hidden}
+.mtspark svg{display:block;width:100%;height:22px}
 @media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5),.mtgrid .statcard:nth-child(9){grid-column:auto}}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
@@ -2979,7 +2982,7 @@ async function mtStat(){
       id3title = `累计已写回 ${id3v} 首 ID3 双缺（标题←文件名 · 歌手←父目录）`;
     }
     /* 迷你 sparkline: 近 8 次趋势(SVG polyline, 不引库), 挂「已跑轮次/累计补歌词/累计补封面」卡 */
-    const _sparkSvg = (tr, color, label)=>{ if(!tr||tr.length<2) return ''; const w=110,h=22, max=Math.max.apply(null,tr), min=Math.min.apply(null,tr); const rng=(max-min)||1; const pts=tr.map((v,i)=>((i/(tr.length-1))*w).toFixed(1)+','+(h-((v-min)/rng)*h).toFixed(1)).join(' '); const tt=label? label+' 近 '+tr.length+' 次: '+tr.join(' → ') : '近 '+tr.length+' 次: '+tr.join(' → '); return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="margin-top:6px;overflow:hidden" title="${tt}"><title>${tt}</title><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>`; };
+    const _sparkSvg = (tr, color, label)=>{ if(!tr||tr.length<2) return ''; const w=110,h=22, max=Math.max.apply(null,tr), min=Math.min.apply(null,tr); const rng=(max-min)||1; const pts=tr.map((v,i)=>((i/(tr.length-1))*w).toFixed(1)+','+(h-((v-min)/rng)*h).toFixed(1)).join(' '); const tt=label? label+' 近 '+tr.length+' 次: '+tr.join(' → ') : '近 '+tr.length+' 次: '+tr.join(' → '); return `<div class="mtspark" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px"><title>${tt}</title><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg></div>`; };
     const _runSpark = _sparkSvg((s.trend||[]).slice(-8), (s.runs||0)>=400?'var(--ok)':'var(--acc)', '已跑轮次');
     const _lyrSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.lyric), 'var(--acc)', '累计歌词');
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');
