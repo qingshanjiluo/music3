@@ -2511,3 +2511,21 @@ node 0、console 0、截图 r73_lastcard.png。
 第 9 卡相对时间 `last.at` 缺（首次 tick 前）→ `待跑`，有则 `agoT(last.at)`；③ node 配平抓 JS 时机
 （服务重启瞬断 ConnectionRefused）——重抓一次即过。
 
+---
+
+## 第89轮（前端 R75 · goal round52）：累计卡 delta 快照对比（本次 +N 高亮）
+
+**完善性（增量可见）**：维护页「累计补歌词/封面/清理」只有累计值，跑完一轮看不出**本轮加了几个**。
+`mtStat` 存 `window._mtLast={lyric,cover,clean,runs}` 快照，下次看状态时算 `delta(k)=c-p`，新增
+`+N` 小标（绿）挂累计卡值旁——「累计 3091（+5）」一眼看本轮补了几个，不重看累计。
+
+**E2E**：`_mtLast` 快照落 window（`lyric/cover/clean/runs`）；跑 1 轮维护后累计卡 delta——本轮无增量
+（全库跑顺、无新增）= 无 `+N`（正确）；端点 **30/0**、HTML 148854B、JS undefined NONE、CSS 310/310、
+node 0、console 0、截图 r75_delta.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 420→422`，断点 `英文歌\Lose You to Love Me.mp3`。
+
+**坑**：`delta(k)` 只在 `c>p` 显 `+N`——`_mtLast` 是**会话内**快照（不持久化），刷新页面后首次
+`mtStat` 无 prev（`prev={}`）→ 全卡无 delta（正常，没「上次」可比）；要跨刷新持久得落 `localStorage`
+（本轮不做，会话内对比已够）。
+

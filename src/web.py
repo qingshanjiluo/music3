@@ -2946,6 +2946,10 @@ async function mtStat(){
   try{
     const s = await (await fetch('/api/maintain')).json();
     const t = s.totals || {};
+    /* 快照对比: 记上次 累计/轮次, 本次 delta 高亮「+N」(跑维护后看增量, 不用重看累计) */
+    const prev = window._mtLast || {};
+    const delta = (k)=>{ const c=t[k]||0, p=prev[k]||0; return c>p ? '+'+(c-p) : ''; };
+    window._mtLast = { lyric:t.lyric||0, cover:t.cover||0, clean:t.clean||0, runs:s.runs||0 };
     /* ID3 卡语义: 0 已修 + 全库 0 双缺 -> 显示"已核"(muted, 非"缺 0 张"); 有修过 -> 原绿字数字 */
     let id3v = t.meta_fixed || 0, id3label = 'ID3已修', id3style = '', id3title = '';
     if(!id3v){
@@ -2970,9 +2974,9 @@ async function mtStat(){
     $('#mtresult').innerHTML = `
       <div class="statgrid mtgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
-        <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
-        <div class="statcard" title="维护累计补封面条数(缓存+抓取)；点看状态重拉"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
-        <div class="statcard" title="维护累计清理的临时/过期缓存条目"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
+        <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉${delta('lyric')?'，本次 +'+delta('lyric'):''}"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}${delta('lyric')?`<span style="font-size:11px;color:var(--ok);margin-left:6px">${delta('lyric')}</span>`:''}</div></div>
+        <div class="statcard" title="维护累计补封面条数(缓存+抓取)；点看状态重拉${delta('cover')?'，本次 +'+delta('cover'):''}"><div class="k">累计补封面</div><div class="v">${t.cover||0}${delta('cover')?`<span style="font-size:11px;color:var(--ok);margin-left:6px">${delta('cover')}</span>`:''}</div></div>
+        <div class="statcard" title="维护累计清理的临时/过期缓存条目${delta('clean')?'，本次 +'+delta('clean'):''}"><div class="k">累计清理</div><div class="v">${t.clean||0}${delta('clean')?`<span style="font-size:11px;color:var(--ok);margin-left:6px">${delta('clean')}</span>`:''}</div></div>
         <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
