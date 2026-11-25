@@ -1029,6 +1029,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button class="ghost sm" id="mtrefresh" title="只重拉 8 卡数据(不重铺日志区)">刷新</button>
     <button class="ghost" id="mtlog">看日志</button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
+    <button class="ghost sm" id="mtautoref" title="每 5s 自动重拉 9 卡(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化)" onclick="mtAutoRef()">自动刷 5s</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
     <span class="n" style="display:flex;gap:4px;align-items:center"><button class="ghost sm" data-lf="歌词">歌词</button><button class="ghost sm" data-lf="封面">封面</button><button class="ghost sm" data-lf="异常">异常</button><button class="ghost sm" data-lf="">全部</button></span>
@@ -3112,6 +3113,16 @@ async function mtLog(){
     await mtLogDraw();
     setMsg($('#mtmsg'), `共 ${($('#mtresult').querySelectorAll('.joblog div').length||0)} 行`);
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
+}
+/* 自动刷 9 卡: 每 5s 调 mtStat(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化), 再点停 */
+let _mtAutoRefTimer=null;
+function mtAutoRef(){
+  const btn=document.getElementById('mtautoref');
+  if(_mtAutoRefTimer){ clearInterval(_mtAutoRefTimer); _mtAutoRefTimer=null; if(btn){ btn.classList.remove('on'); btn.style.background=''; btn.style.borderColor=''; } setMsg($('#mtmsg'), '自动刷已停', 'ok'); return; }
+  if(btn){ btn.classList.add('on'); btn.style.background='var(--acc)'; btn.style.borderColor='var(--acc)'; }
+  setMsg($('#mtmsg'), '自动刷 · 每 5s 重拉 9 卡…');
+  mtStat().catch(()=>{});
+  _mtAutoRefTimer=setInterval(()=>{ mtStat().catch(()=>{}); }, 5000);
 }
 function mtLogLive(){
   if(_mtlogTimer){ clearInterval(_mtlogTimer); _mtlogTimer=null; setMsg($('#mtmsg'), '实时日志已停', 'ok'); return; }

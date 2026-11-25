@@ -2588,3 +2588,21 @@ hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**�
 否则「看状态于」永远是刚刚）② 异常率卡红字定位 `firstBad` 取 `.joblog span[style*=var(--bad)]`（R69 染红的
 行），无异常则 `hasRed=false`（跑顺正常）。
 
+---
+
+## 第93轮（前端 R79 · goal round56）：9 卡「自动刷 5s」开关（跑维护时挂着实时看）
+
+**完善性（实时看板）**：维护页 9 卡要手动点「看状态/刷新」才更新，跑维护/跑到全库时**挂着看**
+累计/delta/本轮补变化得反复点。加 `#mtautoref`「自动刷 5s」——`mtAutoRef()` 开关，开则每 5s 调
+`mtStat()` 重拉 9 卡（按钮高亮 `var(--acc)`），再点停；跑维护时挂着实时看数字爬升。
+
+**E2E**：点「自动刷」开 → `timerActive + bg=rgb(196,56,31)`（高亮）；再点 → `timerOff`（停）；
+端点 **30/0**、HTML 151027B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r79_autoref.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 429→431`，断点 `草东没有派对\草东.mp3`。
+
+**坑**：① `mtAutoRef` 是**开关**（`_mtAutoRefTimer` 非空则清 + 取消高亮，空则 `setInterval 5000` + 高亮），
+复用 R60 `mtLogLive` 的 timer 模式 ② 按钮 `onclick="mtAutoRef()"` 内联（不用 `.onclick=` 绑定，因
+`mtAutoRef` 是全局函数且要幂等开关）③ 自动刷调 `mtStat` 会重铺 `#mtresult`——挂着跑维护时若已跳日志
+（`#mtjumplog`）会被 `mtStat` 清掉（要跳日志就别挂自动刷，或挂上后重新点异常率卡）。
+
