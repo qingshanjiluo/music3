@@ -35,7 +35,55 @@ from src.models import norm
 HOST = "127.0.0.1"
 PORT = 8420
 
-_PV_HITS = 0   # 取链缓存命中计数(进程内, 供 /api/cache 报 previews.hits)
+# 取链缓存命中计数: 落盘 _cache/pv_hits.json(累计, 重启不归 0), 节流 1s 写盘
+import os as _os
+_PV_HITS_FILE = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "_cache", "pv_hits.json")
+_PV_HITS = 0
+_PV_HITS_DIRTY = False
+_PV_HITS_LAST_FLUSH = 0.0
+
+
+def _pv_load_hits():
+    """启动时读累计命中。"""
+    global _PV_HITS
+    try:
+        with open(_PV_HITS_FILE, "r", encoding="utf-8") as _f:
+            _PV_HITS = int(_json_load(_f) or 0)
+    except Exception:
+        _PV_HITS = 0
+
+
+def _pv_flush_hits():
+    """节流写盘(距上次 >=1s 才落, 免高频 IO)。"""
+    global _PV_HITS_DIRTY, _PV_HITS_LAST_FLUSH
+    import time as _t
+    if not _PV_HITS_DIRTY:
+        return
+    if _t.time() - _PV_HITS_LAST_FLUSH < 1.0:
+        return
+    try:
+        _os.makedirs(_os.path.dirname(_PV_HITS_FILE), exist_ok=True)
+        with open(_PV_HITS_FILE, "w", encoding="utf-8") as _f:
+            _f.write(str(_PV_HITS))
+        _PV_HITS_DIRTY = False
+        _PV_HITS_LAST_FLUSH = _t.time()
+    except Exception:
+        pass
+
+
+def _pv_on_hit():
+    """命中: 内存 +1, 标脏(写盘由节流器/关键路径触发)。"""
+    global _PV_HITS, _PV_HITS_DIRTY
+    _PV_HITS += 1
+    _PV_HITS_DIRTY = True
+
+
+def _json_load(f):
+    import json as _j
+    return _j.load(f)
+
+
+_pv_load_hits()
 
 PAGE = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
@@ -2799,7 +2847,7 @@ async function mtStat(){
       /* 第 6 卡「缓存」: 三缓存总条数 + 取链命中数 */
       const totFiles = ((+cv.files||0) + (+ly.files||0) + (+pv.files||0));
       $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；本进程取链命中 ${pv.hits||0} 次"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
+        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0} 次（落盘, 重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
@@ -3631,7 +3679,7 @@ class Handler(BaseHTTPRequestHandler):
                         if _pj.get("exp", 0) > _t2.time() and _pj.get("url"):
                             url, ext = _pj["url"], _pj.get("ext", "mp3")
                             _url_cached = True
-                            _PV_HITS += 1   # 命中计数(进程内, 重启归 0)
+                            _pv_on_hit()   # 命中计数(落盘累计, 重启不归 0)
                     except Exception:
                         pass
                 if url is None and not _url_cached:
@@ -4213,6 +4261,7 @@ class Handler(BaseHTTPRequestHandler):
                                 bz += os.path.getsize(f)
                             except Exception:
                                 pass
+                    _pv_flush_hits()   # 读时落一次脏, 保 /api/cache 报准
                     return {"files": fn, "bytes": bz, "hits": _PV_HITS}
 
                 if g("clear_all", "") == "1":

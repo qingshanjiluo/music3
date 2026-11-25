@@ -2061,3 +2061,22 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 **坑**：命中计数是**进程内**（`_PV_HITS` 模块级）——服务重启归 0，`hits` 只反映本进程，
 文案标「本进程」免误导；卡片条数 `11 = covers 6 + lyrics 3 + previews 2`。
 
+---
+
+## 第67轮（前端 R53 · goal round30）：取链命中计数落盘（重启不归 0）
+
+**完善性（命中可追溯）**：R52 的 `_PV_HITS` 是进程内（重启归 0），「缓存好不好用」重启就丢。
+改**落盘**：`_cache/pv_hits.json` 存累计命中，启动 `_pv_load_hits()` 读回、命中 `_pv_on_hit()`
+内存 +1 标脏、`_pv_flush_hits()` 节流 1s 写盘（高频命中不刷 IO）；`/api/cache` 读时刷一次脏
+保 `previews.hits` 准。第 6 卡 tooltip 改「取链**累计**命中 N 次（落盘, 重启不归 0）」。
+
+**E2E**：`夜曲` 3 调（首写+2 命中）→ `pv_hits.json` 落 `2`；**重启服务** → `/api/cache`
+`previews {files:3, hits:2}` 读回**不归 0**；维护页 6 卡 `缓存（三合·命中 2）=16`；
+端点 **30/0**、HTML 134887B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r53_hitsdisk.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `lyric 3070→3073 · cover 3422→3425 · runs 292`，
+断点 `万能青年旅店\在在在.mp3`。
+
+**坑**：命中写盘要**节流**（`_PV_HITS_LAST_FLUSH` 1s 门限）——试听连点命中高频，逐命中
+`open+write` 会刷爆 `_cache` 小文件 IO；`/api/cache` 读时 `_pv_flush_hits()` 兜一次脏防丢。
+
