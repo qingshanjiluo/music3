@@ -83,6 +83,18 @@ def _json_load(f):
     return _j.load(f)
 
 
+def _pv_reset_hits():
+    """清缓存: 删 pv_hits.json + 内存归 0 + 清脏。"""
+    global _PV_HITS, _PV_HITS_DIRTY
+    try:
+        if os.path.exists(_PV_HITS_FILE):
+            os.remove(_PV_HITS_FILE)
+    except Exception:
+        pass
+    _PV_HITS = 0
+    _PV_HITS_DIRTY = False
+
+
 _pv_load_hits()
 
 PAGE = r"""<!doctype html>
@@ -2864,14 +2876,14 @@ async function mtStat(){
         `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条 · ${mbP} MB`+
         ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词+取链缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
         `</div>`+
-        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB / ${libCount||'-'} 首的 <b>${ratio}%</b>（缓存仅加速，清掉无损）</div>`);
+        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB / ${libCount||'-'} 首的 <b>${ratio}%</b> · 取链累计命中 <b>${pv.hits||0}</b> 次（清缓存连同命中计数一起清）</div>`);
       $('#mtcacheclr').onclick = async ()=>{
         const btn = $('#mtcacheclr');
         if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)+取链('+(pv.files||0)+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
         btn.disabled = true;
         try{
           const r = await (await fetch('/api/cache?clear_all=1')).json();
-          setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0} · 取链 ${r.cleared_previews||0}`, 'ok');
+          setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0} · 取链 ${r.cleared_previews||0} · 命中计数${r.cleared_hits?'已清':''}`, 'ok');
           await mtStat();
         }catch(e2){ setMsg($('#mtmsg'),'清缓存失败: '+e2,'bad'); }
         finally{ btn.disabled = false; }
@@ -4274,7 +4286,8 @@ class Handler(BaseHTTPRequestHandler):
                                 os.remove(f); n3 += 1
                             except Exception:
                                 pass
-                    return self._send(200, {"cleared_covers": n1, "cleared_lyrics": n2, "cleared_previews": n3})
+                    _pv_reset_hits()   # 清缓存连命中计数一起清(删 pv_hits.json + 内存归 0)
+                    return self._send(200, {"cleared_covers": n1, "cleared_lyrics": n2, "cleared_previews": n3, "cleared_hits": 1})
                 if g("clear", "") == "1":
                     n = covercache.cover_cache_clear()
                     return self._send(200, {"cleared": n})

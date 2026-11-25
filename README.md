@@ -2080,3 +2080,24 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 **坑**：命中写盘要**节流**（`_PV_HITS_LAST_FLUSH` 1s 门限）——试听连点命中高频，逐命中
 `open+write` 会刷爆 `_cache` 小文件 IO；`/api/cache` 读时 `_pv_flush_hits()` 兜一次脏防丢。
 
+---
+
+## 第68轮（前端 R54 · goal round31）：清缓存收编命中计数 + 占比行累计命中标
+
+**完善性（清缓存语义闭环）**：R53 命中计数落盘 `pv_hits.json`，但「清缓存」只清三类缓存文件、
+不碰命中计数——清了缓存 `hits` 还挂着旧值，自相矛盾。加模块级 `_pv_reset_hits()`
+（删 `pv_hits.json` + 内存 `_PV_HITS=0` + 清脏），`clear_all=1` 收编它、回 `cleared_hits:1`；
+清缓存回执文案补「命中计数已清」。
+
+**简洁性**：占比行尾部加「取链累计命中 N 次（清缓存连同命中计数一起清）」——命中数与清语义一处看全。
+
+**E2E**：预热 `hits=4 + pv_hits.json 存在` → `clear_all` 回 `{covers:5, lyrics:10, previews:4, cleared_hits:1}`
+→ 清后 `previews {files:0, hits:0} + pv_hits.json 已删`；占比行含「取链累计命中 0 次（清缓存连同命中计数一起清）」；
+端点 **30/0**、HTML 134953B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r54_hitclear.png。
+
+**完善性（游标破 300 大关）**：全库 8 批 batch=20 `lyric 3073→3074 · cover 3425→3427 · runs 300`，
+断点 `周杰伦\一路向北.mp3`。
+
+**坑**：清缓存必须**连命中计数一起清**（`_pv_reset_hits` 删文件 + 归 0 + 清脏）——只清三类缓存文件
+留 `hits` 旧值会让「缓存 0 条但命中 N 次」自相矛盾（用户以为缓存还在）。
+
