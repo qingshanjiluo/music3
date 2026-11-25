@@ -2294,3 +2294,28 @@ HTML 138985B、JS undefined NONE、CSS 304/304、node 0、console 0、截图 r63
 不是「跑 N tick」；不勾选走 R62 `Math.min(50,…)`。命中率为 0% 属正常（本进程还没发取链请求，
 calls=0 → hit_rate 兜 0）。
 
+---
+
+## 第78轮（前端 R64 · goal round41）：7 卡两行 4+3 网格 + 跑到全库预估外推
+
+**简洁性（7 卡排版）**：R63 加命中率卡后维护页 7 卡 auto-fit 一行 7 张挤满、窄屏折乱。
+加 `.mtgrid`（维护页专用）——桌面 4 列两行（4+3），第 5 卡 `grid-column:1` 归位，窄屏 2 列 auto-fit。
+
+**完善性（跑到全库预估）**：R63 跑到全库循环没预估，点下去不知道跑多久。加**首 tick 实测外推**
+（`ticksFirstMs` 记首 tick 耗时 → `预计全库约 N 分钟`；第 2+ tick 按 `elapsed/(i-1)` 平均 →
+`已 X s / 预计约 N 分钟剩`）——预估基于实测，不是拍脑袋。
+
+**修**：① R63 FULL 回执走漏（`if(!(FULL && doneMsg))` 条件反——FULL 时 doneMsg 非空反跳过
+FULL 回执，落到 `连跑 999999`）→ 加 `FULL_DONE` 哨兵，`r.done` 时 setMsg + break，循环后 FULL 分支跳过
+② 预估原先在 tick 前算（首 tick 0s 外推 → `预计全库约 0 分钟` 假红）→ 移到**首 tick 后**用 `ticksFirstMs` 外推。
+
+**E2E**：7 卡 `cols=4 c5 第二行`（4+3 两行）；跑到全库第 2 tick `已 6.4s / 预计约 11 分钟剩`（实测分钟数）；
+端点 **30/0**、HTML 139950B、JS undefined NONE、CSS 309/309、node 0、console 0、截图 r64_fulllib.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 372→376`，断点 `摇滚民谣\赵雷\最后一首歌.mp3`。
+
+**坑**：① 跑到全库 FULL 回执与连跑回执分支——加 `FULL_DONE` 哨兵区分（R63 的 `if(!(FULL&&doneMsg))`
+逻辑反了）② 预估必须在**首 tick 后**算（tick 前 elapsed≈0，外推全 0 假红）；③ 全库完整跑完验收太重
+（5188 首/50=tick×~1.5s≈2.5 分钟，E2E 240s 卡到 timeout）——验收只断「预估文案有真实分钟数」，
+不跑完整圈。
+

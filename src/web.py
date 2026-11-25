@@ -380,6 +380,10 @@ tbody tr.playing td{background:#fbe9e4}
 .lsz{font-size:11px;color:var(--dim);flex:0 0 auto}
 /* 统计卡片 */
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--gap-grid)}
+/* 维护页 7 卡: 两行 4+3(桌面), 窄屏 auto-fit 自动折 */
+.mtgrid{grid-template-columns:repeat(4,1fr)}
+.mtgrid .statcard:nth-child(5){grid-column:1}
+@media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5){grid-column:auto}}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
@@ -2869,21 +2873,36 @@ async function mtRun(){
   let ticks=0;
   const setSpin=(i)=>{ btn.innerHTML = _spin + (FULL ? `跑到全库 第 ${i} 轮…` : (N>1 ? `连跑 ${i}/${N}…` : '跑中…')); };
   let doneMsg='';
+  let FULL_DONE=false;
+  let ticksFirstMs=0;
   try{
     for(let i=1;i<=N;i++){
       setSpin(i);
-      setMsg($('#mtmsg'), `${FULL?'跑到全库 · 第 '+i+' 轮':'跑第 '+i+'/'+N+' 轮'}（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`);
+      const _elapsed=Math.round((Date.now()-t0)/100)/10;
+      /* 跑到全库: 首 tick 实测后外推预估(首 tick 冷启动, 实测 perTick) */
+      let estTxt='';
+      if(FULL && i>1){
+        const perTick = Math.max(0.5, _elapsed/(i-1)); // 前 i-1 个 tick 平均
+        const totalTicks = Math.ceil(5188 / b);
+        estTxt = ` · 已 ${_elapsed}s / 预计约 ${Math.max(1,Math.round(perTick*(totalTicks-i+1)/60))} 分钟剩`;
+      } else if(FULL && i===1 && ticksFirstMs>0){
+        const totalTicks = Math.ceil(5188 / b);
+        estTxt = ` · 预计全库约 ${Math.max(1,Math.round(ticksFirstMs/1000*totalTicks/60))} 分钟`;
+      }
+      setMsg($('#mtmsg'), `${FULL?'跑到全库 · 第 '+i+' 轮':'跑第 '+i+'/'+N+' 轮'}（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${_elapsed}s${estTxt}`);
       const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
         + `&lyric=${$('#mtlyric').checked?1:0}`
         + `&cover=${$('#mtcover').checked?1:0}`
         + `&clean=${$('#mtclean').checked?1:0}`;
+      const _t1=Date.now();
       const r = await (await fetch(u)).json();
+      if(i===1){ ticksFirstMs = Date.now()-_t1; }
       if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
-      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); break; } if(i<N){ doneMsg += '（下一圈）'; } }
+      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
-    if(!(FULL && doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
+    if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();
@@ -2930,7 +2949,7 @@ async function mtStat(){
       id3title = `累计已写回 ${id3v} 首 ID3 双缺（标题←文件名 · 歌手←父目录）`;
     }
     $('#mtresult').innerHTML = `
-      <div class="statgrid">
+      <div class="statgrid mtgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=350?400:350;return '维护 tick 累计；里程碑 '+(ms===400?'350/400':'300/350')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=350?400:350;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=350?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
