@@ -3231,3 +3231,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r111_newline.png�
 挂外层 wrap 才固定浮在日志角上）③ `onscroll` 委托到 `#mtjoblog`（`scrollTop>40` 切显隐），点滚顶 `scrollTop=0`
 后触发一次 onscroll 同步隐 ④ 按钮 `display:none` 初态（日志短不显），滚过 40px 才现（不遮挡日志正文）。
 
+---
+
+## 第127轮（前端 R113 · goal round90）：日志区行数统计摘要（`#mtlogstat`，扫日志先有全貌）
+
+**简洁性（日志全貌）**：`#mtjoblog` 200 行日志打开就是满屏文本，异常几行、歌词/封面各补了几行要靠肉眼数。
+`mtLogDraw` 在 `#mtjoblog` 上方加**「日志摘要」一行** `#mtlogstat`——`共 N 行 ｜ 异常 M ｜ 歌词补 X · 封面补 Y`
+（异常 = 含 `miss/error/Exception/失败/超时/无封面` 的行数，歌词/封面补 = 含相应字样的正常行），扫日志先看
+全貌（多少行、异常多不多、哪类补得多）。
+
+**E2E**：`共 200 行 ｜ 异常 0 ｜ 歌词补 154 · 封面补 47`（绿）；端点 **30/0**、JS undefined NONE、CSS 316/316、
+node 0、console 0、截图 r113_logstat.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 512→514`，断点 `_归档_封存\SD卡版\华语经典\薛之谦\怎么了.mp3`。
+
+**坑**：① 摘要基于 `mtLogDraw` 手里的 `lines`（`kw` 过滤态用过滤后 `lines`，前缀「（过滤 X）」）② 异常行判定
+复用 `paint` 的红字正则（`miss|error|Exception|失败|超时|无封面`），统计与着色口径一致 ③ 歌词/封面补入行
+`含「歌词」且非异常行`（`!_isBad` 排掉 miss，miss 行归异常不归补入）④ `#mtlogstat` 挂 `#mtlogwrap` 内 `#mtjoblog`
+前（摘要在日志正文上，不随日志滚）。
+

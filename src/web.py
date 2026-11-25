@@ -3268,8 +3268,15 @@ async function mtLogDraw(){
   /* 新增行检测: 与上次 _mtLogLastLines 比, 尾部多出的行是新日志(实时刷新才淡闪, kw 过滤态不闪) */
   const _isNew = i=>{ if(kw) return false; const prevLen=_mtLogLastLines.length; if(prevLen>=lines.length) return false; return i>=(lines.length-(lines.length-prevLen)) && _mtLogLastLines.indexOf(lines[i])<0; };
   const _isNewIdx = ()=>{ if(kw) return []; const _prevLen=_mtLogLastLines.length; if(_prevLen>=lines.length) return []; return lines.slice(lines.length-Math.min(50,lines.length-_prevLen)).map((l,idx)=>lines.length-(lines.length-_prevLen)+idx).filter(i=>_mtLogLastLines.indexOf(lines[i])<0); };
+  /* 日志区摘要: 总行数 + 异常行数(miss/error/失败/超时/无封面) + 歌词/封面补入行数, 扫日志先有全貌(kw 态用过滤后行) */
+  const _isBad = l=>/miss|error|Exception|失败|超时|无封面/i.test(l);
+  const _nTotal = lines.length;
+  const _nBad = lines.filter(_isBad).length;
+  const _nLy = lines.filter(l=>/歌词/.test(l) && !_isBad(l)).length;
+  const _nCv = lines.filter(l=>/封面/.test(l) && !_isBad(l)).length;
+  const _logStat = `<div id="mtlogstat" style="font-size:11px;color:var(--dim);margin-bottom:4px">${kw?'（过滤 '+escL(kw)+'）':''}共 ${_nTotal} 行 ｜ 异常 ${_nBad} ｜ 歌词补 ${_nLy} · 封面补 ${_nCv}</div>`;
   $('#mtresult').innerHTML = lines.length
-    ? `<div id="mtlogwrap" style="position:relative"><div class="joblog" id="mtjoblog" style="max-height:320px;overflow:auto">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}">${paint(l)}</div>`).join('')}</div><button type="button" id="mtlogtop" onclick="mtLogTop()" style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:1px solid var(--acc);color:var(--acc);cursor:pointer;display:none;font-size:14px;line-height:1" title="日志滚到顶">↑</button></div>`
+    ? `<div id="mtlogwrap" style="position:relative">${_logStat}<div class="joblog" id="mtjoblog" style="max-height:320px;overflow:auto">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}">${paint(l)}</div>`).join('')}</div><button type="button" id="mtlogtop" onclick="mtLogTop()" style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:1px solid var(--acc);color:var(--acc);cursor:pointer;display:none;font-size:14px;line-height:1" title="日志滚到顶">↑</button></div>`
     : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
   _mtLogLastLines=lines.slice();
   /* 新行淡闪 1.2s 后清(实时刷新时有新日志滚进, 高亮提示; 1.2s 后背景淡出) */
