@@ -3731,3 +3731,25 @@ var(--acc)` + `padding-left:8px`（可点行视觉提示，与曲库卡可点态
 不记初始 all（缺省即 all，不写）④ 恢复 `_mtRf` 用 `_mtRfApply(mf)`（切行 + 高亮选中 tab，与点击同逻辑，不重复写行显隐）
 ⑤ `#mtlogfilter` 恢复后 `mtLogDraw` 按 `_mtLogF` 值重过滤（`mtLogDraw` 读 `#mtlogfilter` 当前值，填回即自动重铺过滤结果）。
 
+---
+
+## 第152轮（前端 R138 · goal round115）：维护 tab 子视图运行徽标（`#mtdotStat`/`#mtdotLog` 小点，开=绿 关=灰）
+
+**连贯性（哪条在跑一眼）**：维护 tab `#mtstat`（看状态）/`#mtlog`（看日志）两子视图，**自动刷 5s**（R119）/
+**实时日志 2s**（R111）挂着时，扫一眼不知哪条在跑。`#mtstat`/`#mtlog` 按钮旁各挂**运行小点** `#mtdotStat`/`#mtdotLog`
+（7px 圆点，默认灰 `--dim`），**自动刷开** → `#mtdotStat` 绿（`--ok` + 外发光）、**实时日志开** → `#mtdotLog` 绿；
+各自关回灰——扫一眼维护区顶栏，哪条子视图在跑一目了然，与自动刷/实时日志联动。
+
+**E2E**：`默认 stat/log=灰(119,112,106) + 开自动刷 statOn=绿(47,125,85) + 开实时日志 logOn=绿(48,125,85) + 关回灰`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r138_dot.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 564→566`，断点 `_归档_封存\SD卡版\华语经典\薛之谦\怎么了.mp3`。
+
+**坑**：① 小点内联在按钮文本后（`看状态<span id=mtdotStat>…</span>`，7px 圆点 `margin-left:6px` `vertical-align:middle`，
+默认 `--dim` 灰）② `_mtDot(id,on)` 统一切小点：开 `background:--ok` + `box-shadow:0 0 0 3px rgba(47,125,85,.25)`（外发光
+圈，运行感）+ `transition .3s`；关回 `--dim` + 无光 ③ `mtAutoRef` 开（`_mtDot('mtdotStat',true)`）/关（`false`）、`mtLogLive`
+开（`_mtDot('mtdotLog',true)`）/关（`false`）——小点跟自动刷/实时日志的 `setInterval` 生死走（timer 清即灭）④ 小点**独立
+于按钮 `on` 态**（`#mtautoref` 开是 accent 底，小点是绿 `--ok`，两色区分：按钮=可点控件，小点=运行指示）⑤ 验收绿含
+`48,125,85`（`47,125,85` 经 antialias 渲 48，`is_green` 容 `r∈{47,48}`）；关态灰 `119,112,106`（`--dim`）+ `transition`
+渲后微偏（`108,114,103`）。
+

@@ -1045,9 +1045,9 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="bar">
     <button id="mtrun">跑一轮</button>
-    <button class="ghost" id="mtstat">看状态</button>
+    <button class="ghost" id="mtstat">看状态<span id="mtdotStat" class="mtrun-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--dim)" title="自动刷 5s 运行指示"></span></button>
     <button class="ghost sm" id="mtrefresh" title="只重拉 8 卡数据(不重铺日志区)">刷新</button>
-    <button class="ghost" id="mtlog">看日志</button>
+    <button class="ghost" id="mtlog">看日志<span id="mtdotLog" class="mtrun-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--dim)" title="实时日志运行指示"></span></button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
     <button class="ghost sm" id="mtautoref" title="每 5s 自动重拉 9 卡(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化)" onclick="mtAutoRef()">自动刷 5s</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
@@ -3440,10 +3440,13 @@ async function mtLog(){
 })();
 /* 自动刷 9 卡: 每 5s 调 mtStat(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化), 再点停 */
 let _mtAutoRefTimer=null;
+/* 子视图运行指示小点: #mtdotStat(自动刷)/#mtdotLog(实时日志) 开=绿脉动 关=灰, 扫一眼知道哪条在跑 */
+function _mtDot(id, on){ const d=document.getElementById(id); if(!d) return; d.style.background=on?'var(--ok)':'var(--dim)'; d.style.boxShadow=on?'0 0 0 3px rgba(47,125,85,.25)':'none'; d.style.transition='background .3s ease,box-shadow .3s ease'; }
 function mtAutoRef(){
   const btn=document.getElementById('mtautoref');
-  if(_mtAutoRefTimer){ clearInterval(_mtAutoRefTimer); _mtAutoRefTimer=null; if(btn){ btn.classList.remove('on'); btn.style.background=''; btn.style.borderColor=''; } setMsg($('#mtmsg'), '自动刷已停', 'ok'); try{ localStorage.setItem('_mtAuto','0'); }catch(e){} return; }
+  if(_mtAutoRefTimer){ clearInterval(_mtAutoRefTimer); _mtAutoRefTimer=null; if(btn){ btn.classList.remove('on'); btn.style.background=''; btn.style.borderColor=''; } _mtDot('mtdotStat', false); setMsg($('#mtmsg'), '自动刷已停', 'ok'); try{ localStorage.setItem('_mtAuto','0'); }catch(e){} return; }
   if(btn){ btn.classList.add('on'); btn.style.background='var(--acc)'; btn.style.borderColor='var(--acc)'; }
+  _mtDot('mtdotStat', true);
   setMsg($('#mtmsg'), '自动刷 · 每 5s 重拉 9 卡…');
   mtStat().catch(()=>{});
   _mtAutoRefTimer=setInterval(()=>{ mtStat().catch(()=>{}); }, 5000);
@@ -3452,7 +3455,8 @@ function mtAutoRef(){
 /* 载入时恢复自动刷状态: localStorage._mtAuto==1 则自动挂(刷新页面后免再手动点「自动刷 5s」) */
 (function(){ try{ if(localStorage.getItem('_mtAuto')==='1'){ document.addEventListener('DOMContentLoaded', function(){ mtAutoRef(); }); } }catch(e){} })();
 function mtLogLive(){
-  if(_mtlogTimer){ clearInterval(_mtlogTimer); _mtlogTimer=null; setMsg($('#mtmsg'), '实时日志已停', 'ok'); return; }
+  if(_mtlogTimer){ clearInterval(_mtlogTimer); _mtlogTimer=null; _mtDot('mtdotLog', false); setMsg($('#mtmsg'), '实时日志已停', 'ok'); return; }
+  _mtDot('mtdotLog', true);
   setMsg($('#mtmsg'), '实时日志 · 每 2s 刷新…');
   mtLogDraw().catch(()=>{});
   _mtlogTimer=setInterval(()=>{ mtLogDraw().catch(()=>{}); }, 2000);
