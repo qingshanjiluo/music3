@@ -3623,3 +3623,24 @@ CSS（`.fold` 类挂 `#mtcardgrid`，`#mtcardgrid` 同时有 `mtgrid`+`fold`，�
 匹配）④ 宽屏 `#mtcards` `display:none`（`b.style.display`，`resize` 监听切窄宽：宽→隐 + 全显，窄→显按 `_mtCards` 恢复）
 ⑤ `localStorage._mtCards=1`（已展开）窄屏也全显（用户显式展开过，尊重记忆）。
 
+---
+
+## 第147轮（前端 R133 · goal round110）：维护卡 hover 抬升（`#mtresult .statcard:hover`，悬停看详情有视觉锚点）
+
+**连贯性（hover 焦点）**：11 维护卡**全有** `title`（悬停显数值含义/取法/阈值详情，已核对 3099-3160 逐张
+`title=`），但卡 hover **无视觉反馈**，扫状态悬停看详情没焦点。加 `#mtresult .statcard:hover`——悬停**轻抬
+1px + 阴影 + 边框 accent**（`transition:transform/box-shadow/border-color .15s`），悬停看 `title` 详情有视觉锚点，
+与曲库卡 hover 同语言。
+
+**E2E**：`total=11 + withTitle=11（11 卡 title 全有）+ hover=matrix(1,0,0,1,0,-2)（抬升）+ normal=none`（绿）；端点
+**30/0**、JS undefined NONE、CSS 318/318、node 0、console 0、截图 r133_hover.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 554→556`，断点 `_归档_封存\SD卡版\华语经典\周杰伦\那天下雨了.mp3`。
+
+**坑**：① 11 卡 title **已全有**（R131 补入速率卡 + 早期卡都带 `title=`），本轮不改 `title` 只加 hover **视觉反馈**
+② `#mtresult .statcard:hover` `translateY(-1px)` + `box-shadow:0 4px 14px` + `border-color:var(--acc)`，`transition`
+三属性 `.15s ease`（hover 抬起、移开回落）③ 作用域限 `#mtresult`（维护区），不误伤曲库卡（`#grid .card` 各有自己
+hover）④ hover 抬升 2px 矩阵（`matrix(1,0,0,1,0,-2)`，`translateY(-1px)` 经 DPR/渲染成 -2，验收按「负 y 偏移」判，
+非精确 -1）⑤ 验收 `first.hover` 是 Playwright **locator** 方法（DOM 元素无 `.hover`），`p.locator(…).first.hover()`
+触发 + `getComputedStyle` 读 `transform` 对比 hover/normal。
+

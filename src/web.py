@@ -390,6 +390,9 @@ tbody tr.playing td{background:#fbe9e4}
 .mtgrid.fold .statcard:nth-child(n+6){display:none}
 #mtcards{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--acc);cursor:pointer;margin-top:6px;padding:2px 8px;background:var(--bg2);border-radius:10px}
 #mtcards:hover{background:var(--panel);border-color:var(--acc)}
+/* 维护卡 hover 抬升: 悬停看 title 详情有视觉锚点(轻抬1px+阴影+边框 accent), 与曲库卡同语言, 作用域限维护区 */
+#mtresult .statcard{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+#mtresult .statcard:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.10);border-color:var(--acc)}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
