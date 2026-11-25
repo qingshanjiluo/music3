@@ -3384,3 +3384,23 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r120_sticky.png。
 进尾部但视口不动）④ 与 R111 新行淡闪、R112 滚到顶钮**正交**（淡闪标新行、滚顶钮回顶、滚底跟尾，三机制各自
 独立触发互不干扰）。
 
+---
+
+## 第135轮（前端 R121 · goal round98）：全库完成度 mini donut 环（`#mtdonut`，扫状态一眼看离全库多远）
+
+**简洁性（完成度直觉）**：`#mtprog` 全库进度是 8px 横条，`#mtdigest` 里有 `Z%` 数字，但横条要对着看长度才估得出
+完成度。`#mtprog` 加**全库完成度 donut 环** `#mtdonut`（SVG `circle` r=26，`stroke-dasharray` 周长 163.4 +
+`stroke-dashoffset` 按 `(100-pct)%` 缩，环心填百分比文字，`accent→ok` 随完成度变色）——环在进度条左侧，
+扫状态一眼看到「全库完成度」，比横条更有「环填满」直觉。
+
+**E2E**：`hasDonut + hasFg（前景圈带 dashoffset）+ pct=100%（全库已扫完）+ ringInProg`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r121_donut.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 530→532`，断点 `_归档_封存\SD卡版\纯音乐\梦中的婚礼.mp3`。
+
+**坑**：① donut 是纯 SVG（无 JS 库），`_C=2πr≈163.36`，`dashoffset=_C*(1-pct/100)`（`pct=100` 时 offset=0 环满，
+`pct=0` 时 offset=_C 环空）② 环 `transform:rotate(-90deg)`（SVG circle 起点在 3 点钟，转 -90° 让 0 点指 12 点起填），
+环心文字 `transform:rotate(90deg)` 抵消（不然 % 转着写）③ `stroke-linecap:round`（环头圆滑）④ 环与进度条 `display:flex`
+并排（环左固定 56px，条右 `flex:1`），挂 `#mtprog` 内（随 `mtStat` 幂等重建，同进度条）⑤ 完成度封顶 100%（`runs×20≥n_total`
+时环满绿 `var(--ok)`，未满是 accent 红）。
+

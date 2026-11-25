@@ -3134,15 +3134,20 @@ async function mtStat(){
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:8px;font-size:12px;color:var(--muted)" id="mtnextest" title="按近 8 批 tick 平均耗时无损估算; 全库批数=ceil(总曲目/20); 断点续传真实进度见「已跑轮次」cursor">${_estStr}</div>`);
         }
-        /* 全库进度条: runs*20/n_total (已跑轮数×每批20首 / 全库总量), 封顶 100%, 纯 CSS 无库 */
+        /* 全库进度: runs*20/n_total (已跑轮数×每批20首 / 全库总量), 封顶 100%, 纯 CSS/SVG 无库
+           donut 环(完成度直觉) + 进度条并排: 环心显百分比, 环按完成度填色(accent->ok) */
         {
           const _scanned = Math.min((s.runs||0)*20, s.n_total||1);
           const _pct = s.n_total ? Math.min(100, Math.round(_scanned*100/(s.n_total))) : 0;
           const _done = _pct>=100;
           const _pc = _done?'var(--ok)':'var(--acc)';
           const _ptxt = _done?'全库已扫完 ✓':'全库进度';
+          /* donut: SVG circle r=26 (周长 2πr≈163.4), stroke-dasharray 163.4, dashoffset 按 (100-pct)% 缩 */
+          const _C = 2*Math.PI*26;
+          const _off = _C*(1-_pct/100);
+          const _donut = `<svg id="mtdonut" viewBox="0 0 60 60" width="56" height="56" style="flex:0 0 auto;transform:rotate(-90deg)" title="全库完成度环 (已扫 ${_scanned}/${s.n_total||'-'} 首)"><circle cx="30" cy="30" r="26" fill="none" stroke="var(--bg2)" stroke-width="6"/><circle cx="30" cy="30" r="26" fill="none" stroke="${_pc}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${_C}" stroke-dashoffset="${_off}" style="transition:stroke-dashoffset .4s ease"/><text x="30" y="33" text-anchor="middle" font-size="13" font-weight="700" fill="${_pc}" style="transform:rotate(90deg);transform-origin:30px 30px">${_pct}%</text></svg>`;
           $('#mtresult').insertAdjacentHTML('beforeend',
-            `<div style="margin-top:6px" id="mtprog" title="全库维护进度 = 已跑轮次×20 / 全库总量; 封顶100%(断点续传后重头算)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">${_ptxt} <b style="color:${_pc}">${_pct}%</b>（已扫约 ${_scanned} / ${s.n_total||'-'} 首）</div><div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:8px;width:${_pct}%;background:${_pc};border-radius:4px;transition:width .3s"></div></div></div>`);
+            `<div style="margin-top:6px;display:flex;gap:14px;align-items:center" id="mtprog" title="全库维护进度 = 已跑轮次×20 / 全库总量; 封顶100%(断点续传后重头算)">${_donut}<div style="flex:1"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">${_ptxt} <b style="color:${_pc}">${_pct}%</b>（已扫约 ${_scanned} / ${s.n_total||'-'} 首）</div><div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:8px;width:${_pct}%;background:${_pc};border-radius:4px;transition:width .3s"></div></div></div></div>`);
         }
         /* 最近补入列表: state.recent(近5条 {what,name,at}) - 看刚补了哪首歌词/封面 + 时间, 非卡片(挂#mtresult尾随mtStat重建幂等) */
         {
