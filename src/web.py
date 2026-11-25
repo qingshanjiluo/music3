@@ -3027,7 +3027,12 @@ async function mtStat(){
     const _runSpark = _sparkSvg((s.trend||[]).slice(-8), (s.runs||0)>=400?'var(--ok)':'var(--acc)', '已跑轮次');
     const _lyrSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.lyric), 'var(--acc)', '累计歌词');
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');
+    /* 维护小结: 一行汇总本轮关键(补歌词/补封面/已跑/全库), 挂卡片网格上方, 扫一眼全貌不用逐卡读 */
+    const _last=s.last||{}, _dLy=_last.lyric_ok||0, _dCv=_last.cover_ok||0, _dSc=_last.scanned||0;
+    const _prog=s.n_total?Math.min(100,Math.round(Math.min((s.runs||0)*20,s.n_total)*100/s.n_total)):0;
+    const _digest=`本轮补 歌词 ${_dLy} + 封面 ${_dCv}（扫 ${_dSc} 首）｜ 已跑 ${s.runs||0} 轮 ｜ 全库进度 ${_prog}% ｜ ${esc(s.last_run_str||'从未运行')}`;
     $('#mtresult').innerHTML = `
+      <div id="mtdigest" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)" title="维护小结: 本轮补入(歌词/封面)+ 累计轮次 + 全库进度; 挂卡片网格上方扫一眼全貌">${_digest}</div>
       <div class="statgrid mtgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div>${_runSpark}</div>
         <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉${delta('lyric')?'，本次 '+delta('lyric'):''}"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}${delta('lyric')?`<span style="font-size:11px;color:${delta('lyric')[0]==='+'?'var(--ok)':'var(--bad)'};margin-left:6px">${delta('lyric')}</span>`:''}</div>${_lyrSpark}</div>

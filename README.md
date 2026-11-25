@@ -3017,3 +3017,22 @@ HTML 163377B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r99
 不糊整张卡）③ `border-color:var(--acc)` hover 时边框亮 accent（可点暗示，非跳日志卡也一致）④ `.mtspark-hover`
 末点圆点放大暂不做（hover 定位层随 mousemove 已显，抬升 + 阴影够体感，圆点放大留后轮）。
 
+---
+
+## 第116轮（前端 R102 · goal round79）：「维护小结」一行（`#mtdigest`，全貌汇总）
+
+**简洁性（扫一眼全貌）**：R92–R101 维护 tab 卡片+进度+最近补入+日志堆满，看全貌要逐卡读。`mtStat` 建
+`#mtresult` 卡片网格前插**「维护小结」一行** `#mtdigest`——`本轮补 歌词 N + 封面 M（扫 K 首）｜ 已跑 R 轮 ｜
+全库进度 P% ｜ 上次运行时间`，用已有 `s.last/s.totals/s.runs/s.n_total/s.last_run_str`，`panel` 底 `var(--ink)`
+加粗——挂卡片网格上方，扫一眼本轮全貌不用逐卡读。
+
+**E2E**：`本轮补 歌词 0 + 封面 0（扫 20 首）｜ 已跑 491 轮 ｜ 全库进度 100% ｜ 2026-11-26 05:27:51`（绿）；
+端点 **30/0**、HTML 165156B、JS undefined NONE、CSS 315/312、node 0、console 0、截图 r102_digest.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 489→491`，断点 `_归档_封存\SD卡版\…\Superstition.mp3`。
+
+**坑**：① `#mtdigest` 插 `#mtresult` innerHTML 首（卡片网格前），随 `mtStat` 重铺自动重建（幂等，自动刷
+5s 不残留）② 本轮值取 `s.last.lyric_ok/cover_ok/scanned`（**本轮**补入，非累计），全库进度复用 `runs×20/
+n_total`（同 R94）③ `s.last_run_str`（后端已格式化）直接显，`esc()` 转义 ④ 全库跑顺时 `本轮补 歌词 0 +
+封面 0`（无补入，扫 20 首全命中缓存，正常）；有补入时见实际数字。
+
