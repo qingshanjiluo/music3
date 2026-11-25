@@ -175,11 +175,6 @@ tbody tr.playing td{background:#fbe9e4}
 .crumbs .cs{color:var(--dim);opacity:.6}
 /* 页头右侧按钮 */
 .hdr-right{margin-left:auto;display:flex;gap:7px;align-items:center;flex:0 0 auto}
-.star-btn{
-  border-color:#d9a441 !important;color:#f0c25c !important;
-  background:rgba(217,164,65,.10) !important;
-}
-.star-btn:hover{background:rgba(217,164,65,.22) !important}
 /* 关于弹窗 */
 .modal{
   position:fixed;inset:0;z-index:300;display:none;
@@ -625,7 +620,6 @@ tbody tr.playing td{background:#fbe9e4}
   <div class="logo">♪</div>
   <div class="hd"><h1>music3</h1><div class="sub">B站 / 网易云 / QQ音乐 · 打分去重</div></div>
   <div class="hdr-right">
-    <button class="ghost sm star-btn" id="btnstar" title="给作者点个 Star">⭐ Star</button>
     <button class="ghost sm" id="btnset" title="设置">设置</button>
     <button class="ghost sm" id="btnabout" title="关于本工具">关于</button>
   </div>
@@ -2861,9 +2855,6 @@ async function copyText(t, btn){
 }
 
 $('#btnabout').onclick = aboutOpen;
-$('#btnstar').onclick = ()=>{
-  window.open(REPO_URL, '_blank', 'noopener');
-};
 $('#mclose').onclick = aboutClose;
 $('#aboutmodal').onclick = (e)=>{
   if(e.target.id === 'aboutmodal') aboutClose();
@@ -3039,8 +3030,9 @@ $('#scan').onclick=async()=>{
 async function loadStat(){
   try{
     const d=await (await fetch('/api/stat')).json();
-    const t=Object.entries(d).map(([k,v])=>`${k} ${v}`).join(' · ');
-    $('.sub').textContent='B站 / 网易云 / QQ音乐 · '+t;
+    /* 信息密度: 标题栏只给"全库规模"单一总数, 逐目录细节归曲库页(原 dump 全 key 太密) */
+    const total=Object.values(d).reduce((a,b)=>a+(+b||0),0);
+    $('.sub').textContent='B站 / 网易云 / QQ音乐 · 全库 '+total+' 首';
   }catch(e){}
 }
 loadStat();

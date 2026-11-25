@@ -1802,3 +1802,21 @@ HTML 130203B、JS undefined NONE、CSS 304/304、marker 2/2、node 0、console 0
 **坑**：① `_libPage` 丢弃 `d.dirs` 是下钻不画的根因——**接口返回体必须逐字段透传**，少一个字段前端就拿到 undefined；
 ② 面包屑分隔用 `/[\\/]+/` 要数对反斜杠层数；③ 目录 chip `data-n` 拼接用 `'\\'`（py str 双层）。
 
+---
+
+## 第54轮（前端 R40 · goal round17）：标题栏信息密度 — sub 总计数 + Star 去重
+
+**简洁性**：标题栏 `sub` 原 `loadStat` 把 `/api/stat` 全 key dump 到首屏（`投稿 480 · _归档_封存 4708`
+逐目录列）——**目录细节本就该在曲库页**，首屏给的是单一总数。改：
+`B站 / 网易云 / QQ音乐 · 全库 5188 首`（`/api/stat` 保持 per-dir 返回，维护/统计页不受影响）。
+
+**Star 去重**：`⭐ Star` 同时在标题栏与关于弹窗 `gostar`——标题栏删（HTML/绑定/CSS 三处清干净），
+关于弹窗留唯一入口。右分组从 3 枚收敛到 2 枚（设置/关于），与 7 tab 左区松紧平衡。
+
+**验收**：E2E `sub='B站 / 网易云 / QQ音乐 · 全库 5188 首'`、`标题栏 star=False btns=['设置','关于']`、
+`关于弹窗 mstar=True`（⭐ 点个 Star 支持一下）、star 残留 0、端点 **29/0**、
+HTML 129922B、JS undefined NONE、CSS 302/302、node 0、compile 0、console 0、截图 r40_header.png。
+
+**坑**：删 CSS 要连 `.star-btn` 与 `.star-btn:hover` 两条一起删（hover 变体漏删留僵尸规则）；
+`sub` 改总计数后**别动 `/api/stat` 返回结构**（维护页 5 卡还在用 per-dir）。
+
