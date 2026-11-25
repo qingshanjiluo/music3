@@ -380,11 +380,9 @@ tbody tr.playing td{background:#fbe9e4}
 .lsz{font-size:11px;color:var(--dim);flex:0 0 auto}
 /* 统计卡片 */
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--gap-grid)}
-/* 维护页 7 卡: 两行 4+3(桌面), 窄屏 auto-fit 自动折 */
-.mtgrid{grid-template-columns:repeat(4,1fr)}
-.mtgrid .statcard:nth-child(5){grid-column:1}
-.mtgrid .statcard:nth-child(9){grid-column:1}
-/* 趋势 sparkline 容器: 4 卡统一 100% 宽 + 等高 22px + 底部对齐(挂趋势卡时 4 折线一条线对齐) */
+/* 维护页 10 卡: 容器宽驱动 auto-fill(桌面 4 列 ~ 窄屏 2 列 ~ 超宽 5 列), 卡片 min 220px 保证 sparkline 不挤 */
+.mtgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+/* 趋势 sparkline 容器: 卡内 100% 宽 + 等高 22px + 底部对齐(挂趋势卡时折线对齐) */
 .mtspark{display:block;width:100%;height:22px;margin-top:6px;overflow:hidden;position:relative}
 .mtspark svg{display:block;width:100%;height:22px}
 @media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5),.mtgrid .statcard:nth-child(9){grid-column:auto}}

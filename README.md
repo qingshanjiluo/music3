@@ -3155,3 +3155,22 @@ toast。`mtRun` 完成处（`doneMsg` 非空且非全库）加 **`_toast('跑完
 汇总（tick 回包拼），toast 直接带，不重算 ④ `#mtmsg`（原地）与 toast（右下）并存：原地给实时进度，toast 给
 跑完定格汇报，各管各。
 
+---
+
+## 第123轮（前端 R109 · goal round86）：维护卡片区 auto-fill 自适应列数（容器宽驱动）
+
+**简洁性（窄屏不挤）**：`.mtgrid` 固定 `repeat(4,1fr)` 4 列，窄屏（手机/分屏）挤成 4 小卡、sparkline 看不清。
+改 **`repeat(auto-fill,minmax(220px,1fr))`**——容器宽驱动列数（桌面 1148px→5 列、窄 600px→2 列、超宽→更多），
+卡片 min 220px 保证 sparkline 不挤；同时删 `.statcard:nth-child(5)/9` 的 `grid-column:1` 覆盖（`auto-fill` 自然
+换行，无需手动归位）。
+
+**E2E**：`桌面 1440 → gridCols=5 / cardW=220 / contW=1148`、`窄 600 → cardW=279（卡片变宽、列数减）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 315/315、node 0、console 0、截图 r109_autofill.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 503→505`，断点 `_归档_封存\SD卡版\华语经典\张学友\吻别.mp3`。
+
+**坑**：① `auto-fill`（非 `auto-fit`）保留空列槽（`1fr` 均分），卡片不随列数变化忽大忽小（`auto-fit` 空列塌
+会拉伸，`auto-fill` 槽位稳）② `minmax(220px,1fr)` 下限 220px 兜住 sparkline（22px 折线 + 首末点圆点，<220px
+会挤）③ 删 `nth-child` 覆盖（旧 4+3 布局的 `grid-column:1` 归位，`auto-fill` 自然换行不需要，留着反而错位）
+④ `@media(max-width:640px)` 的 `.mtgrid` 旧 `repeat(2,1fr)` 覆盖保留（640 以下强制 2 列，移动端兜底）。
+
