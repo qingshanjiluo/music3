@@ -3027,7 +3027,11 @@ async function mtLogDraw(){
   const kw = ((document.querySelector('#mtlogfilter')||{}).value||'').trim();
   if(kw){ lines = lines.filter(l=>l.indexOf(kw)>=0); }
   const escL = s=>s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const paint = l=>{ const e=escL(l); return kw? e.replace(_kwsHtml(kw), '<mark style="background:#ffe9a8">$&</mark>') : e; };
+  const paint = l=>{ let e=escL(l);
+    /* 异常行红字: 含 miss/error/Exception/失败/超时 的行 -> 整行红色 */
+    if(/miss|error|Exception|失败|超时|无封面/i.test(l) && !kw){ e='<span style="color:var(--bad)">'+e+'</span>'; }
+    if(kw){ e=e.replace(_kwsHtml(kw), '<mark style="background:#ffe9a8">$&</mark>'); }
+    return e; };
   $('#mtresult').innerHTML = lines.length
     ? `<div class="joblog" style="max-height:320px">${lines.map(paint).join('\n')}</div>`
     : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
@@ -3072,7 +3076,9 @@ document.querySelectorAll('[data-lf]').forEach(c=>{
     if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); };
 });
 $('#mtreset').onclick = async()=>{
-  if(!confirm('重置断点游标？下次会从头扫')) return;
+  let cur='未知';
+  try{ const st=await (await fetch('/api/maintain')).json(); cur=(st.cursor&&st.cursor._all)?st.cursor._all.split('\\').slice(-2).join('\\'):'(无)'; }catch(e){}
+  if(!confirm(`重置断点游标？\n\n当前断点: ${cur}\n重置后果: 下次「跑维护」从头扫全库(已补的不会重补, 只重扫一遍 5188 首定位)。\n\n确认重置？`)) return;
   await fetch('/api/maintain?act=reset');
   setMsg($('#mtmsg'), '断点已重置', 'ok');
   mtStat();
