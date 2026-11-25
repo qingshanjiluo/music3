@@ -3058,6 +3058,13 @@ async function mtStat(){
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');
     /* 维护小结: 一行汇总本轮关键(补歌词/补封面/已跑/全库/异常率/本批耗时), 挂卡片网格上方, 扫一眼全貌不用逐卡读 */
     const _last=s.last||{}, _dLy=_last.lyric_ok||0, _dCv=_last.cover_ok||0, _dSc=_last.scanned||0;
+    /* 本轮补入 delta 徽标: 上轮补入 = cum_trend 相邻差(cum_trend[末] - cum_trend[末-1]), delta = 本轮 - 上轮(升+N绿, 降/平dim) */
+    const _ct=(s.cum_trend||[]);
+    const _prevLy = (_ct.length>=2) ? Math.max(0,(_ct[_ct.length-1].lyric||0)-(_ct[_ct.length-2].lyric||0)) : 0;
+    const _prevCv = (_ct.length>=2) ? Math.max(0,(_ct[_ct.length-1].cover||0)-(_ct[_ct.length-2].cover||0)) : 0;
+    const _deltaLy=_dLy-_prevLy, _deltaCv=_dCv-_prevCv;
+    const _deltaCls=d=> d>0?'var(--ok)':(d<0?'var(--bad)':'var(--dim)');
+    const _deltaBadge=(d,lbl)=>{ const sign=d>0?'+':''; return `<span id="${lbl}" title="与上一轮比(上轮补 ${d>0?_prevLy:_prevCv} 条)" style="font-size:11px;font-weight:600;color:${_deltaCls(d)};margin-left:6px">${sign}${d}</span>`; };
     const _prog=s.n_total?Math.min(100,Math.round(Math.min((s.runs||0)*20,s.n_total)*100/s.n_total)):0;
     /* 异常率/本批耗时: 取 rate_trend/dur_trend 末位(本轮), 异常率>0 变红提示 */
     const _rateArr=s.rate_trend||[], _durArr=s.dur_trend||[];
@@ -3073,7 +3080,7 @@ async function mtStat(){
     const _jumpProg=`<a href="javascript:void(0)" data-jumpto="prog" style="color:${_done2?'var(--ok)':'var(--acc)'};text-decoration:underline dotted;font-weight:700" title="点击跳「全库进度条」">${_prog}%</a>`;
     const _jumpRate=`<a href="javascript:void(0)" data-jumpto="rate" style="color:${_rateCol};text-decoration:underline dotted;font-weight:600" title="点击跳「异常率」卡">${_rate}%</a>`;
     const _jumpDur=_dur?`<a href="javascript:void(0)" data-jumpto="dur" style="color:var(--acc);text-decoration:underline dotted;font-weight:600" title="点击跳「本批耗时」卡">${_dur}s</a>`:`<span style="color:var(--muted)">-</span>`;
-    const _digest=`累计 歌词 ${_jumpLy} + 封面 ${_jumpCv}（本轮补 ${_dLy}+${_dCv}，扫 ${_dSc} 首）｜ 异常率 ${_jumpRate} ｜ 本批 ${_jumpDur} ｜ 已跑 ${_jumpRuns} 轮 ｜ 全库进度 ${_jumpProg} ｜ ${esc(s.last_run_str||'从未运行')}`;
+    const _digest=`累计 歌词 ${_jumpLy} + 封面 ${_jumpCv}（本轮补 ${_dLy}${_deltaBadge(_deltaLy,'mtdeltaLy')}+${_dCv}${_deltaBadge(_deltaCv,'mtdeltaCv')}，扫 ${_dSc} 首）｜ 异常率 ${_jumpRate} ｜ 本批 ${_jumpDur} ｜ 已跑 ${_jumpRuns} 轮 ｜ 全库进度 ${_jumpProg} ｜ ${esc(s.last_run_str||'从未运行')}`;
     /* 本轮补入 mini 横滑条: recent 近 5 条 pill, 横向滚 + 溢出省略, 扫一眼刚补了啥(不展开最近补入区), 点 pill 跳曲库
        (用内联判 what, 不复用 _wIcon/_wColor——它们在 #mtrecent 块定义, 此时 _recBar 还没执行到, 避免 TDZ) */
     const _recBar=(()=>{ const rr=s.recent||[]; if(!rr.length) return '';

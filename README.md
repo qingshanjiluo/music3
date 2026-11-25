@@ -3444,3 +3444,21 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
 `insertAdjacentHTML`，随 `mtStat` 幂等重建，同 donut/进度/预计剩余）⑤ 与 R118「重置断点」联动：重置后 `cursor._all`
 清空 → `#mtcursor` 自动切「断点未设置」（无需额外状态）。
 
+---
+
+## 第138轮（前端 R124 · goal round101）：本轮补入 delta 徽标（`#mtdigest` 与上轮比涨跌色）
+
+**简洁性（本轮补多不多）**：`#mtdigest` 显「本轮补 X+Y」绝对值，但**比上一轮多还是少**没数。本轮补数旁加
+**delta 徽标** `#mtdeltaLy`/`#mtdeltaCv`——上轮补入 = `cum_trend` 相邻差（`cum_trend[末].lyric - cum_trend[末-1].lyric`），
+`delta = 本轮 - 上轮`，**升 `+N`（`--ok` 绿）/ 降 `-N`（`--bad` 红）/ 平 `0`（`--dim`）**——扫小结一眼看本轮补入比上轮多不多。
+
+**E2E**：`#mtdeltaLy + #mtdeltaCv + inDigest + ly=0/cv=0`（全库已扫完，`cum_trend` 无新增，delta=0 dim；绿）；
+端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r124_delta.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 536→538`，断点 `_归档_封存\SD卡版\英文歌\Instant Crush.mp3`。
+
+**坑**：① 上轮补入用 `cum_trend` 相邻差（`cum_trend` 是**累计值**，相邻两项差 = 该轮补入；`last.lyric_ok` 是本轮
+补入，与上轮差即 delta）② `cum_trend` 不足 2 条时 `_prevLy/_prevCv=0`（首跑无上轮，delta=本轮全量，但 `Math.max(0,·)`
+钳负）③ delta 徽标 `id` 挂 `#mtdigest` 内（`_deltaBadge` 生成 `<span id=mtdeltaLy/Cv>`），随 `mtStat` 重铺幂等重建
+④ 涨跌色：`>0` 绿（补得比上轮多=好）、`<0` 红（变少=可能异常/断点）、`=0` dim（持平）——与异常率卡同语义方向。
+
