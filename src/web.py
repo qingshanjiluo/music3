@@ -2791,20 +2791,20 @@ async function mtStat(){
     /* 缓存快照: 双缓存(图免解 ID3 / lrc 免联网) + 清空按钮, 挂 5 卡下方 */
     try{
       const c = await (await fetch('/api/cache')).json();
-      const cv = c.covers||{}, ly = c.lyrics||{};
+      const cv = c.covers||{}, ly = c.lyrics||{}, pv = c.previews||{};
       const mbC = ((+cv.bytes||0)/1048576).toFixed(1), lbL = ((+ly.bytes||0)/1048576).toFixed(1);
       $('#mtresult').insertAdjacentHTML('beforeend',
         `<div class="n" style="margin-top:6px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">`+
-        `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB`+
-        ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
+        `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条`+
+        ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词+取链缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
         `</div>`);
       $('#mtcacheclr').onclick = async ()=>{
         const btn = $('#mtcacheclr');
-        if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
+        if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)+取链('+(pv.files||0)+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
         btn.disabled = true;
         try{
           const r = await (await fetch('/api/cache?clear_all=1')).json();
-          setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0}`, 'ok');
+          setMsg($('#mtmsg'), `已清缓存: 封面 ${r.cleared_covers||0} · 歌词 ${r.cleared_lyrics||0} · 取链 ${r.cleared_previews||0}`, 'ok');
           await mtStat();
         }catch(e2){ setMsg($('#mtmsg'),'清缓存失败: '+e2,'bad'); }
         finally{ btn.disabled = false; }
@@ -4176,19 +4176,37 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"pits": _pits, "rounds": _rounds, "commits": _commits})
 
             if u.path == "/api/cache":
-                from . import covercache, lyricfill
+                import glob as _glob
+                from . import config as _cfg3, covercache, lyricfill
+
+                _cd = _cfg3.get("cache_dir") or os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_cache")
+                # 取链缓存: _cache 根下 qq_*.json / netease_*.json(TTL 1800s)
+                def _pv_stats():
+                    fn = 0
+                    for pat in ("qq_*.json", "netease_*.json"):
+                        fn += len(_glob.glob(os.path.join(_cd, pat)))
+                    return fn
 
                 if g("clear_all", "") == "1":
                     n1 = covercache.cover_cache_clear()
                     n2 = lyricfill.cache_clear()
-                    return self._send(200, {"cleared_covers": n1, "cleared_lyrics": n2})
+                    n3 = 0
+                    for pat in ("qq_*.json", "netease_*.json"):
+                        for f in _glob.glob(os.path.join(_cd, pat)):
+                            try:
+                                os.remove(f); n3 += 1
+                            except Exception:
+                                pass
+                    return self._send(200, {"cleared_covers": n1, "cleared_lyrics": n2, "cleared_previews": n3})
                 if g("clear", "") == "1":
                     n = covercache.cover_cache_clear()
                     return self._send(200, {"cleared": n})
-                # 双缓存: covers(图, 命中免解 ID3) + lyrics(lrc, 命中免联网)
+                # 三缓存: covers(图) + lyrics(lrc) + previews(取链, 命中免 get_url)
                 return self._send(200, {
                     "covers": covercache.cover_cache_stats(),
                     "lyrics": lyricfill.cache_stats(),
+                    "previews": {"files": _pv_stats()},
                 })
 
             # ---- 标签（标题/歌手/时长/歌词） ----

@@ -1997,3 +1997,25 @@ console 0、截图 r49_urlcache.png。
 ② R49 首验脚本查 `_cache/previews` 0 个（路径错）；playwright `Browser.close` 偶发
 `Connection closed while reading from driver`——清残留 chrome 后重跑即过。
 
+---
+
+## 第64轮（前端 R50 · goal round27）：三缓存收编（封面+歌词+取链）+ 清缓存全清
+
+**简洁性（缓存操作面收敛）**：R46 双缓存 + R49 取链缓存各自为政。改 `/api/cache` 统一报
+**三缓存**：`{covers:{files,bytes}, lyrics:{files,bytes}, previews:{files}}`；
+`clear_all=1` 收编取链（清 `_cache/qq_*.json`+`netease_*.json`），回 `cleared_previews`。
+
+**完善性**：维护页快照行升级**三面**：
+`封面缓存 15 张 · 0.9 MB  歌词缓存 0 条 · 0.0 MB  取链缓存 1 条 [清缓存]`
+（清缓存 confirm 文案 + 成功回执都带上取链数）。
+
+**E2E**：清前 `covers 15 + lyrics 0 + previews 1` → `clear_all` → `cleared_covers 15 · cleared_lyrics 0 · cleared_previews 1`
+→ 清后三全 0；维护页快照三面同步 0；端点 **30/0**、HTML 133609B、JS undefined NONE、
+CSS 302/302、node 0、console 0、截图 r50_3cache.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `cover 3415→3417 · runs 268`，
+断点 `摇滚民谣\万能青年旅店\狗尿馆.mp3`。
+
+**坑**：`previews` 取链缓存落 `_cache` 根（`cache_dir` config 值），清要用 glob `qq_*.json/netease_*.json`，
+不是子目录（R49 已证）。
+
