@@ -2944,6 +2944,10 @@ async function mtRun(){
 }
 async function mtStat(){
   try{
+    /* 看状态时间戳: 落 localStorage, 「看状态」旁显「上次看 N 分钟前」 */
+    const _agoV=(t)=>{ if(!t) return ''; const s=(Date.now()-t)/1000; if(s<60) return '刚刚'; if(s<3600) return Math.round(s/60)+' 分钟前'; if(s<86400) return Math.round(s/3600)+' 小时前'; return Math.round(s/86400)+' 天前'; };
+    let _prevView=0; try{ _prevView=+localStorage.getItem('_mtViewAt')||0; }catch(e){}
+    try{ localStorage.setItem('_mtViewAt', String(Date.now())); }catch(e){}
     const s = await (await fetch('/api/maintain')).json();
     const t = s.totals || {};
     /* 快照对比: _mtLast 落 localStorage(跨刷新也保留上次), 本次 delta 高亮「+N/-N」(清缓存后封面- N 也见) */
@@ -2981,7 +2985,7 @@ async function mtStat(){
         <div class="statcard" title="维护累计清理的临时/过期缓存条目${delta('clean')?'，本次 '+delta('clean'):''}"><div class="k">累计清理</div><div class="v">${t.clean||0}${delta('clean')?`<span style="font-size:11px;color:${delta('clean')[0]==='+'?'var(--ok)':'var(--bad)'};margin-left:6px">${delta('clean')}</span>`:''}</div></div>
         <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
-      <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
+      <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}${_prevView?' · 看状态于 '+_agoV(_prevView):''}</div>`;
     /* 缓存快照: 双缓存(图免解 ID3 / lrc 免联网) + 清空按钮, 挂 5 卡下方 */
     try{
       const c = await (await fetch('/api/cache')).json();
@@ -3015,8 +3019,15 @@ async function mtStat(){
               fetch('/api/maintain?act=log&n=200').then(r=>r.json()).then(d=>{
                 let lines=d.lines||[]; const kw=((f.value||'').trim());
                 if(kw){ lines=lines.filter(l=>l.indexOf(kw)>=0); }
-                box.innerHTML = lines.length ? `<div class="joblog" style="max-height:300px">${lines.map(l=>l.replace(/</g,'&lt;')).join('\n')}</div>` : '<div class="n">无匹配日志</div>';
-                box.scrollIntoView({behavior:'smooth',block:'center'});
+                box.innerHTML = lines.length ? `<div class="joblog" style="max-height:300px">${lines.map(l=>{
+                  const e=l.replace(/</g,'&lt;');
+                  /* 异常率卡跳「异常」: 含异常词的命中行染红 */
+                  return /miss|失败|超时|error|Exception|无封面/i.test(l) ? '<span style="color:var(--bad)">'+e+'</span>' : e;
+                }).join('\n')}</div>` : '<div class="n">无匹配日志</div>';
+                /* 滚到第一条红字异常行(不是日志顶) */
+                const firstBad=box.querySelector('.joblog span[style*="var(--bad)"]');
+                if(firstBad){ firstBad.scrollIntoView({behavior:'smooth',block:'center'}); }
+                else{ box.scrollIntoView({behavior:'smooth',block:'center'}); }
               }).catch(()=>{});
             }
             setMsg($('#mtmsg'), `已跳日志 + 过滤「${card.dataset.jumplog}」`, 'ok');

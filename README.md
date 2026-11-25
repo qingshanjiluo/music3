@@ -2569,3 +2569,22 @@ HTML 149205B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r76
 hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**，否则被写回；③ `localStorage` 操作
 全 `try{...}catch`（隐私模式/禁用时不崩）。
 
+---
+
+## 第92轮（前端 R78 · goal round55）：看状态时间戳 + 异常率卡滚到红字
+
+**简洁性（看状态时间戳）**：维护页看不出**上次看状态是什么时候**（数据是否过期）。`mtStat` 落
+`localStorage._mtViewAt`，「上次运行」行加 `· 看状态于 刚刚/N 分钟前`——一眼知道 9 卡数据新鲜度。
+
+**完善性（异常率卡滚红字）**：R71 异常率卡点跳日志只滚到日志容器顶。改**滚到第一条红字异常行**
+（`firstBad.scrollIntoView`，命中「异常」关键词行染红后定位）——直接落在异常行，不用在日志里翻。
+
+**E2E**：`看状态于 刚刚`（时间戳绿）；点异常率卡 → `#mtjumplog` 容器在 + 滚到红字（全库跑顺 `hasRed=false`
+正常）；端点 **30/0**、HTML 150262B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r78_viewtime.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 427→429`，断点 `草东没有派对\勇敢.mp3`。
+
+**坑**：① 看状态时间戳 `_prevView` 要**读旧值再写新值**（先 `getItem` 存 `_prevView` 再 `setItem` 当前，
+否则「看状态于」永远是刚刚）② 异常率卡红字定位 `firstBad` 取 `.joblog span[style*=var(--bad)]`（R69 染红的
+行），无异常则 `hasRed=false`（跑顺正常）。
+
