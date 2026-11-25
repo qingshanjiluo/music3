@@ -1878,14 +1878,15 @@ async function previewOne(i){
     a.src = d.proxy || d.url;   // 走本机代理，绕 CDN 防盗链/跨域
     a.play().catch(()=>{});
     showPvBar(d.title, d.artists);
-    /* 缓存反馈双段: 搜索段(search_ms, 缓存命中秒级) + 全程(total_ms, 含取链) */
+    /* 缓存反馈双段: 搜索段(search_ms) + 全程(total_ms); 取链命中再标「取链缓存」 */
     let tag = '';
     if(d.search_ms != null){
-      tag = d.cached
-        ? ' · 搜索缓存 '+(d.search_ms/1000).toFixed(1)+'s / 全程 '+(d.total_ms/1000).toFixed(1)+'s'
-        : ' · 搜索冷查 '+(d.search_ms/1000).toFixed(1)+'s / 全程 '+(d.total_ms/1000).toFixed(1)+'s';
+      tag = (d.cached ? '搜索缓存 ' : '搜索冷查 ')
+        + (d.search_ms/1000).toFixed(1)+'s'
+        + (d.url_cached ? ' · 取链缓存' : '')
+        + ' / 全程 '+(d.total_ms/1000).toFixed(1)+'s';
     }
-    setMsg($('#msg'), '正在试听（未下载，仅在线流）: '+d.title+tag, 'ok');
+    setMsg($('#msg'), '正在试听（未下载，仅在线流）: '+d.title+' · '+tag, 'ok');
   }catch(e){ setMsg($('#msg'),'试听失败: '+e,'bad'); }
 }
 function showPvBar(title, artists){
@@ -3595,7 +3596,24 @@ class Handler(BaseHTTPRequestHandler):
                             break
                 if t is None:
                     t = res[min(n, len(res)) - 1]
-                try:
+                import json as _json
+                import time as _t2
+                from . import config as _cfg2
+                _PV_DIR = _cfg2.get("cache_dir") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_cache", "previews")
+                _PV_TTL = 1800  # 取链有效期(vkey 直链一般 30min 内)
+                _pvkey = "%s_%s" % (t.source, t.track_id)
+                _pvf = os.path.join(_PV_DIR, _pvkey + ".json")
+                url = ext = None
+                _url_cached = False
+                if os.path.exists(_pvf):
+                    try:
+                        _pj = _json.load(open(_pvf, encoding="utf-8"))
+                        if _pj.get("exp", 0) > _t2.time() and _pj.get("url"):
+                            url, ext = _pj["url"], _pj.get("ext", "mp3")
+                            _url_cached = True
+                    except Exception:
+                        pass
+                if url is None and not _url_cached:
                     if t.source == "qq":
                         from . import src_qq
                         url, ext, _q = src_qq.get_url(
@@ -3611,8 +3629,13 @@ class Handler(BaseHTTPRequestHandler):
                         url, ext, _q = src_netease.get_url(t.track_id, expect_sec=t.duration_s)
                     else:
                         return self._send(200, {"ok": False, "log": "B站暂不支持在线预听，用「下载MV」"})
-                except Exception as e:
-                    return self._send(200, {"ok": False, "log": repr(e)})
+                if url:
+                    try:
+                        os.makedirs(_PV_DIR, exist_ok=True)
+                        _json.dump({"url": url, "ext": ext, "exp": _t2.time() + _PV_TTL},
+                                   open(_pvf, "w", encoding="utf-8"))
+                    except Exception:
+                        pass
                 if not url:
                     return self._send(200, {"ok": False, "log": "取链失败（vkey 过期？换一首）"})
                 proxy = "/api/pvstream?url=" + _urlquote(url, safe="")
@@ -3622,7 +3645,8 @@ class Handler(BaseHTTPRequestHandler):
                                        "ext": ext or "mp3",
                                        "search_ms": _pv_search_ms,
                                        "total_ms": _pv_total_ms,
-                                       "cached": _pv_cached})
+                                       "cached": _pv_cached,
+                                       "url_cached": _url_cached})
 
             # ---- 曲库文件夹管理：新建/改名/删除（限 DEFAULT_ROOT 内）----
             if u.path == "/api/lib":

@@ -1974,3 +1974,26 @@ skip 6 后总数 34）、HTML 133516B、JS undefined NONE、CSS 302/302、node 0
 **坑**：① 坑正则 `\*\*坑\*\*[:：]` 漏 `**坑（双杀）**：` 变体（4/40）→ 放宽 `\*\*坑[^*]*\*\*[:：]` 全收 40
 ② 端点基线 29→**30**（R48 起含 `/api/about`），后续轮全量循环按 34 总数 / 30 可测断。
 
+---
+
+## 第63轮（前端 R49 · goal round26）：preview 取链落盘 TTL 缓存（`_cache` 根）+ 双缓存反馈
+
+**流畅性（取链秒回）**：R47 只做搜索段缓存，`get_url` 取链（vkey+Range 校验）每次 ~1.4s。
+改 `/api/preview`：取链前查 `_cache/qq_<mid>.json`（`{url,ext,exp}`，TTL 1800s），
+**命中免 `src_qq.get_url`/`src_netease.get_url`**，直返 `url_cached=True`；未命中取完写回。
+试听反馈三段：`搜索缓存 0.0s · 取链缓存 / 全程 0.0s`。
+
+**E2E**：`光年之外` 冷 `url_cached=False total=1522ms` → 热 **`url_cached=True total=14ms`
+（108×）**；稳态连 2 调都 14ms；落盘 `_cache/qq_*.json` 1 个（`cache_dir` 直配 `_cache` 根，
+非 `previews/` 子目录——config 值赢过代码默认路径）；UI 连点文案含「取链缓存」；
+端点 **30/0**（含 `/api/about`）、HTML 133495B、JS undefined NONE、CSS 302/302、node 0、
+console 0、截图 r49_urlcache.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `runs 252→260`，断点 `华语经典\邓紫棋\新的心跳.mp3`
+（本窗 lyric/cover 全已补 0 新增）。
+
+**坑**：① 取链缓存落 `_cache` 根不是 `_cache/previews/`——`cache_dir` config 值直接指 `_cache`，
+`_PV_DIR=cache_dir` 无 `previews` 后缀（代码默认路径被 config 覆盖）
+② R49 首验脚本查 `_cache/previews` 0 个（路径错）；playwright `Browser.close` 偶发
+`Connection closed while reading from driver`——清残留 chrome 后重跑即过。
+
