@@ -3327,3 +3327,22 @@ node 0、console 0、截图 r117_clip.png。
 `int(batch)` 无上限但 100 是合理批量），`mtruns` 上限 50（`mtRun` 内 `Math.min(50,…)` 本就夹，输入侧同口径
 防手输 500）④ `#mtfull`（全库）勾选时 `N=999999` 忽略 `mtruns`（全库跑到 done），夹取不影响全库路径。
 
+---
+
+## 第132轮（前端 R118 · goal round95）：重置断点 toast 汇报（`#mtreset` 二次确认后回显）
+
+**连贯性（重置有反馈）**：`#mtreset` 已有 `confirm` 二次确认（展示当前断点 + 后果「已补不重补、只重扫 5188 首
+定位」）+ 成功后 `setMsg`，但 `#mtmsg` 一闪而过，忘没忘重置、下次要不要从头扫没记着。重置成功后加
+**`_toast('断点已重置 · 下次跑维护从头扫全库')`**——右下角固定提示 4s，强化「断点已清、下次从头」的认知。
+
+**E2E**：点 `#mtreset`（`confirm=true`）→ `cursor 前 True → 后 {}`（清空）+ toast `断点已重置 · 下次跑维护从头扫全库`；
+端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r118_reset.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 522→524`，验 reset 清断点后**再跑 2 批恢复推进态**（写新
+`cursor`），断点 `_归档_封存\SD卡版\…`（验后恢复，不空着）。
+
+**坑**：① `#mtreset` 二次确认 + 影响提示**已完整存在**（3395-3402：拉断点→`confirm`→reset→`setMsg`→`mtStat`），
+本轮只补 toast（不改已有 confirm 逻辑）② `reset_cursor()` 只清 `st["cursor"]={}`，**保留 `totals`/`runs`**（累计
+不清，重置只影响下次扫起点）③ 验收验 reset 把断点清成 `{}`（cursor 前 True 后空），验后跑 2 批恢复推进（后端
+无 restore 端点，用 tick 重新写 cursor，已补不重补无副作用）④ `_toast` 复用既有（`#__toast__` 右下 fixed 4s）。
+

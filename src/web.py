@@ -3398,6 +3398,7 @@ $('#mtreset').onclick = async()=>{
   if(!confirm(`重置断点游标？\n\n当前断点: ${cur}\n重置后果: 下次「跑维护」从头扫全库(已补的不会重补, 只重扫一遍 5188 首定位)。\n\n确认重置？`)) return;
   await fetch('/api/maintain?act=reset');
   setMsg($('#mtmsg'), '断点已重置', 'ok');
+  _toast('断点已重置 · 下次跑维护从头扫全库','ok');
   mtStat();
 };
 
