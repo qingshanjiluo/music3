@@ -2960,3 +2960,21 @@ HTML 158731B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r95
 视口中（headless 验 `firstTop=322` 在 0~900 内）④ 命中 0 条时 `#grid` 空，`_flash` 取不到首项（no-op，
 不误闪）——`doFind` 里已有 `失败:` 提示。
 
+---
+
+## 第113轮（前端 R99 · goal round76）：「最近补入」类型筛选（全部/歌词/封面）
+
+**简洁性（按类看补入）**：R98 最近补入混显歌词/封面，看某一类刚补了啥要肉眼筛。`#mtrecent` 标题行加
+**三段筛选 tab**（全部 N / 歌词 N / 封面 N，按 `recent` 各 `what` 计数），点 tab 切换显示对应类行
+（`data-mf` 行 `display` 切换 + 选中 tab 高亮 accent）——跑全库时快速看「刚补的歌词」或「刚补的封面」。
+
+**E2E**：`tabs=3 + allRows=5 + 点「歌词」→ allHidden + lyricVisible`（切换对，绿）；端点 **30/0**、
+HTML 163377B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r99_filter.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 483→485`，断点 `_归档_封存\SD卡版\…\Hey There Delilah.mp3`。
+
+**坑**：① 3 组行 `data-mf=all/lyric/cover` 都渲染（`display:none` 藏），点 tab 切 `display`（不重渲染，
+`mtStat` 重铺时整套随 `#mtresult` 清掉重建，幂等）② tab 计数 `_nLyric/_nCov` 按 `recent` 各 `what` filter ③
+空类显「近 5 条无 X 补入」（不留空）④ tab 按钮事件**逐按钮**绑（`mtStat` 重建后重新绑，不委托——
+委托会因 `#mtresult` 重铺丢监听；逐按钮 onclick 随重建一起重绑最稳）。
+

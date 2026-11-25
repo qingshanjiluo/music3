@@ -3081,9 +3081,22 @@ async function mtStat(){
           const _wColor = w=> w==='lyric'?'var(--acc)':'var(--ok)';
           /* 点击定位: 切曲库 tab + #fq 填文件名(去扩展名) -> doFind() 命中高亮 */
           const _loc = r=>{ setTab('b'); const fq=$('#fq'); if(fq){ fq.value=(r.name||'').replace(/\.[^.]+$/,''); if(typeof doFind==='function') doFind(); } };
-          const _rows = _rec.length ? _rec.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--line);font-size:12px;cursor:pointer" onclick="_mtLoc(this)" data-name="${(r.name||'').replace(/"/g,'&quot;')}" title="点击去曲库搜这首"><span style="color:${_wColor(r.what)};font-weight:600">${_wIcon(r.what)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${(r.name||'').replace(/</g,'&lt;')}</span><span style="color:var(--muted);white-space:nowrap">${_wAgo(r.at)}</span></div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（暂无补入记录）</div>';
+          const _rowHTML = r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--line);font-size:12px;cursor:pointer" onclick="_mtLoc(this)" data-name="${(r.name||'').replace(/"/g,'&quot;')}" title="点击去曲库搜这首"><span style="color:${_wColor(r.what)};font-weight:600">${_wIcon(r.what)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${(r.name||'').replace(/</g,'&lt;')}</span><span style="color:var(--muted);white-space:nowrap">${_wAgo(r.at)}</span></div>`;
+          /* 类型筛选: 全部/歌词/封面 三段, 按 what 过滤 recent(近5条), 显计数 */
+          const _cnt = (w)=> w?'':(_rec.filter(r=>r.what===w).length);
+          const _nLyric = _rec.filter(r=>r.what==='lyric').length, _nCov = _rec.filter(r=>r.what==='cover').length;
+          const _rowsAll = _rec.length ? _rec.map(_rowHTML).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（暂无补入记录）</div>';
+          const _rowsLyric = _rec.filter(r=>r.what==='lyric').length ? _rec.filter(r=>r.what==='lyric').map(_rowHTML).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（近 5 条无歌词补入）</div>';
+          const _rowsCov = _rec.filter(r=>r.what==='cover').length ? _rec.filter(r=>r.what==='cover').map(_rowHTML).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（近 5 条无封面补入）</div>';
           $('#mtresult').insertAdjacentHTML('beforeend',
-            `<div style="margin-top:10px" id="mtrecent" title="最近补入歌词/封面(近 5 条, 来自维护 tick; 类型色: 歌词=accent 封面=ok)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">最近补入（近 5 条）</div>${_rows}</div>`);
+            `<div style="margin-top:10px" id="mtrecent" title="最近补入歌词/封面(近 5 条, 来自维护 tick; 类型色: 歌词=accent 封面=ok; 可按类型筛)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">最近补入（近 5 条）<span style="display:inline-flex;gap:4px" id="mtrf"><button type="button" class="ghost sm" data-mf="all" style="padding:1px 7px;font-size:11px;cursor:pointer;background:var(--acc);color:#fff;border-color:var(--acc)">全部 ${_rec.length}</button><button type="button" class="ghost sm" data-mf="lyric" style="padding:1px 7px;font-size:11px;cursor:pointer">歌词 ${_nLyric}</button><button type="button" class="ghost sm" data-mf="cover" style="padding:1px 7px;font-size:11px;cursor:pointer">封面 ${_nCov}</button></span></div><div class="mtrecent-rows" data-mf="all">${_rowsAll}</div><div class="mtrecent-rows" data-mf="lyric" style="display:none">${_rowsLyric}</div><div class="mtrecent-rows" data-mf="cover" style="display:none">${_rowsCov}</div></div>`);
+          /* 筛选 tab 切换: 事件委托到 #mtrf(随 mtStat 重建), 切当前 data-mf 行, 高亮选中 tab */
+          document.querySelectorAll('#mtrf button').forEach(bn=>{
+            bn.onclick=()=>{ document.querySelectorAll('#mtrf button').forEach(x=>{ x.style.background=''; x.style.color=''; x.style.borderColor=''; });
+              bn.style.background='var(--acc)'; bn.style.color='#fff'; bn.style.borderColor='var(--acc)';
+              const mf=bn.dataset.mf;
+              document.querySelectorAll('#mtrecent .mtrecent-rows').forEach(rr=>{ rr.style.display=(rr.dataset.mf===mf)?'':'none'; }); };
+          });
         }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
