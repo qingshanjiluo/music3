@@ -2982,13 +2982,18 @@ async function mtStat(){
       id3title = `累计已写回 ${id3v} 首 ID3 双缺（标题←文件名 · 歌手←父目录）`;
     }
     /* 迷你 sparkline: 近 8 次趋势(SVG polyline, 不引库), 挂「已跑轮次/累计补歌词/累计补封面」卡 */
+    let _sparkSeq=0;
     const _sparkSvg = (tr, color, label)=>{ if(!tr||tr.length<2) return ''; const w=110,h=22, max=Math.max.apply(null,tr), min=Math.min.apply(null,tr); const rng=(max-min)||1; const yOf=v=>Math.round((h-((v-min)/rng)*h)*100); const pts=tr.map((v,i)=>((i/(tr.length-1))*w).toFixed(1)+','+(h-((v-min)/rng)*h).toFixed(1)).join(' '); const tt=label? label+' 近 '+tr.length+' 次: '+tr.join(' → ') : '近 '+tr.length+' 次: '+tr.join(' → ');
       /* 圆点用 HTML 绝对定位(不随 svg preserveAspectRatio=none 拉伸成正圆), 首点 left=0 末点 left=100% */
       const _dot=(topPct,leftPct,size)=>`<span style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${size}px;height:${size}px;margin:${-size/2}px 0 0 ${-size/2}px;border-radius:50%;background:${color}"></span>`;
       /* 末点值标签: 最新值数字, 悬在末点圆点上方(transform 上移不占布局, 不随 svg 拉伸) */
       const _lastVal=tr[tr.length-1];
       const _valLabel=`<span style="position:absolute;left:100%;top:${yOf(_lastVal)}%;transform:translate(-50%,-160%);font-size:10px;font-weight:600;color:${color};white-space:nowrap">${_lastVal}</span>`;
-      return `<div class="mtspark" style="position:relative" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><title>${tt}</title><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(_lastVal),100,6)}${_valLabel}</div>`; };
+      /* 折线下面积渐变填充: 折线点 + 底边两点闭合成 polygon, linearGradient 纵向(顶透明->底 color@0.16), 每卡唯一 gid 免多卡冲突 */
+      const _gid='spk'+(++_sparkSeq);
+      const _area=pts+' '+w+','+h+' 0,'+h;
+      /* 面积/渐变用 CSS 变量色时, linearGradient 的 stop 需具体色 - 传 color 可能是 var(), stop-color 支持 var() */
+      return `<div class="mtspark" style="position:relative" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><defs><linearGradient id="${_gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0"></stop><stop offset="1" stop-color="${color}" stop-opacity="0.18"></stop></linearGradient></defs><title>${tt}</title><polygon points="${_area}" fill="url(#${_gid})" stroke="none"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(_lastVal),100,6)}${_valLabel}</div>`; };
     const _runSpark = _sparkSvg((s.trend||[]).slice(-8), (s.runs||0)>=400?'var(--ok)':'var(--acc)', '已跑轮次');
     const _lyrSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.lyric), 'var(--acc)', '累计歌词');
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');

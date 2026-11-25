@@ -2791,3 +2791,22 @@ CSS 312/312、node 0、console 0、截图 r89_lastval.png。
 悬在末点圆点上方 ② 标签同色 `color`（`var(--ok)/var(--acc)/var(--bad)`），异常率 0 显 `0`（绿，跑顺）③
 `_valLabel` 只在有 sparkline（`tr.length>=2`）时渲染，空趋势不显值。
 
+---
+
+## 第104轮（前端 R90 · goal round67）：sparkline 折线下面积渐变填充
+
+**简洁性（趋势厚度感）**：R86–R89 折线只有细 polyline，趋势单薄。加**折线下面积渐变**——
+`_sparkSvg` 内 SVG `<defs>` 加纵向 `linearGradient`（`y1=0 透明 → y2=1 color@0.18`）+ `<polygon>`
+（折线点 + 底边两点 `w,h / 0,h` 闭合）填面积，每卡唯一 `gid=spk<seq>` 免多卡渐变 id 冲突——
+折线下方渐隐面积，趋势更有体积，扫 4 卡更有层次。
+
+**E2E**：4 趋势卡 `polygon+linearGradient [True×4]`（绿）；端点 **30/0**、HTML 154067B、JS undefined NONE、
+CSS 312/312、node 0、console 0、截图 r90_area.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 461→463`，断点 `投稿\热门歌曲\你往南走 - 南歌.mp3`。
+
+**坑（本轮重点）**：R90 的 `_sparkSvg` 新 return（带 `<defs>` 渐变）**没删掉 R89 旧 return**，两行
+拼在同行 → 第一个 `};` 提前闭合 `_sparkSvg`，第二个 return 落在函数外 → `mtStat is not defined` +
+node `Missing catch or finally after try`。删 R89 遗留 return 修复。**教训**：`_sparkSvg` 这种「整函数
+体一行重写」的 edit，old_string 必须含到旧的 `};` 闭合行，否则新旧 return 叠加。
+
