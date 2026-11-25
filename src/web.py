@@ -2873,9 +2873,10 @@ async function mtRun(){
       const st2 = await (await fetch('/api/maintain')).json();
       const rc = (st2.recent||[]).slice(0,3);
       if(rc.length){
+        const ago=(t)=>{ if(!t) return ''; const s=(Date.now()/1000 - t); if(s<60) return '刚刚'; if(s<3600) return Math.round(s/60)+' 分钟前'; if(s<86400) return Math.round(s/3600)+' 小时前'; return Math.round(s/86400)+' 天前'; };
         let el = $('#mtlast');
         if(!el){ el = document.createElement('div'); el.id='mtlast'; el.className='n'; el.style.cssText='margin-top:4px;font-size:12px;color:var(--dim)'; $('#mtmsg').insertAdjacentElement('afterend', el); }
-        el.textContent = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' '+x.name).join(' · ');
+        el.innerHTML = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' '+esc(x.name)+'<span style="color:var(--dim)">（'+ago(x.at)+'）</span>').join(' · ');
       }
     }catch(e){}
     await mtStat();

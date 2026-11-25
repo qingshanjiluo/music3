@@ -2210,3 +2210,25 @@ CSS 302/302、node 0、console 0、截图 r58_recenttime.png。
 `_pv_flush_hits` 写 `_PV_HITS` 但 global 漏它，同 R58 `_pv_on_call` 漏 `_PV_CALLS_LAST_FLUSH` 一类
 （R57 加 calls 落盘没同步 audit hits 的 flush）。E2E 加**源码级 global 断言**防退。
 
+---
+
+## 第74轮（前端 R60 · goal round37）：global 完整性通用 lint + 本批补相对时间
+
+**完善性（防退护栏）**：R58/R59 连修两个 `UnboundLocalError`（`_pv_on_call` 漏 `_PV_CALLS_LAST_FLUSH`、
+`_pv_flush_hits` 漏 `_PV_HITS`）——手动漏声明靠 review 防不住。加**通用 lint** `tests/lint_globals.py`：
+扫 web.py 全部顶层 def，凡「写模块级共享 `_` 变量（多 def 共写）但 global 漏声明」的报出，exit 1。
+跑通：`全过 (扫 10 个 def, 8 个模块级变量)`。以后加节流写盘函数忘 global，lint 一跑就暴露。
+
+**简洁性**：`#mtlast` 本批补加**相对时间**（复用 R58 `ago()`：`刚刚 / N 分钟前 / N 小时前 / N 天前`），
+`本批补: 歌词 周杰伦/晴天（5 分钟前） · 封面 邓紫棋/新的心跳（刚刚）`；去掉冗余的 `el.textContent`（只留
+`el.innerHTML` 带相对时间）。
+
+**E2E**：`global lint` 全过（exit 0）；seed 2 条 recent 带 at → 点「跑维护」→ `#mtlast` 显相对时间绿 →
+还原；端点 **30/0**、HTML 137032B、JS undefined NONE（`mtlast` 是运行时 createElement 的 id，
+初始 HTML 无 = 预期）、CSS 302/302、node 0、console 0、截图 r60_batchtime.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `runs 340→349`，断点 `华语经典\林俊杰\爱笑的眼睛.mp3`。
+
+**坑**：subprocess 捕获 lint 脚本中文输出要 `encoding="utf-8"`——本机 py 默认 GBK，不传 encoding
+会 `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xcd`（stdout 全 None）；`run` 加 `encoding` 才稳。
+
