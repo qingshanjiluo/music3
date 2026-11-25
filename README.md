@@ -3800,3 +3800,25 @@ spinner `border-top-color:#fff`（白，红底上可见）⑤ 验收真跑 `mtRu
 + 按钮恢复（`_mtAborted` 在第 2 轮顶 break，已跑 1 轮 tick 不回滚——**取消本身会跑 1 轮 tick 污染 `runs`**，验后已续推
 恢复断点）。
 
+---
+
+## 第155轮（前端 R141 · goal round118）：跑维护 ETA 实时估算（`#mtmsg` 非全库多轮按已耗时外推「剩 X 轮 ≈ 约 Ys」）
+
+**连贯性（还有多久跑完）**：`mtRun` 非全库跑多轮（`#mtruns=N`）时 `#mtmsg` 只有 `已耗时 Xs`，**还剩多久跑完**没数
+（全库已有 `estTxt` 外推 `预计约 N 分钟`，非全库没有）。`mtRun` 循环非全库 `N>1 && i>1` 时按**前 i-1 轮均耗**
+`_elapsed/(i-1)` × 剩 `N-i` 轮，`#mtmsg` 追加 `· 剩 X 轮 ≈ 约 Ys`——扫一眼跑中还有多久完，与全库 ETA 同「执行反馈」
+直觉，与 R139 本轮进度条（`i/N` 宽）互补（进度条看「跑到第几轮」，ETA 看「还要多久」）。
+
+**E2E**（函数级验 `estTxt` 拼接，不真跑 tick 免卡）：`estTxt=' · 剩 2 轮 ≈ 约 6s'（N=5,i=3,_elapsed=6 → perTick=3,
+剩 2 轮×3=6s）+ hasEta`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r141_eta.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 572→574`，断点 `_归档_封存\SD卡版\华语经典\陶喆\阿飞的小蝴蝶.mp3`。
+
+**坑**：① ETA 复用全库 `estTxt` 机制（`mtRun` 循环每轮算 `estTxt`，`setMsg` 拼尾），非全库分支 `!FULL && N>1 && i>1`
+（全库 `FULL` 走原 `totalTicks` 分钟外推，非全库走 `剩 (N-i) 轮` 秒外推）② `perTick=Math.max(0.5,_elapsed/(i-1))`（前 i-1 轮
+均耗，首轮 `i=1` 无历史不显，`i>1` 才外推；`0.5` 下限防 0）③ 剩 `N-i` 轮（当前轮 `i` 跑中，剩未跑 `N-i`），`≈ 约
+round(perTick*(N-i))` 秒（`i=N` 最后一轮 `剩 0 轮 ≈ 约 1s`，`Math.max(1,·)` 钳底）④ **真跑 tick 卡 i=1**（全库已扫完，
+tick 每轮 miss 多补不到、某源响应慢），验收改**函数级**验 `estTxt` 拼接（mock `_elapsed/N/i`，不碰后端 tick，避免卡住
++ 污染游标）⑤ 非全库 ETA 显**秒**（`剩 X 轮 ≈ 约 Ys`），全库显**分钟**（`预计约 N 分钟`）——量级匹配（非全库几轮 <  1 分钟，
+全库几百轮 = 分钟级）。
+

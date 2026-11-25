@@ -2951,6 +2951,10 @@ async function mtRun(){
       } else if(FULL && i===1 && ticksFirstMs>0){
         const totalTicks = Math.ceil(5188 / b);
         estTxt = ` · 预计全库约 ${Math.max(1,Math.round(ticksFirstMs/1000*totalTicks/60))} 分钟`;
+      } else if(!FULL && N>1 && i>1){
+        /* 非全库跑多轮 ETA: 前 i-1 轮均耗 _elapsed/(i-1) × 剩 (N-i) 轮, 实时外推剩多少秒(扫一眼还有多久跑完, 与全库 estTxt 同直觉) */
+        const _perTick=Math.max(0.5, _elapsed/(i-1));
+        estTxt = ` · 剩 ${N-i} 轮 ≈ 约 ${Math.max(1,Math.round(_perTick*(N-i)))}s`;
       }
       setMsg($('#mtmsg'), `${FULL?'跑到全库 · 第 '+i+' 轮':'跑第 '+i+'/'+N+' 轮'}（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${_elapsed}s${estTxt}`);
       if(!FULL){ _mtProg(i, N, false); }  /* 本轮进度: 跑多轮显 i/N, 全库(N=999999)不显进度条 */
