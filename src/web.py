@@ -167,6 +167,12 @@ tbody tr.playing td{background:#fbe9e4}
 
 /* 分类片 */
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+/* 面包屑: 多级可点回跳(结构硬规则4 往返保留) */
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin:-4px 0 10px;font-size:12.5px;min-height:20px}
+.crumbs .cb{color:var(--dim);text-decoration:none;cursor:pointer;padding:2px 4px;border-radius:3px}
+.crumbs .cb:hover{color:var(--acc);background:rgba(196,56,31,.07)}
+.crumbs .cb.cur{color:var(--fg);font-weight:700;cursor:default}
+.crumbs .cs{color:var(--dim);opacity:.6}
 /* 页头右侧按钮 */
 .hdr-right{margin-left:auto;display:flex;gap:7px;align-items:center;flex:0 0 auto}
 .star-btn{
@@ -794,6 +800,7 @@ tbody tr.playing td{background:#fbe9e4}
       <span data-v="list">列表</span>
     </div>
   </div>
+  <div class="crumbs" id="crumbs" role="navigation" aria-label="目录位置"><span class="n">全部目录</span></div>
   <div class="chips" id="chips"></div>
   <div class="msg" id="bmsg" role="status" aria-live="polite"></div>
   <div class="grid" id="grid"></div>
@@ -2387,11 +2394,26 @@ const PAGE = 400;               // 曲库分页：每页 400，触底续拉（�
 let _libTotal = 0;
 async function _libPage(sub, offset){
   const d = await (await fetch(`/api/ls?sub=${encodeURIComponent(sub)}&limit=${PAGE}&offset=${offset}&id3=1`)).json();
-  return {items: d.items||[], got: (d.items||[]).length};
+  return {items: d.items||[], got: (d.items||[]).length, dirs: d.dirs||[]};   // dirs 必须透传, 否则 subDirs 恒 null 下钻不画
+}
+function renderCrumbs(sub){
+  const el = $('#crumbs'); if(!el) return;
+  if(!sub){ el.innerHTML = '<span class="n">全部目录</span>'; return; }
+  const parts = String(sub).split(/[\\/]+/).filter(Boolean);
+  let acc = '';
+  const seg = parts.map((p,i)=>{
+    acc = acc ? acc + '\\' + p : p;
+    const raw = acc, last = (i === parts.length-1);
+    return (i? '<span class="cs">›</span>' : '') +
+      (last ? `<b class="cb cur">${esc(p)}</b>`
+            : `<a class="cb" href="javascript:void(0)" onclick="openDir('${esc(raw)}')">${esc(p)}</a>`);
+  }).join('');
+  el.innerHTML = '<a class="cb" href="javascript:void(0)" onclick="openDir(\'\')">曲库</a>' + seg;
 }
 async function openDir(sub, keepScroll){
   const same = (curSub===sub);
   curSub=sub;
+  renderCrumbs(sub);
   _libTotal = 0;
   // 分类片缺失才拉；已有则只地高亮 —— 不再 loadChips(它会重画全表)
   if(!document.querySelector('#chips .chip')) { try{ await _loadChipsOnly(); }catch(e){} }
@@ -2399,14 +2421,22 @@ async function openDir(sub, keepScroll){
   setMsg($('#bmsg'),'加载中…'); if(!keepScroll) skGrid(12);   // 骨架替代空白
   try{
     // 分页拉满：每页 400 顺序续拉，直到拿完（后端 offset 分页已验证）
-    let items = [], off = 0;
+    let items = [], off = 0, subDirs = null;
     while(true){
       const pg = await _libPage(sub, off);
       items = items.concat(pg.items);
+      if(off === 0) subDirs = pg.dirs || [];
       if(pg.got < PAGE) break;
       off += pg.got;
       setMsg($('#bmsg'), sub+' · 已加载 '+items.length+' 首…');
       if(off > 8000) break;      // 安全阀
+    }
+    /* 子目录下钻: 首轮 dirs 重画 chips(+返回上级); 根层由 loadChips 管 */
+    if(subDirs && subDirs.length){
+      $('#chips').innerHTML =
+        '<span class="chip" data-n="" onclick="openDir(\'\')">⤴ 返回上级</span>' +
+        subDirs.map(x=>
+          `<span class="chip" data-n="${esc(sub?sub+'\\'+x.name:x.name)}" onclick="openDir('${esc(sub?sub+'\\'+x.name:x.name)}')">${esc(x.name)} <span class="n">${x.count}</span></span>`).join('');
     }
     _libTotal = items.length;
     if(!items.length){
@@ -4038,8 +4068,10 @@ class Handler(BaseHTTPRequestHandler):
                 from . import browse
 
                 sub = g("sub", "")
+                # 始终带 dirs: 空 sub=根层, 非空=该层子目录(原只空 sub 给 dirs -> UI 无法下钻)
+                dirs = browse.list_dirs(os.path.join(library.DEFAULT_ROOT, sub) if sub else library.DEFAULT_ROOT)
                 if not sub:
-                    return self._send(200, {"dirs": browse.list_dirs(library.DEFAULT_ROOT)})
+                    return self._send(200, {"dirs": dirs})
                 rows = browse.list_tracks(
                     library.DEFAULT_ROOT,
                     sub,
@@ -4047,7 +4079,7 @@ class Handler(BaseHTTPRequestHandler):
                     offset=int(g("offset", "0")),
                     read_id3=g("id3", "0") == "1",
                 )
-                return self._send(200, {"sub": sub, "count": len(rows), "items": rows})
+                return self._send(200, {"sub": sub, "count": len(rows), "items": rows, "dirs": dirs})
 
             if u.path == "/api/find":
                 from . import browse

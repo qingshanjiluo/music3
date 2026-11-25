@@ -1782,3 +1782,23 @@ CSS 299/299、node 0、compile 0、截图 r38_hist_reltime.png。
 错一层锚 MISS）——复杂锚改用 **read 出现文本 + edit 精确替换**最稳；
 本轮又遇占位工具名/输出被吞，照规矩逐个单发重跑。
 
+---
+
+## 第53轮（前端 R39 · goal round16）：曲库目录面包屑 + 子目录下钻
+
+**连贯性真缺口**：`/api/ls` 只在 `sub=""` 时返回根层 dirs——点「_归档_封存」后 4708 首全量平铺，
+**无子目录下钻、无位置回跳**（E2E 全靠 `openDir(多级路径)` 直调绕过，UI 根本到不了深层）。
+
+**修**：
+- 后端 `/api/ls` 始终带 `dirs`（空 sub=根层、非空=该层子目录，`browse.list_dirs(os.path.join(ROOT, sub))`）。
+- 前端 `_libPage` **透传 `dirs`**（原只挑 `items/got` 把 `d.dirs` 丢了——`subDirs` 恒 null 是第一处假象根因）。
+- `openDir` 首轮捕获 `subDirs` → 重画 chips：`⤴ 返回上级` + 该层子目录（带 count）。
+- 面包屑 `#crumbs`（`曲库 › 归档 › SD卡版`，每段 `openDir(前缀)` 可点回跳、末段粗体）+ 根层「全部目录」。
+
+**E2E**：`下钻 chips=37 back=True`（头 4=`[⤴返回上级, SD卡版 1495, 万能青年旅店 52, 五月天 31]`）、
+`ls dirs(非空sub)=36`、点上级回 `全部目录`、面包屑断言 True、端点 **29/0**、
+HTML 130203B、JS undefined NONE、CSS 304/304、marker 2/2、node 0、console 0、截图 r39_drill.png。
+
+**坑**：① `_libPage` 丢弃 `d.dirs` 是下钻不画的根因——**接口返回体必须逐字段透传**，少一个字段前端就拿到 undefined；
+② 面包屑分隔用 `/[\\/]+/` 要数对反斜杠层数；③ 目录 chip `data-n` 拼接用 `'\\'`（py str 双层）。
+
