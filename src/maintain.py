@@ -146,6 +146,8 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
                         if r.get("ok"):
                             res["lyric_ok"] += 1
                             log("[%d/%d] 歌词+ %s (%s)" % (i, len(window), name, r.get("source")))
+                            st.setdefault("recent", []).insert(0, {"what": "lyric", "name": name, "at": time.time()})
+                            del st["recent"][5:]   # 只保最近 5
                         else:
                             res["lyric_miss"] += 1
                             log("[%d/%d] 歌词- %s" % (i, len(window), name))
@@ -162,6 +164,8 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
                         if r.get("ok"):
                             res["cover_ok"] += 1
                             log("[%d/%d] 封面+ %s (%s)" % (i, len(window), name, r.get("source")))
+                            st.setdefault("recent", []).insert(0, {"what": "cover", "name": name, "at": time.time()})
+                            del st["recent"][5:]   # 只保最近 5
                         else:
                             res["cover_miss"] += 1
             except Exception as e:
@@ -187,6 +191,7 @@ def status():
     """当前维护状态。"""
     st = _read_state()
     s = {
+        "recent": st.get("recent", []),
         "runs": st.get("runs", 0),
         "last_run": st.get("last_run", 0),
         "last_run_str": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st["last_run"])) if st.get("last_run") else "",

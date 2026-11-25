@@ -2144,3 +2144,27 @@ HTML 135505B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r56
 calls 归 0，命中率会虚高（hits 旧累计 / calls 新分母）；接受此偏差（命中率本就是「本进程观测」，
 文案不标「跨重启」）。
 
+---
+
+## 第71轮（前端 R57 · goal round34）：命中率分母落盘 + hit_rate 封顶 + 维护页「最近补 N 首」
+
+**完善性（命中率跨重启）**：R56 命中率分母 `_PV_CALLS` 进程内——重启后 hits 读回旧累计、
+calls 归 0 → 命中率虚高（R56 坑已证 250%）。`_PV_CALLS` **落盘** `_cache/pv_calls.json`
+（与 hits 同机制：启动 `_pv_load_calls` 读回、`_pv_on_call` 节流 1s 写、`/api/cache` 读时
+`_pv_flush_calls` 兜脏）；`hit_rate` **封顶 100**（`min(100, …)`）——hits 历史累计但 calls 是
+「本进程读起」，封顶防虚高误导。清缓存收编 `pv_calls.json`。
+
+**完善性（最近补首可视化）**：`maintain.tick` 每次补成功追加 `recent`（`{what:lyric/cover, name, at}`，
+保最近 5）+ `status()` 带出 + 维护页 6 卡下方「最近补: 歌词 · X 封面 · Y」小列表（`s.recent` 空则不显）。
+
+**E2E**：`pv_calls.json` 落盘 `3`、`previews {hits:5, calls:3, hit_rate:100}`（封顶生效）；seed 2 条
+`recent` → 维护页显「最近补: 歌词 · 周杰伦/晴天 封面 · 邓紫棋/新的心跳」绿 → 还原；端点 **30/0**、
+node 0、console 0、截图 r57_recent.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `runs 316→324`，断点 `整理后分类\thisistruemusic\英文歌\Hymn for the Weekend.mp3`
+（本批 lyric/cover 0 补——尾部全嵌入型，加速层只长新补首，recent 空属正常）。
+
+**坑**：① `_pv_on_call` 节流 1s 内不写盘——预热 2 调太近，`pv_calls.json` 没落（需 `/api/cache` 读时
+`_pv_flush_calls` 兜）；② `hit_rate` 不封顶会 250%（hits 跨重启旧累计 / calls 本进程新分母）——`min(100)` 封顶；
+③ 维护页「最近补」只在 `recent` 非空显，本轮 0 补不显 = 正确（不是 bug）。
+

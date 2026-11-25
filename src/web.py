@@ -41,7 +41,55 @@ _PV_HITS_FILE = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath
 _PV_HITS = 0
 _PV_HITS_DIRTY = False
 _PV_HITS_LAST_FLUSH = 0.0
-_PV_CALLS = 0   # 累计取链调用次数(命中率分母, 进程内)
+_PV_CALLS = 0   # 累计取链调用次数(命中率分母, 落盘 _cache/pv_calls.json)
+_PV_CALLS_FILE = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "_cache", "pv_calls.json")
+_PV_CALLS_DIRTY = False
+_PV_CALLS_LAST_FLUSH = 0.0
+
+
+def _pv_load_calls():
+    global _PV_CALLS
+    try:
+        with open(_PV_CALLS_FILE, "r", encoding="utf-8") as _f:
+            _PV_CALLS = int(_json_load(_f) or 0)
+    except Exception:
+        _PV_CALLS = 0
+
+
+def _pv_on_call():
+    global _PV_CALLS, _PV_CALLS_DIRTY
+    _PV_CALLS += 1
+    _PV_CALLS_DIRTY = True
+    import time as _t
+    if _t.time() - _PV_CALLS_LAST_FLUSH < 1.0:
+        return
+    try:
+        _os.makedirs(_os.path.dirname(_PV_CALLS_FILE), exist_ok=True)
+        with open(_PV_CALLS_FILE, "w", encoding="utf-8") as _f:
+            _f.write(str(_PV_CALLS))
+        _PV_CALLS_DIRTY = False
+        _PV_CALLS_LAST_FLUSH = _t.time()
+    except Exception:
+        pass
+
+
+_pv_load_calls()
+
+
+def _pv_flush_calls():
+    """读时落一次 calls 脏(与 hits 对称)。"""
+    global _PV_CALLS_DIRTY, _PV_CALLS_LAST_FLUSH
+    import time as _t
+    if not _PV_CALLS_DIRTY:
+        return
+    try:
+        _os.makedirs(_os.path.dirname(_PV_CALLS_FILE), exist_ok=True)
+        with open(_PV_CALLS_FILE, "w", encoding="utf-8") as _f:
+            _f.write(str(_PV_CALLS))
+        _PV_CALLS_DIRTY = False
+        _PV_CALLS_LAST_FLUSH = _t.time()
+    except Exception:
+        pass
 
 
 def _pv_load_hits():
@@ -85,15 +133,22 @@ def _json_load(f):
 
 
 def _pv_reset_hits():
-    """清缓存: 删 pv_hits.json + 内存归 0 + 清脏。"""
-    global _PV_HITS, _PV_HITS_DIRTY
+    """清缓存: 删 pv_hits.json + pv_calls.json + 内存归 0。"""
+    global _PV_HITS, _PV_HITS_DIRTY, _PV_CALLS, _PV_CALLS_DIRTY
     try:
         if os.path.exists(_PV_HITS_FILE):
             os.remove(_PV_HITS_FILE)
     except Exception:
         pass
+    try:
+        if os.path.exists(_PV_CALLS_FILE):
+            os.remove(_PV_CALLS_FILE)
+    except Exception:
+        pass
     _PV_HITS = 0
     _PV_HITS_DIRTY = False
+    _PV_CALLS = 0
+    _PV_CALLS_DIRTY = False
 
 
 _pv_load_hits()
@@ -2896,6 +2951,14 @@ async function mtStat(){
       /* 非数值卡(如"已核")跳过滚动, 直保 */
       if(/^\d+$/.test(raw)) countUp(v, parseInt(raw,10), 500);
     });
+    /* 最近补的 N 首(歌词/封面, 来自 maintain recent, 保最近 5) */
+    try{
+      const rc = s.recent||[];
+      if(rc.length){
+        const rl = rc.slice(0,5).map(x=>`<span class="n">${x.what==='lyric'?'歌词':'封面'} · ${esc(x.name||'')}</span>`).join(' &nbsp;');
+        $('#mtresult').insertAdjacentHTML('beforeend', `<div class="n" style="margin-top:6px;color:var(--dim)">最近补: ${rl}</div>`);
+      }
+    }catch(e){}
   }catch(e){}
 }
 async function mtLog(){
@@ -3682,8 +3745,7 @@ class Handler(BaseHTTPRequestHandler):
                 from . import config as _cfg2
                 _PV_DIR = _cfg2.get("cache_dir") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_cache", "previews")
                 _PV_TTL = 1800  # 取链有效期(vkey 直链一般 30min 内)
-                global _PV_CALLS
-                _PV_CALLS += 1   # 取链调用累计(命中率分母)
+                _pv_on_call()   # 取链调用累计(落盘, 命中率分母)
                 _pvkey = "%s_%s" % (t.source, t.track_id)
                 _pvf = os.path.join(_PV_DIR, _pvkey + ".json")
                 url = ext = None
@@ -4277,7 +4339,8 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception:
                                 pass
                     _pv_flush_hits()   # 读时落一次脏, 保 /api/cache 报准
-                    _rate = round(_PV_HITS / _PV_CALLS * 100) if _PV_CALLS else 0
+                    _pv_flush_calls()
+                    _rate = min(100, round(_PV_HITS / _PV_CALLS * 100)) if _PV_CALLS else 0
                     return {"files": fn, "bytes": bz, "hits": _PV_HITS, "calls": _PV_CALLS, "hit_rate": _rate}
 
                 if g("clear_all", "") == "1":
