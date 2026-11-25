@@ -3096,3 +3096,23 @@ HTML 167xxx B、JS undefined NONE、CSS 315/315、node 0、console 0（无 passi
 绑 `document`，新增 `<a>` 自动生效，不重绑）④ 异常率仍 `[data-jumplog=异常]` 卡、本批「本批耗时」卡，口径
 不变。
 
+---
+
+## 第120轮（前端 R106 · goal round83）：小结「已跑轮次/全库进度」也跳卡（6 面全可跳）
+
+**连贯性（小结↔卡片收官）**：R105 小结 4 面（累计歌词/封面/异常率/本批耗时）可跳卡，「已跑 N 轮 / 全库进度
+P%」还没接。`#mtdigest` 的已跑/进度也包 `<a data-jumpto=runs/prog>`，`_mtJump` 加 `runs/prog` 分支（`runs`→
+「已跑轮次」卡、`prog`→`#mtprog` 全库进度条块）——小结 **6 面全可点跳卡**（累计歌词/封面/异常率/本批耗时/
+已跑/全库进度），点哪个数字直接定位对应卡/进度条。
+
+**E2E**：`n=6 + kinds=[lyr,cov,rate,dur,runs,prog]`，点 `runs` → 已跑轮次卡滚到 `top=387`（视口内）；端点
+**30/0**、JS undefined NONE、CSS 315/315、node 0、console 0（无 TDZ/passive 错）、截图 r106_jump3.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 497→499`，断点 `_归档_封存\SD卡版\华语经典\周杰伦\北纬69度.mp3`。
+
+**坑**：① `_done2`（进度达成态判绿）初版写**先用后声明**（`_jumpProg` 里引用 `_done2` 才 `const _done2=…`）→
+`const` TDZ `ReferenceError`，把 `_done2` 挪到 `_jumpProg` 前声明 ② `prog` 跳的不是 `.statcard` 而是 `#mtprog`
+（`#mtresult` 尾的进度条块，`_mtJump` 里 `document.querySelector('#mtprog')` 直取，非 `.k` 文本定位）③ 6 种
+`data-jumpto` 走同一全局委托（R104 非 passive 绑 `document`，新 `<a>` 自动生效不重绑）④ 已跑数字色 `var(--ink)`、
+进度达成态 `var(--ok)`（同 R94 进度条口径）。
+

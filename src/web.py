@@ -2968,11 +2968,13 @@ function _mtLoc(el){
 /* 小结点击跳卡: 点「异常率/本批耗时/累计歌词/封面」滚到对应 .statcard + 闪一下, 双向定位(小结↔卡片) */
 function _mtJump(sel){
   const m=s=>document.querySelector(s);
-  /* lyr/cov: 累计补歌词/封面卡(按 .k 文本定位, 非固定 nth-child); rate: 异常率卡; dur: 本批耗时卡 */
+  /* lyr/cov: 累计补歌词/封面卡(按 .k 文本定位, 非固定 nth-child); rate: 异常率卡; dur: 本批耗时卡; runs: 已跑轮次卡; prog: 全库进度条(#mtprog, 非卡) */
   let el;
   if(sel==='lyr') el=[...document.querySelectorAll('#mtresult .statcard')].find(c=>{const k=c.querySelector('.k'); return k&&k.textContent.indexOf('累计补歌词')>=0;});
   else if(sel==='cov') el=[...document.querySelectorAll('#mtresult .statcard')].find(c=>{const k=c.querySelector('.k'); return k&&k.textContent.indexOf('累计补封面')>=0;});
   else if(sel==='dur') el=[...document.querySelectorAll('#mtresult .statcard')].find(c=>{const k=c.querySelector('.k'); return k&&k.textContent.indexOf('本批耗时')>=0;});
+  else if(sel==='runs') el=[...document.querySelectorAll('#mtresult .statcard')].find(c=>{const k=c.querySelector('.k'); return k&&k.textContent.indexOf('已跑轮次')>=0;});
+  else if(sel==='prog') el=document.querySelector('#mtprog');
   else el=m('#mtresult .statcard[data-jumplog="异常"]');
   if(!el) return;
   el.scrollIntoView({block:'center',behavior:'auto'});
@@ -3059,9 +3061,12 @@ async function mtStat(){
     const _cumLy=t.lyric||0, _cumCv=t.cover||0;
     const _jumpLy=`<a href="javascript:void(0)" data-jumpto="lyr" style="color:var(--acc);text-decoration:underline dotted;font-weight:600" title="点击跳「累计补歌词」卡">${_cumLy}</a>`;
     const _jumpCv=`<a href="javascript:void(0)" data-jumpto="cov" style="color:var(--acc);text-decoration:underline dotted;font-weight:600" title="点击跳「累计补封面」卡">${_cumCv}</a>`;
+    const _done2=_prog>=100;
+    const _jumpRuns=`<a href="javascript:void(0)" data-jumpto="runs" style="color:var(--ink);text-decoration:underline dotted;font-weight:700" title="点击跳「已跑轮次」卡">${s.runs||0}</a>`;
+    const _jumpProg=`<a href="javascript:void(0)" data-jumpto="prog" style="color:${_done2?'var(--ok)':'var(--acc)'};text-decoration:underline dotted;font-weight:700" title="点击跳「全库进度条」">${_prog}%</a>`;
     const _jumpRate=`<a href="javascript:void(0)" data-jumpto="rate" style="color:${_rateCol};text-decoration:underline dotted;font-weight:600" title="点击跳「异常率」卡">${_rate}%</a>`;
     const _jumpDur=_dur?`<a href="javascript:void(0)" data-jumpto="dur" style="color:var(--acc);text-decoration:underline dotted;font-weight:600" title="点击跳「本批耗时」卡">${_dur}s</a>`:`<span style="color:var(--muted)">-</span>`;
-    const _digest=`累计 歌词 ${_jumpLy} + 封面 ${_jumpCv}（本轮补 ${_dLy}+${_dCv}，扫 ${_dSc} 首）｜ 异常率 ${_jumpRate} ｜ 本批 ${_jumpDur} ｜ 已跑 ${s.runs||0} 轮 ｜ 全库进度 ${_prog}% ｜ ${esc(s.last_run_str||'从未运行')}`;
+    const _digest=`累计 歌词 ${_jumpLy} + 封面 ${_jumpCv}（本轮补 ${_dLy}+${_dCv}，扫 ${_dSc} 首）｜ 异常率 ${_jumpRate} ｜ 本批 ${_jumpDur} ｜ 已跑 ${_jumpRuns} 轮 ｜ 全库进度 ${_jumpProg} ｜ ${esc(s.last_run_str||'从未运行')}`;
     $('#mtresult').innerHTML = `
       <div id="mtdigest" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)" title="维护小结: 本轮补入(歌词/封面)+ 累计轮次 + 全库进度; 挂卡片网格上方扫一眼全貌">${_digest}</div>
       <div class="statgrid mtgrid">
