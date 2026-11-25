@@ -2490,3 +2490,24 @@ node 0、console 0、截图 r73_lastcard.png。
 首次 tick 前 `state` 无 `last` 字段 → `s.last||{}` 兜底（本轮补显 0，不崩）；③ 第 9 卡 4 列 3 行
 （4+4+1），第 5/9 卡 `grid-column:1` 归位（R71 已加 nth-child(5/9)）。
 
+---
+
+## 第88轮（前端 R74 · goal round51）：本轮补相对时间 + 跑到全库完成 toast
+
+**简洁性（本轮补时间）**：R73 第 9 卡「本轮补 N」只有数字。加**相对时间**（`last.at` →
+`刚刚 / N 分钟前 / N 小时前 / N 天前`，复用 ago 逻辑）——`0 刚刚` 一眼知道刚跑过；没跑过显「待跑」。
+
+**完善性（跑到全库 toast）**：R64 跑到全库完成只在 `#mtmsg` 一行，滚到下面就看不见。加 `_toast()`
+（右下角浮层，4s 自动消）——跑到全库完成 `跑到全库完成 · 共 N 轮` 弹 toast，不依赖滚动位置。
+
+**E2E**：第 9 卡 `0 刚刚`（相对时间绿）；`_toast` 函数在（`typeof _toast === function`）+ 手动调浮层
+`测试 toast` 绿；端点 **30/0**、HTML 148119B、JS undefined NONE、CSS 310/310、node 0、console 0、
+截图 r74_toast.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 416→420`（`last={lyric_ok:0,cover_ok:0,at:...}` 落 state），
+断点 `英文歌\Hey Soul Sister.mp3`。
+
+**坑**：① `_toast` 浮层用**单例**（`__toast__` 挂 body）+ 4s 自动消——不每次 `createElement` 叠浮层 ②
+第 9 卡相对时间 `last.at` 缺（首次 tick 前）→ `待跑`，有则 `agoT(last.at)`；③ node 配平抓 JS 时机
+（服务重启瞬断 ConnectionRefused）——重抓一次即过。
+

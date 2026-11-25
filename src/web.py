@@ -2865,6 +2865,18 @@ function countUp(el, to, ms){
   requestAnimationFrame(step);
 }
 /* ---------- 维护守护 ---------- */
+/* 浮层 toast: 跑到全库完成等关键回执, 右下角 4s 自动消 */
+function _toast(msg, kind){
+  let t=document.getElementById('__toast__');
+  if(!t){ t=document.createElement('div'); t.id='__toast__';
+    t.style.cssText='position:fixed;right:16px;bottom:16px;z-index:9999;max-width:320px;padding:10px 14px;border-radius:6px;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px';
+    document.body.appendChild(t); }
+  const col = kind==='ok' ? 'var(--ok)' : (kind==='bad' ? 'var(--bad)' : 'var(--acc)');
+  t.style.background='#fff'; t.style.color=col; t.style.borderColor=col; t.style.border='1px solid '+col;
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t.__tt__);
+  t.__tt__=setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>{ t.textContent=''; },400); }, 4000);
+}
 async function mtRun(){
   const btn = $('#mtrun');
   btn.disabled = true;
@@ -2906,7 +2918,7 @@ async function mtRun(){
       if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
-      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
+      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮', 'ok'); FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
@@ -3009,8 +3021,9 @@ async function mtStat(){
       try{
         const last=s.last||{};
         const lastN=(last.lyric_ok||0)+(last.cover_ok||0);
+        const agoT=(t)=>{ if(!t) return ''; const sec=(Date.now()/1000 - t); if(sec<60) return '刚刚'; if(sec<3600) return Math.round(sec/60)+' 分钟前'; if(sec<86400) return Math.round(sec/3600)+' 小时前'; return Math.round(sec/86400)+' 天前'; };
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-          `<div class="statcard" title="最近一次维护 tick 的即时补数 = 歌词 +${last.lyric_ok||0} · 封面 +${last.cover_ok||0}（点了跑维护/刷新后更新）"><div class="k">本轮补（最新 tick）</div><div class="v" style="${lastN>0?'color:var(--ok);-webkit-text-fill-color:var(--ok)':'color:var(--dim);-webkit-text-fill-color:var(--dim)'}">${lastN}</div></div>`);
+          `<div class="statcard" title="最近一次维护 tick 的即时补数 = 歌词 +${last.lyric_ok||0} · 封面 +${last.cover_ok||0}（${last.at?agoT(last.at):'尚未跑 tick'}；点刷新重拉）"><div class="k">本轮补（最新 tick）</div><div class="v" style="${lastN>0?'color:var(--ok);-webkit-text-fill-color:var(--ok)':'color:var(--dim);-webkit-text-fill-color:var(--dim)'}">${lastN}<span style="font-size:11px;color:var(--dim);margin-left:6px">${last.at?agoT(last.at):'待跑'}</span></div></div>`);
       }catch(e){}
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
