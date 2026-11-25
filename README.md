@@ -2850,3 +2850,22 @@ node `Missing catch or finally after try`。删 R89 遗留 return 修复。**教
 来不及算 `_dur`，故不塞 last）② 首次 2 批在**重启前**跑（旧代码无 `dur_trend`）→ 重启后空，补 2 批才落值
 （同 R85 坑）③ `_sparkSvg` 色传 `var(--muted)`（中性色，耗时非好坏指标，不用红绿）。
 
+---
+
+## 第107轮（前端 R93 · goal round70）：维护「下一批预计」提示（`n_total` 落 state）
+
+**完善性（跑完预计）**：R92 有了单批耗时，但「全库还剩多少、要跑多久」没答案。`maintain.tick()`
+尾记 `state["n_total"]=len(paths)`（全库曲目数，每 tick 刷新），`status()` 回 `n_total`；前端「看状态」
+网格下方加**一行提示**（`#mtnextest`，非卡片）——`下一批 ~<dur_trend 均值>s ｜ 全库 N 首 ≈ ceil(N/20) 批
+≈ 总耗时`（分秒换算）。跑全库维护前一眼知道要挂多久。
+
+**E2E**：`下一批预计: 下一批 ~2.3s ｜ 全库 5188 首 ≈ 260 批 ≈ 10 分 58 秒`（全库>0，绿）；端点 **30/0**、
+HTML 157826B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r93_est.png。
+
+**完善性（游标续推）**：全库 2+2 批 batch=20 `runs 469→473`，断点 `_归档_封存\SD卡版\…\甲乙丙丁.mp3`。
+
+**坑**：① `n_total` 用 `tick()` 尾的 `len(paths)`（已 `browse.list_tracks` 全库扫过，顺带存，免 status 重扫）
+② 首次 2 批在**重启前**跑（旧代码无 `st["n_total"]`）→ `n_total=0` 显「全库 0 首」，补 2 批才落 5188
+（同 R85/R92 坑）③ `#mtnextest` 挂 `#mtresult` 尾（非 `.statgrid`），`mtStat` 重铺 `#mtresult` 时自动清掉重建
+（幂等，自动刷 5s 不残留）④ 估算保守：`总耗时=批数×均值`（不含网络抖动，断点真实进度另看 cursor）。
+

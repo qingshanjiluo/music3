@@ -3034,6 +3034,21 @@ async function mtStat(){
           $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
             `<div class="statcard" title="最新一批 tick 用时(秒)；下方折线=近 8 批耗时趋势(变长=网络/磁盘拖慢)"><div class="k">本批耗时（近 8 批）</div><div class="v">${_dur?_dur+'s':'-'}</div>${_durSpark}</div>`);
         }
+        /* 「下一批预计」: 网格下方一行提示 - 按 dur_trend 均值守估算下一批耗时 + 全库剩余曲目需几批跑完 */
+        {
+          const _durT = (s.dur_trend||[]);
+          const _avg = _durT.length ? _durT.reduce((a,b)=>a+b,0)/_durT.length : 0;
+          const _nTotal = s.n_total||0;
+          const _batch = 20;
+          /* 已扫进度 = cursor 在全库里的位置; 估算剩余 = n_total - 已扫. 简化: 用 runs 平均推进(全库 batch=20 每 runs 推 20 首) */
+          const _scannedEst = (s.runs||0);   /* runs 计数即 tick 轮数, 每轮推 batch 首 */
+          const _remaining = Math.max(0, _nTotal - _scannedEst*0);   /* 保守: 只报全库总量(断点续传真实进度见 cursor) */
+          const _batchesLeft = Math.ceil((_nTotal)/_batch);
+          const _estTotal = _avg ? (_batchesLeft*_avg) : 0;
+          const _estStr = _avg ? ('下一批 ~'+_avg.toFixed(1)+'s ｜ 全库 '+_nTotal+' 首 ≈ '+_batchesLeft+' 批 ≈ '+(_estTotal>=60?Math.round(_estTotal/60)+' 分 '+Math.round(_estTotal%60)+' 秒':_estTotal.toFixed(0)+' 秒')) : '（无耗时样本）';
+          $('#mtresult').insertAdjacentHTML('beforeend',
+            `<div style="margin-top:8px;font-size:12px;color:var(--muted)" id="mtnextest" title="按近 8 批 tick 平均耗时无损估算; 全库批数=ceil(总曲目/20); 断点续传真实进度见「已跑轮次」cursor">${_estStr}</div>`);
+        }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');

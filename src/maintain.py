@@ -177,6 +177,7 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
         st["cursor"][key] = window[-1]
         res["cursor"] = window[-1]
     res["done"] = (idx + len(window)) >= len(paths)
+    st["n_total"] = int(len(paths))   # 本轮全库曲目数(供前端算剩余批次/预计耗时), 每 tick 更新
     st["last_run"] = time.time()
     st["runs"] = int(st.get("runs", 0)) + 1
     for k, kk in (("lyric_ok", "lyric"), ("cover_ok", "cover"), ("cleaned", "clean")):
@@ -226,6 +227,7 @@ def status():
         "cum_trend": st.get("cum_trend", []),
         "rate_trend": st.get("rate_trend", []),
         "dur_trend": st.get("dur_trend", []),
+        "n_total": st.get("n_total", 0),
     }
     return s
 
