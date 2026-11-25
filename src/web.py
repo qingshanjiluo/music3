@@ -3269,14 +3269,18 @@ async function mtLogDraw(){
   const _isNew = i=>{ if(kw) return false; const prevLen=_mtLogLastLines.length; if(prevLen>=lines.length) return false; return i>=(lines.length-(lines.length-prevLen)) && _mtLogLastLines.indexOf(lines[i])<0; };
   const _isNewIdx = ()=>{ if(kw) return []; const _prevLen=_mtLogLastLines.length; if(_prevLen>=lines.length) return []; return lines.slice(lines.length-Math.min(50,lines.length-_prevLen)).map((l,idx)=>lines.length-(lines.length-_prevLen)+idx).filter(i=>_mtLogLastLines.indexOf(lines[i])<0); };
   $('#mtresult').innerHTML = lines.length
-    ? `<div class="joblog" id="mtjoblog" style="max-height:320px">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}">${paint(l)}</div>`).join('')}</div>`
+    ? `<div id="mtlogwrap" style="position:relative"><div class="joblog" id="mtjoblog" style="max-height:320px;overflow:auto">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}">${paint(l)}</div>`).join('')}</div><button type="button" id="mtlogtop" onclick="mtLogTop()" style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:1px solid var(--acc);color:var(--acc);cursor:pointer;display:none;font-size:14px;line-height:1" title="日志滚到顶">↑</button></div>`
     : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
   _mtLogLastLines=lines.slice();
   /* 新行淡闪 1.2s 后清(实时刷新时有新日志滚进, 高亮提示; 1.2s 后背景淡出) */
   const _newIdx=_isNewIdx();
   if(_newIdx.length){ setTimeout(()=>{ document.querySelectorAll('#mtjoblog .joblog-line').forEach(el=>{ el.style.background=''; }); },1200); }
+  /* 滚到顶悬浮钮: 日志滚过 40px 显, 点滚顶 */
+  const _jl=$('#mtjoblog'); if(_jl){ _jl.onscroll=()=>{ const b=$('#mtlogtop'); if(b) b.style.display=(_jl.scrollTop>40)?'':'none'; }; }
   return lines.length;
 }
+/* 日志滚到顶: 点 #mtlogtop 上箭头, 滚日志回顶 + 隐按钮 */
+function mtLogTop(){ const j=$('#mtjoblog'); if(j){ j.scrollTop=0; j.onscroll&&j.onscroll(); const b=$('#mtlogtop'); if(b) b.style.display='none'; } }
 async function mtLog(){
   setMsg($('#mtmsg'), '读日志…');
   try{

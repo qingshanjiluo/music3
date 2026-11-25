@@ -3213,3 +3213,21 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r111_newline.png�
 （重铺时已标 inline，清除只动 `style.background=''`，不影响下次重铺）④ `_mtLogLastLines` 每次 `mtLogDraw` 尾更新
 （`lines.slice()`），跨 2s 刷新连续比。
 
+---
+
+## 第126轮（前端 R112 · goal round89）：日志「滚到顶」悬浮按钮（`#mtlogtop`）
+
+**流畅性（长日志回顶）**：`#mtjoblog` 320px 高 + `overflow:auto`，200 行日志翻到顶麻烦（滚轮倒翻）。
+`#mtjoblog` 包 `#mtlogwrap`（`position:relative`），加**右下角 `#mtlogtop` 悬浮上箭头**（`position:absolute`，
+圆钮 accent 边）——`onscroll` 时 `scrollTop>40` 显、点 `mtLogTop()` 滚顶 + 隐；日志长时一键回顶。
+
+**E2E**：`hasBtn + btnShownAtBottom=block（滚到底显）+ btnAfterTop=none（点滚顶隐）+ scrollTop=0`（绿）；端点
+**30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r112_logtop.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 510→512`，断点 `_归档_封存\SD卡版\华语经典\梁静茹\爱久见人心.mp3`。
+
+**坑**：① `#mtjoblog` 原只 `max-height`（无 `overflow` 不滚），加 `overflow:auto` 才有滚动条 ② `#mtlogtop` 挂
+`#mtlogwrap`（relative）内 absolute 右下（不挂 `#mtjoblog` 内——`#mtjoblog` 是滚动体，absolute 子元素随滚走，
+挂外层 wrap 才固定浮在日志角上）③ `onscroll` 委托到 `#mtjoblog`（`scrollTop>40` 切显隐），点滚顶 `scrollTop=0`
+后触发一次 onscroll 同步隐 ④ 按钮 `display:none` 初态（日志短不显），滚过 40px 才现（不遮挡日志正文）。
+
