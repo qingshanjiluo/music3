@@ -3346,3 +3346,21 @@ node 0、console 0、截图 r117_clip.png。
 不清，重置只影响下次扫起点）③ 验收验 reset 把断点清成 `{}`（cursor 前 True 后空），验后跑 2 批恢复推进（后端
 无 restore 端点，用 tick 重新写 cursor，已补不重补无副作用）④ `_toast` 复用既有（`#__toast__` 右下 fixed 4s）。
 
+---
+
+## 第133轮（前端 R119 · goal round96）：「自动刷 5s」开关持久化（`localStorage._mtAuto`，刷新恢复）
+
+**简洁性（免每次重挂）**：`#mtautoref` 自动刷 5s 每次**点**才挂，刷新页面后状态丢，跑全库时刷新一次就得
+再手动点一次。`mtAutoRef()` 开写 `localStorage._mtAuto=1`、关写 `0`；**载入时若 `==1` 自动挂**（`DOMContentLoaded`
+后 `mtAutoRef()`）——刷新后自动恢复上次的自动刷状态，免每次手动挂。
+
+**E2E**：`开 → stored=1 + timer + on`、`关 → stored=0 + timer 空`、`刷新后 → stored=1 + timer 自动挂`（恢复，绿）；
+端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r119_auto.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 526→528`，断点 `_归档_封存\SD卡版\纯音乐\Für Elise.mp3`。
+
+**坑**：① `mtAutoRef` 开/关**各写一次** `localStorage`（开 `1`、关 `0`），载入 IIFE `DOM-ready` 读 `==1` 才挂
+（脚本在 body 尾，`DOMContentLoaded` 可能已 fire，但 `#mtautoref` 已建，`mtAutoRef` 里 `getElementById` 兜住）
+② 持久化只记**开关态**（不记「挂到哪个点」，刷新后从头挂 5s 循环即可）③ 验后**关自动刷 + `_mtAuto=0`**（免污染
+后续会话的自动刷态）④ `mtStat` 每 5s 重拉 9 卡（已有），本特性只加**状态记忆**，不动 5s 循环。
+

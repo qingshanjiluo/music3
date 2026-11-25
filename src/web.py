@@ -3348,12 +3348,15 @@ async function mtLog(){
 let _mtAutoRefTimer=null;
 function mtAutoRef(){
   const btn=document.getElementById('mtautoref');
-  if(_mtAutoRefTimer){ clearInterval(_mtAutoRefTimer); _mtAutoRefTimer=null; if(btn){ btn.classList.remove('on'); btn.style.background=''; btn.style.borderColor=''; } setMsg($('#mtmsg'), '自动刷已停', 'ok'); return; }
+  if(_mtAutoRefTimer){ clearInterval(_mtAutoRefTimer); _mtAutoRefTimer=null; if(btn){ btn.classList.remove('on'); btn.style.background=''; btn.style.borderColor=''; } setMsg($('#mtmsg'), '自动刷已停', 'ok'); try{ localStorage.setItem('_mtAuto','0'); }catch(e){} return; }
   if(btn){ btn.classList.add('on'); btn.style.background='var(--acc)'; btn.style.borderColor='var(--acc)'; }
   setMsg($('#mtmsg'), '自动刷 · 每 5s 重拉 9 卡…');
   mtStat().catch(()=>{});
   _mtAutoRefTimer=setInterval(()=>{ mtStat().catch(()=>{}); }, 5000);
+  try{ localStorage.setItem('_mtAuto','1'); }catch(e){}
 }
+/* 载入时恢复自动刷状态: localStorage._mtAuto==1 则自动挂(刷新页面后免再手动点「自动刷 5s」) */
+(function(){ try{ if(localStorage.getItem('_mtAuto')==='1'){ document.addEventListener('DOMContentLoaded', function(){ mtAutoRef(); }); } }catch(e){} })();
 function mtLogLive(){
   if(_mtlogTimer){ clearInterval(_mtlogTimer); _mtlogTimer=null; setMsg($('#mtmsg'), '实时日志已停', 'ok'); return; }
   setMsg($('#mtmsg'), '实时日志 · 每 2s 刷新…');
