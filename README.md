@@ -3710,3 +3710,24 @@ hover）④ hover 抬升 2px 矩阵（`matrix(1,0,0,1,0,-2)`，`translateY(-1px)
 `cursor:pointer`（纯 miss/超时行无歌名不可点，`[data-name]` 选择器限定）⑤ hover accent 左竖条 `border-left:2px solid
 var(--acc)` + `padding-left:8px`（可点行视觉提示，与曲库卡可点态同语言）。
 
+---
+
+## 第151轮（前端 R137 · goal round114）：维护 tab 筛选/过滤持久化（`#mtrf` 记 `_mtRf` + `#mtlogfilter` 记 `_mtLogF`，重开恢复）
+
+**连贯性（重开不丢态）**：维护 tab `#mtrf`（最近补入类型筛选 all/歌词/封面）+ `#mtlogfilter`（日志过滤词），每次重开
+页面**归零**，扫状态/日志后重开要重设。`#mtrf` 点击记 `localStorage._mtRf`（all/lyric/cover），`#mtlogfilter` 输入记
+`_mtLogF`（过滤词）——**载入 IIFE 恢复**：重开维护 tab 按 `_mtRf` 切选中 + 显对应行、按 `_mtLogF` 填回 `#mtlogfilter`
++ 重绘日志，扫状态不用重设筛选/过滤，与 R119 自动刷持久化同「记状态」风格。
+
+**E2E**：`_mtRf=lyric（点「歌词」记）+ reload 后 shownMf=lyric（筛选恢复）+ _mtLogF=歌词（输词记）+ reload 后 val=歌词
+（过滤填回）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r137_persist.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 562→564`，断点 `_归档_封存\SD卡版\华语经典\梁静茹\爱久见人心.mp3`。
+
+**坑**：① `#mtrf` 委托逐按钮 `onclick`（`#mtrecent` 随 `mtStat` 重建，不能载入时绑）——记 `_mtRf` 在 `bn.onclick` 内
+（点即记），恢复在 `#mtrecent` 铺完（`mtStat` 内）调 `_mtRfApply(_rm)`（按记忆切选中 + 显行，缺省不恢复保持 all）
+② `#mtlogfilter` `input` 监听记 `_mtLogF`（输词即记，`document` 捕获），恢复 IIFE（`DOMContentLoaded` 读 `_mtLogF`
+填 `#mtlogfilter` + `mtLogDraw` 重绘，非 loading 直接 apply）③ `#mtRf`/`_mtLogF` 只记**用户显式操作**（点筛选/输过滤），
+不记初始 all（缺省即 all，不写）④ 恢复 `_mtRf` 用 `_mtRfApply(mf)`（切行 + 高亮选中 tab，与点击同逻辑，不重复写行显隐）
+⑤ `#mtlogfilter` 恢复后 `mtLogDraw` 按 `_mtLogF` 值重过滤（`mtLogDraw` 读 `#mtlogfilter` 当前值，填回即自动重铺过滤结果）。
+

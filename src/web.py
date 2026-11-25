@@ -3236,13 +3236,15 @@ async function mtStat(){
           const _rowsCov = _rec.filter(r=>r.what==='cover').length ? _rec.filter(r=>r.what==='cover').map(_rowHTML).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（近 5 条无封面补入）</div>';
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:10px" id="mtrecent" title="最近补入歌词/封面(近 5 条, 来自维护 tick; 类型色: 歌词=accent 封面=ok; 可按类型筛)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">最近补入（近 5 条）<span style="display:inline-flex;gap:4px" id="mtrf"><button type="button" class="ghost sm" data-mf="all" style="padding:1px 7px;font-size:11px;cursor:pointer;background:var(--acc);color:#fff;border-color:var(--acc)">全部 ${_rec.length}</button><button type="button" class="ghost sm" data-mf="lyric" style="padding:1px 7px;font-size:11px;cursor:pointer">歌词 ${_nLyric}</button><button type="button" class="ghost sm" data-mf="cover" style="padding:1px 7px;font-size:11px;cursor:pointer">封面 ${_nCov}</button></span></div><div class="mtrecent-rows" data-mf="all">${_rowsAll}</div><div class="mtrecent-rows" data-mf="lyric" style="display:none">${_rowsLyric}</div><div class="mtrecent-rows" data-mf="cover" style="display:none">${_rowsCov}</div></div>`);
-          /* 筛选 tab 切换: 事件委托到 #mtrf(随 mtStat 重建), 切当前 data-mf 行, 高亮选中 tab */
+          /* 筛选 tab 切换: 事件委托到 #mtrf(随 mtStat 重建), 切当前 data-mf 行, 高亮选中 tab; 记 localStorage._mtRf(重开维护 tab 恢复上次筛选) */
+          const _mtRfApply=mf=>{ document.querySelectorAll('#mtrf button').forEach(x=>{ x.style.background=''; x.style.color=''; x.style.borderColor=''; });
+            document.querySelectorAll('#mtrecent .mtrecent-rows').forEach(rr=>{ rr.style.display=(rr.dataset.mf===mf)?'':'none'; });
+            const sel=document.querySelector('#mtrf button[data-mf="'+mf+'"]'); if(sel){ sel.style.background='var(--acc)'; sel.style.color='#fff'; sel.style.borderColor='var(--acc)'; } };
           document.querySelectorAll('#mtrf button').forEach(bn=>{
-            bn.onclick=()=>{ document.querySelectorAll('#mtrf button').forEach(x=>{ x.style.background=''; x.style.color=''; x.style.borderColor=''; });
-              bn.style.background='var(--acc)'; bn.style.color='#fff'; bn.style.borderColor='var(--acc)';
-              const mf=bn.dataset.mf;
-              document.querySelectorAll('#mtrecent .mtrecent-rows').forEach(rr=>{ rr.style.display=(rr.dataset.mf===mf)?'':'none'; }); };
+            bn.onclick=()=>{ const mf=bn.dataset.mf; _mtRfApply(mf); try{ localStorage.setItem('_mtRf', mf); }catch(e){} };
           });
+          /* 载入: 按 localStorage._mtRf 恢复上次筛选(缺省 all), 重开维护 tab 不丢筛选 */
+          try{ const _rm=localStorage.getItem('_mtRf'); if(_rm){ _mtRfApply(_rm); } }catch(e){}
         }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
@@ -3481,7 +3483,14 @@ $('#mtlogexport').onclick = async()=>{
     setMsg($('#mtmsg'), `已导出 ${(d.lines||[]).length} 行日志`, 'ok');
   }catch(e){ setMsg($('#mtmsg'), '导出失败: '+e, 'bad'); }
 };
-document.addEventListener('input', e=>{ if(e.target && e.target.id==='mtlogfilter'){ if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); } });
+document.addEventListener('input', e=>{ if(e.target && e.target.id==='mtlogfilter'){ try{ localStorage.setItem('_mtLogF', e.target.value||''); }catch(x){} if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); } });
+/* 日志过滤词持久化: 载入按 localStorage._mtLogF 填回 #mtlogfilter(重开维护 tab 恢复上次过滤, 扫日志不用重设) */
+(function(){ try{
+  const _lf=localStorage.getItem('_mtLogF');
+  const apply=()=>{ const f=document.querySelector('#mtlogfilter'); if(f && _lf){ f.value=_lf; } };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{ apply(); if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); });
+  else { apply(); }
+}catch(e){} })();
 /* 日志预设 chip: 一键填过滤框(歌词/封面/异常/全部) + 重绘 */
 document.querySelectorAll('[data-lf]').forEach(c=>{
   c.onclick=()=>{ const f=document.querySelector('#mtlogfilter'); if(!f) return; f.value=c.dataset.lf;
