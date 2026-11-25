@@ -2232,3 +2232,21 @@ CSS 302/302、node 0、console 0、截图 r58_recenttime.png。
 **坑**：subprocess 捕获 lint 脚本中文输出要 `encoding="utf-8"`——本机 py 默认 GBK，不传 encoding
 会 `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xcd`（stdout 全 None）；`run` 加 `encoding` 才稳。
 
+---
+
+## 第75轮（前端 R61 · goal round38）：跑维护 spinner + 跑中计时（反馈不空等）
+
+**简洁性（长任务反馈）**：`mtRun` 跑一轮 tick 要 ~10s+，原「跑中…」一句不动，看着像卡死。
+加**按钮 spinner**（`.spin` 转圈 + 「跑中…」）+ **跑中计时**（每 500ms 刷「已耗时 N s」）
++ 完成回执「完成，耗时 N s」+ 按钮文字恢复。反馈不空等。
+
+**E2E**：点「跑维护」→ 按钮 `跑中…` + spinner + disabled 绿；完成后按钮恢复 `跑一轮` +
+`完成，耗时 12 s`；端点 **30/0**、HTML 137727B、JS undefined NONE（`mtlast` 预期运行时 id）、
+CSS 304/304（新增 `@keyframes spin`）、node 0、console 0、截图 r61_spinrun/r61_spendone.png。
+
+**完善性（游标破 350 里程碑）**：全库 8 批 batch=20 `runs 350→358`（R55 里程碑进度条满刻度 350
+**已破**——进度条变绿），断点 `华语经典\陈粒\空空.mp3`。
+
+**坑**：`@keyframes spin` 在 `</style>` 前注入——CSS 大括号基线 302→304（多 1 对），
+验收基线要同步（`@keyframes` 里 `to{}` 算 1 对）。
+

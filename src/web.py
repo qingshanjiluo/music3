@@ -170,6 +170,7 @@ PAGE = r"""<!doctype html>
   --bg:#f7f5f0; --panel:#ffffff; --panel2:#efece5; --line:#e2ddd3;
   --fg:#1c1a17; --dim:#77706a; --acc:#c4381f; --acc2:#2f4f44;
   --ok:#2f7d55; --warn:#96650a; --bad:#a3261a; --radius:3px;
+
   --glass:rgba(247,245,240,.94);
   /* 版心四档（prose 65ch / grid 960 / wide 1180 / full 100%） */
   --content-prose:65ch; --content-grid:960px; --content-wide:1180px;
@@ -732,6 +733,7 @@ tbody tr.playing td{background:#fbe9e4}
   .pcov{width:40px;height:40px}
   .ptitle{font-size:12px}
 }
+@keyframes spin{ to{ transform:rotate(360deg);} }
 </style></head><body>
 <div class="wrap">
 <header>
@@ -2857,7 +2859,13 @@ async function mtRun(){
   btn.disabled = true;
   const b = +$('#mtbatch').value || 20;
   const sub = curSub || '';
+  const t0 = Date.now();
+  /* 跑中 spinner: 按钮文字加转圈, 反馈不空等 */
+  const _lab = btn.textContent;
+  btn.innerHTML = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>跑中…';
   setMsg($('#mtmsg'), `跑一轮（每轮 ${b} 首${sub?' · '+sub:''}）…`);
+  /* 跑中计时: 每 500ms 刷一次已耗时 */
+  const _tm = setInterval(()=>{ setMsg($('#mtmsg'), `跑一轮… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`); }, 500);
   try{
     const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
       + `&lyric=${$('#mtlyric').checked?1:0}`
@@ -2881,7 +2889,13 @@ async function mtRun(){
     }catch(e){}
     await mtStat();
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
-  finally{ btn.disabled = false; }
+  finally{
+    clearInterval(_tm);
+    btn.disabled = false;
+    const _dt = Math.round((Date.now()-t0)/100)/10;
+    btn.textContent = _lab;
+    setMsg($('#mtmsg'), `完成，耗时 ${_dt} s`, 'ok');
+  }
 }
 async function mtStat(){
   try{
