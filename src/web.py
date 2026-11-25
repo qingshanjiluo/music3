@@ -405,6 +405,9 @@ body._nosplabel .mtspark-lastval{display:none}
 #mtresult .statcard:hover .mtspark .mtspark-hover{transition:width .12s ease,height .12s ease}
 /* 实时日志新行淡闪: joblog-line background 过渡(新行标黄 1.2s 后清, 平滑淡出) */
 .joblog-line{transition:background .3s ease}
+/* 日志行含歌名(mp3 基名)时整行可点跳曲库: data-name 有值则 pointer + hover accent 底 + 左侧竖条 */
+.joblog-line[data-name]{cursor:pointer}
+.joblog-line[data-name]:hover{background:var(--bg2);border-left:2px solid var(--acc);padding-left:8px;margin-left:-10px}
 .statcard .k{font-size:11px;color:var(--dim);margin-bottom:6px}
 .statcard .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;
   font-weight:800;letter-spacing:-.5px;color:var(--fg)}
@@ -3358,7 +3361,7 @@ async function mtLogDraw(){
   const _oldJl=document.querySelector('#mtjoblog');
   const _sticky = _oldJl ? (_oldJl.scrollTop+_oldJl.clientHeight >= _oldJl.scrollHeight-8) : true;
   $('#mtresult').innerHTML = lines.length
-    ? `<div id="mtlogwrap" style="position:relative">${_logStat}<div class="joblog" id="mtjoblog" style="max-height:320px;overflow:auto;font-family:ui-monospace,Consolas,monospace">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}"><span class="lineno" style="display:inline-block;width:34px;min-width:34px;color:var(--dim);text-align:right;margin-right:8px;user-select:none;opacity:.6">${i+1}:</span>${paint(l)}</div>`).join('')}</div><button type="button" id="mtlogtop" onclick="mtLogTop()" style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:1px solid var(--acc);color:var(--acc);cursor:pointer;display:none;font-size:14px;line-height:1;z-index:2" title="日志滚到顶">↑</button></div>`
+    ? `<div id="mtlogwrap" style="position:relative">${_logStat}<div class="joblog" id="mtjoblog" style="max-height:320px;overflow:auto;font-family:ui-monospace,Consolas,monospace">${lines.map((l,i)=>{ const _mp3=(l.match(/([\u4e00-\u9fa5A-Za-z0-9 ._-]+\.mp3)/)||[])[1]||''; const _nm=_mp3.replace(/\.mp3$/i,'').trim(); const _dn=_nm?(' data-name="'+_nm.replace(/"/g,'&quot;')+'" title="点击去曲库搜这首：'+escL(_nm)+'"'):''; return '<div class="joblog-line" data-i="'+i+'"'+_dn+' style="padding:0 2px;'+(_isNew(i)?'background:#fff3d6;':'')+'"><span class="lineno" style="display:inline-block;width:34px;min-width:34px;color:var(--dim);text-align:right;margin-right:8px;user-select:none;opacity:.6">'+(i+1)+':</span>'+paint(l)+'</div>'; }).join('')}</div><button type="button" id="mtlogtop" onclick="mtLogTop()" style="position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--panel);border:1px solid var(--acc);color:var(--acc);cursor:pointer;display:none;font-size:14px;line-height:1;z-index:2" title="日志滚到顶">↑</button></div>`
     : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
   /* 重铺后若刷新前贴底, 自动滚底(实时日志看最新; 首次打开无旧日志 _sticky=true 也滚底) */
   const _newJl=document.querySelector('#mtjoblog');
@@ -3395,6 +3398,12 @@ document.addEventListener('click', function(e){
   const f=document.querySelector('#mtlogfilter');
   if(f){ f.value=a.dataset.lf||''; f.dispatchEvent(new Event('input',{bubbles:true})); }
 });
+/* 日志行含歌名(data-name)点击跳曲库: #mtjoblog 行整行可点 -> _mtLoc(填 #fq + doFind + 闪首项), 日志发现异常曲名直接跳核对(全局委托, mtLogDraw 重铺后自动生效) */
+document.addEventListener('click', function(e){
+  const row=e.target.closest && e.target.closest('#mtjoblog .joblog-line[data-name]');
+  if(!row) return;
+  _mtLoc(row);
+}, false);
 async function mtLog(){
   setMsg($('#mtmsg'), '读日志…');
   try{

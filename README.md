@@ -3688,3 +3688,25 @@ hover）④ hover 抬升 2px 矩阵（`matrix(1,0,0,1,0,-2)`，`translateY(-1px)
 `localStorage._mtSparkLabel==='0'` 加 `body._nosplabel` + 按钮初文案（`mtStat` 铺卡后 `apply` 同步）④ `mtSparkLabelToggle`
 切 `body._nosplabel` + `localStorage` 记 + 按钮文案「开/关」（与 `mtCardsFold` 同「记状态」模式）。
 
+---
+
+## 第150轮（前端 R136 · goal round113）：日志行点击跳曲库定位（`#mtjoblog` 行含歌名整行可点 → `doFind`）
+
+**连贯性（日志↔曲库定位）**：`#mtjoblog` 日志行含歌名（「乌云典当记」等），发现异常曲名时要去曲库核对得**手动抄名**。
+`mtLogDraw` 行生成时正则取 mp3 歌名基名（去 `.mp3` 尾），有歌名的行加 `data-name` + `cursor:pointer` + hover accent 左竖条
+（`.joblog-line[data-name]`），**整行点击** → `_mtLoc`（`#fq` 填歌名 + `setTab('b')` + `doFind` 命中闪首项）——日志发现异常
+曲名直接跳曲库核对，与 `#mtrecent` pill 点跳曲库同「定位」动作。
+
+**E2E**：`nClickable=106（106 行含歌名）+ sample=「乌云典当记」+ fq 从空填「乌云典当记」+ switched=True`（绿）；端点
+**30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r136_row.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 560→562`，断点 `_归档_封存\SD卡版\华语经典\林俊杰\浪漫血液.mp3`。
+
+**坑**：① 行生成在**模板字符串内嵌 block 语句**（`lines.map` 箭头函数带 `return` 块）+ 内层 `_dn` 再用模板串 = 三层反引号
+嵌套，JS 解析失败（`Unexpected token 'class'`）——改 `_dn` 用**普通字符串拼接**（`' data-name="' + … + '"'`）避免三层嵌套
+② 歌名正则 `/([\u4e00-\u9fa5A-Za-z0-9 ._-]+\.mp3)/` 取**含 mp3 上下文**片段（「乌云典当记」前常带「歌词- 」前缀，`data-name`
+存去 `.mp3` 后的整段，`doFind` 搜整段也能命中——`/api/find` 子串匹配）③ 点击委托挂 `document` 非 passive
+（`#mtjoblog .joblog-line[data-name]` → `_mtLoc`，`mtLogDraw` 每 2s 重铺行，委托自动生效不重绑）④ `data-name` 有值行才
+`cursor:pointer`（纯 miss/超时行无歌名不可点，`[data-name]` 选择器限定）⑤ hover accent 左竖条 `border-left:2px solid
+var(--acc)` + `padding-left:8px`（可点行视觉提示，与曲库卡可点态同语言）。
+
