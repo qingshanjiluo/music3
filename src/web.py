@@ -2919,7 +2919,7 @@ async function mtRun(){
       if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
-      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮', 'ok'); FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
+      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */

@@ -2623,3 +2623,20 @@ hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**�
 （自动刷在跑才停；`_mtAutoRefTimer` 是 `let` 全局，未开时 `null` 不停）② `mtAutoRef()` 是开关——跳日志
 时它非空 → 走「停」分支（清 timer + 取消高亮），正好复用，不用另写停逻辑。
 
+---
+
+## 第95轮（前端 R81 · goal round58）：跑到全库完成自动挂「自动刷 5s」
+
+**完善性（跑完盯盘）**：R79 自动刷要手动点，跑到全库跑完想看 9 卡 delta/本轮补回退还得再点一次。
+改**跑到全库完成自动挂自动刷**——`mtRun` 的 `FULL_DONE` 分支除 `_toast` 外，`_mtAutoRefTimer` 未开则
+`mtAutoRef()`（开 5s 自动刷），跑完 9 卡实时盯 delta 爬升/回退，不手动再点。
+
+**E2E**：代码层断言「跑到全库完成自动挂自动刷」分支在（`已挂自动刷看 9 卡` + `if(_mtAutoRefTimer===null)mtAutoRef()`）；
+端点 **30/0**、HTML 151315B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r81_autoref_after_full.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 433→435`，断点 `赵雷\最后一首歌.mp3`。
+
+**坑**：自动挂判 `_mtAutoRefTimer` 未开才挂（已在跑则不重启），`typeof _mtAutoRefTimer==='undefined'`
+兜底（`mtAutoRef` 是全局 `let`，未初始化前 `typeof` 安全）；跑到全库是「跑到 done」的 FULL 分支，
+连跑 N 轮（非 FULL）不挂（N 轮跑完用户可能切页）。
+
