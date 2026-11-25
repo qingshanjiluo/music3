@@ -3423,3 +3423,24 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
 直接走「全库已扫完 ✓」分支（不显「还需 0 分钟」）③ `#mteta` 挂 `#mtprog` 内进度条下方（`flex:1` 列内，随 `mtStat`
 幂等重建，同 donut/进度条）④ 未完成态文案 `预计还需约 N 分钟 · 剩 X 批 · 每批约 Ys`（X=剩轮数、Y=`_perTick` 取整）。
 
+---
+
+## 第137轮（前端 R123 · goal round100）：断点位置可视化（`#mtcursor`，扫状态一眼看到断点在哪首）
+
+**简洁性（断点在哪）**：`#mtresult` 有 donut/进度/预计剩余，但**当前断点在哪首**（下次跑维护从哪继续）
+没处看。`#mtprog` 块后加**断点位置行** `#mtcursor`——`s.cursor._all` 去盘符前缀（`D:\音乐\`）取**相对路径尾 2 段**
+（如 `英文歌\Faded.mp3`，等宽 accent）+「已扫约 N / 共 M 首 · 下次跑维护从此处续」；断点未设置/已重置时显
+「断点未设置（下次跑维护从头扫全库）」——扫状态一眼看到断点位置。
+
+**E2E**：`#mtcursor + inResult + txt=断点续传游标 英文歌\Faded.mp3·已扫约 5188/5188 首（hasPath）`（绿）；端点
+**30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r123_cursor.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 534→536`，断点 `_归档_封存\SD卡版\英文歌\Faded.mp3`。
+
+**坑**：① 断点路径 `s.cursor._all` 是绝对路径（`D:\音乐\_归档_封存\…`），去盘符+第一层
+（`/^[A-Za-z]:\\+[\\\\^]*\\?/`）留相对路径，取**尾 2 段**（`split('\\').slice(-2)`，目录+文件名，不显全长）
+② 断点未设（`cursor._all` 空）时 `#mtcursor` 显「断点未设置」占位（虚线边框 panel，不消失——扫状态总看到断点态）
+③ 路径 `<b>` 等宽字体（`ui-monospace`，文件名对齐）+ accent 色（标位置重点）④ 挂 `#mtresult`（`#mtprog` 块后
+`insertAdjacentHTML`，随 `mtStat` 幂等重建，同 donut/进度/预计剩余）⑤ 与 R118「重置断点」联动：重置后 `cursor._all`
+清空 → `#mtcursor` 自动切「断点未设置」（无需额外状态）。
+

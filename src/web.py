@@ -3153,6 +3153,14 @@ async function mtStat(){
           const _donut = `<svg id="mtdonut" viewBox="0 0 60 60" width="56" height="56" style="flex:0 0 auto;transform:rotate(-90deg)" title="全库完成度环 (已扫 ${_scanned}/${s.n_total||'-'} 首)"><circle cx="30" cy="30" r="26" fill="none" stroke="var(--bg2)" stroke-width="6"/><circle cx="30" cy="30" r="26" fill="none" stroke="${_pc}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${_C}" stroke-dashoffset="${_off}" style="transition:stroke-dashoffset .4s ease"/><text x="30" y="33" text-anchor="middle" font-size="13" font-weight="700" fill="${_pc}" style="transform:rotate(90deg);transform-origin:30px 30px">${_pct}%</text></svg>`;
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:6px;display:flex;gap:14px;align-items:center" id="mtprog" title="全库维护进度 = 已跑轮次×20 / 全库总量; 封顶100%(断点续传后重头算)">${_donut}<div style="flex:1"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">${_ptxt} <b style="color:${_pc}">${_pct}%</b>（已扫约 ${_scanned} / ${s.n_total||'-'} 首）</div><div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:8px;width:${_pct}%;background:${_pc};border-radius:4px;transition:width .3s"></div></div><div id="mteta" style="font-size:11px;color:var(--dim);margin-top:4px">${_etaTxt}</div></div></div>`);
+          /* 断点位置可视化: cursor._all 相对路径尾 2 段(去盘符前缀) + 全库已扫位置标记, 扫状态一眼看到断点在哪首 */
+          const _curPath = (s.cursor && s.cursor._all) ? s.cursor._all : '';
+          const _rel = _curPath.replace(/^[A-Za-z]:\\+[^\\]*\\?/, ''); /* 去盘符+第一层(D:\音乐\), 留相对路径 */
+          const _tail = _rel ? _rel.split('\\').slice(-2).join('\\') : '';
+          const _cursorHtml = _tail
+            ? `<div id="mtcursor" style="margin-top:6px;font-size:11px;color:var(--dim);padding:6px 10px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius)" title="断点续传游标: 下次「跑维护」从这里继续扫(已补的不重补, 只重扫定位)"><span style="color:var(--muted)">断点续传游标</span> <b style="color:var(--acc);font-family:ui-monospace,Consolas,monospace">${esc(_tail)}</b><span style="color:var(--dim);margin-left:8px">· 已扫约 ${_scanned} / ${s.n_total||'-'} 首 · 下次跑维护从此处续</span></div>`
+            : `<div id="mtcursor" style="margin-top:6px;font-size:11px;color:var(--dim);padding:6px 10px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius)" title="断点已重置/未设置, 下次跑维护从头扫全库">断点未设置（下次跑维护从头扫全库）</div>`;
+          $('#mtresult').insertAdjacentHTML('beforeend', _cursorHtml);
         }
         /* 最近补入列表: state.recent(近5条 {what,name,at}) - 看刚补了哪首歌词/封面 + 时间, 非卡片(挂#mtresult尾随mtStat重建幂等) */
         {
