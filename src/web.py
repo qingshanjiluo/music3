@@ -394,6 +394,8 @@ tbody tr.playing td{background:#fbe9e4}
 #mtresult .statcard{transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease}
 #mtresult .statcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px -8px rgba(0,0,0,.25);border-color:var(--acc)}
 #mtresult .statcard:hover .mtspark .mtspark-hover{transition:width .12s ease,height .12s ease}
+/* 实时日志新行淡闪: joblog-line background 过渡(新行标黄 1.2s 后清, 平滑淡出) */
+.joblog-line{transition:background .3s ease}
 .statcard .k{font-size:11px;color:var(--dim);margin-bottom:6px}
 .statcard .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;
   font-weight:800;letter-spacing:-.5px;color:var(--fg)}
@@ -3250,6 +3252,7 @@ async function mtStat(){
   }catch(e){}
 }
 let _mtlogTimer=null;
+let _mtLogLastLines=[];   /* 上次 mtLogDraw 的日志行, 实时刷新时对比找新增行淡闪 */
 function _kwsHtml(k){ return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 async function mtLogDraw(){
   const d = await (await fetch('/api/maintain?act=log&n=200')).json();
@@ -3262,9 +3265,16 @@ async function mtLogDraw(){
     if(/miss|error|Exception|失败|超时|无封面/i.test(l) && !kw){ e='<span style="color:var(--bad)">'+e+'</span>'; }
     if(kw){ e=e.replace(_kwsHtml(kw), '<mark style="background:#ffe9a8">$&</mark>'); }
     return e; };
+  /* 新增行检测: 与上次 _mtLogLastLines 比, 尾部多出的行是新日志(实时刷新才淡闪, kw 过滤态不闪) */
+  const _isNew = i=>{ if(kw) return false; const prevLen=_mtLogLastLines.length; if(prevLen>=lines.length) return false; return i>=(lines.length-(lines.length-prevLen)) && _mtLogLastLines.indexOf(lines[i])<0; };
+  const _isNewIdx = ()=>{ if(kw) return []; const _prevLen=_mtLogLastLines.length; if(_prevLen>=lines.length) return []; return lines.slice(lines.length-Math.min(50,lines.length-_prevLen)).map((l,idx)=>lines.length-(lines.length-_prevLen)+idx).filter(i=>_mtLogLastLines.indexOf(lines[i])<0); };
   $('#mtresult').innerHTML = lines.length
-    ? `<div class="joblog" style="max-height:320px">${lines.map(paint).join('\n')}</div>`
+    ? `<div class="joblog" id="mtjoblog" style="max-height:320px">${lines.map((l,i)=>`<div class="joblog-line" data-i="${i}" style="padding:0 2px;${_isNew(i)?'background:#fff3d6;':''}">${paint(l)}</div>`).join('')}</div>`
     : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
+  _mtLogLastLines=lines.slice();
+  /* 新行淡闪 1.2s 后清(实时刷新时有新日志滚进, 高亮提示; 1.2s 后背景淡出) */
+  const _newIdx=_isNewIdx();
+  if(_newIdx.length){ setTimeout(()=>{ document.querySelectorAll('#mtjoblog .joblog-line').forEach(el=>{ el.style.background=''; }); },1200); }
   return lines.length;
 }
 async function mtLog(){

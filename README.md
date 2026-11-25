@@ -3193,3 +3193,23 @@ node 0、console 0、截图 r110_bar.png。
 ③ `overflow-x:auto` 横滑（近 5 条超出容器宽才出滚动条，`scrollWidth>clientWidth` 判定）④ `recent` 空时横滑条
 整块不渲染（`_recBar` 返回 `''`，不显「暂无」占位，保持首屏干净）。
 
+---
+
+## 第125轮（前端 R111 · goal round88）：实时日志新行淡闪（扫日志不逐行盯）
+
+**流畅性（新日志可见）**：`#mtloglive` 每 2s 整体重铺 `#mtresult .joblog`（`innerHTML` 换），新日志行滚进来
+没提示，盯日志得逐行找。`mtLogDraw` 加**新行淡闪**——重铺前记 `_mtLogLastLines`（上次行），重铺后比尾部新增行
+（且不在上次里）标 `background:#fff3d6`，`.joblog-line` 加 `transition:background .3s`，1.2s 后 `setTimeout` 清
+背景（平滑淡出）——跑维护挂实时日志时新行黄底闪一下，扫日志不逐行盯。
+
+**E2E**：日志行独立 `div`（`#mtjoblog .joblog-line`）+ `transition:background`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r111_newline.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 507→509`，断点 `_归档_封存\SD卡版\华语经典\林俊杰\如愿.mp3`。
+
+**坑**：① 日志行原是 `\n` 拼接文本（非独立 `div`），改**逐行 `<div class=joblog-line>`** 才能单独标背景（
+`joblog` 容器内换 div）② 新行判定 `_isNew`：与 `_mtLogLastLines` 比，`kw` 过滤态**不闪**（过滤后行数变化非真
+新增），仅全量态尾部新增行标 ③ `#fff3d6` 淡黄（浅主题不刺眼）+ `transition .3s` 平滑，1.2s `setTimeout` 清
+（重铺时已标 inline，清除只动 `style.background=''`，不影响下次重铺）④ `_mtLogLastLines` 每次 `mtLogDraw` 尾更新
+（`lines.slice()`），跨 2s 刷新连续比。
+
