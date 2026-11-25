@@ -2978,9 +2978,11 @@ function _mtJump(sel){
   else el=m('#mtresult .statcard[data-jumplog="异常"]');
   if(!el) return;
   el.scrollIntoView({block:'center',behavior:'auto'});
-  let n=0; const iv=setInterval(()=>{ n++;
-    el.style.outline=(n%2)?'2px solid var(--acc)':'none'; el.style.outlineOffset='2px';
-    if(n>=7){ clearInterval(iv); el.style.outline=''; el.style.outlineOffset=''; } },180);
+  /* 目标卡常亮 4s(outline 3px + 左侧 accent 竖条 inset shadow, 定位更醒目), 不是闪 3 次看不清落哪张 */
+  if(el._mtHiT) clearTimeout(el._mtHiT);
+  el.style.outline='3px solid var(--acc)'; el.style.outlineOffset='2px';
+  el.style.boxShadow='inset 4px 0 0 var(--acc)';
+  el._mtHiT=setTimeout(()=>{ el.style.outline=''; el.style.outlineOffset=''; el.style.boxShadow=''; el._mtHiT=null; },4000);
 }
 /* 小结里 data-jumpto 链接绑 _mtJump (mtStat 重建后重新绑, 非 passive 才能 preventDefault) */
 document.addEventListener('click', function(e){

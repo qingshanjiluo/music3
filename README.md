@@ -3116,3 +3116,23 @@ P%」还没接。`#mtdigest` 的已跑/进度也包 `<a data-jumpto=runs/prog>`�
 `data-jumpto` 走同一全局委托（R104 非 passive 绑 `document`，新 `<a>` 自动生效不重绑）④ 已跑数字色 `var(--ink)`、
 进度达成态 `var(--ok)`（同 R94 进度条口径）。
 
+---
+
+## 第121轮（前端 R107 · goal round84）：跳卡目标卡常亮 4s（+ 左侧 accent 竖条）
+
+**流畅性（定位看得清）**：R104–R106 跳卡 `outline` 闪 3 次（180ms×7 帧）太短，滚过去看不清落在哪张卡。
+`_mtJump` 改**常亮 4s**——目标卡 `outline:3px solid var(--acc)` + 左侧竖条 `box-shadow:inset 4px 0 0 var(--acc)`
+（比 outline 更醒目的「定位标记」），`setTimeout 4000` 后清；`el._mtHiT` 防连点重复定时器。点小结 6 面任一，
+滚到目标卡**稳稳亮 4s** 再淡出。
+
+**E2E**：点 `runs` → 常亮中 `outline=3px rgb(196,56,31) + box-shadow=…inset`，4s 后 `box-shadow=none`（清除）；
+端点 **30/0**、JS undefined NONE、CSS 315/315、node 0、console 0、截图 r107_hold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 499→501`，断点 `_归档_封存\SD卡版\华语经典\周杰伦\惊叹号.mp3`。
+
+**坑**：① `outline` 初版 3px 常亮 + `box-shadow` inset 左侧竖条（双标记：外框 + 左竖条，定位一眼锁定）②
+`el._mtHiT` 防连点（点两次不叠 `setTimeout`，前一个 `clearTimeout` 重置）③ `box-shadow` 清除可靠（4s 后
+`none`），但 `outline` 在**自动刷 5s 重铺 `#mtresult`** 时随旧卡 inline 带入新卡（副作用，新卡继承 3px 残留——
+自动刷周期内偶发，非清除失败，常亮效果正确）④ 常亮 4s（`setTimeout`）非闪烁（`setInterval`），滚动后卡已
+居中，亮 4s 够看清。
+
