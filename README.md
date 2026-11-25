@@ -1820,3 +1820,21 @@ HTML 129922B、JS undefined NONE、CSS 302/302、node 0、compile 0、console 0�
 **坑**：删 CSS 要连 `.star-btn` 与 `.star-btn:hover` 两条一起删（hover 变体漏删留僵尸规则）；
 `sub` 改总计数后**别动 `/api/stat` 返回结构**（维护页 5 卡还在用 per-dir）。
 
+---
+
+## 第55轮（前端 R41 · goal round18）：维护游标全库续推 + 5 卡同步验收
+
+**完善性（backlog 续推）**：全库补歌词/补封面游标（`maintain.tick` batch=20 × 6 轮，全库 sub 空）：
+- before `totals {lyric:3060, cover:3413}` → after `{lyric:3063, cover:3413}`（歌词 +3，本轮窗口内 3 首命中）
+- `runs 224→230`、cursor 快照推进到 `_归档_封存\SD卡版\thisistruemusic\英文歌\I LOVE U - 002lWTZR2zfSFX.mp3`
+- 6 轮 21.6s，`done=False`（全库 5188 还没跑完一圈，游标断点已存盘 `_mt_state.json`，下次续推）
+
+**5 卡同步**（画面连贯）：维护页点「看状态」后 `.statcard .v` = `['230','3063','3413','0','0']`，
+与 `after totals` 逐字相等（R35 countUp 滚到的终值 = 后端 status，**前端 5 卡与后端游标零漂移**）。
+
+**验收**：游标推进断言 True、5 卡同步 True、端点 **29/0**、HTML 129922B、JS undefined NONE、
+CSS 302/302、node 0、console 0、截图 r41_maint.png。
+
+**坑**：`tick` 是外部 API 限速的（一轮 20 首 ~3s），全库一圈约 260 轮；**游标存盘 + 断点**是唯一的
+续推通道（`reset_cursor` 会从零再来）——R41 只推 6 轮留余量，别一次 tick 到 `done`。
+
