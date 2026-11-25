@@ -3116,8 +3116,12 @@ async function mtStat(){
         const bad = lls.filter(l=>/miss|失败|超时|error|Exception|无封面/i.test(l)).length;
         const rate = lls.length ? Math.round(bad/lls.length*100) : 0;
         const _rateSpark = _sparkSvg((s.rate_trend||[]).slice(-8), 'var(--bad)', '异常率(本轮miss%)');
+        /* 5% 警戒线: rate_trend 值域 0..max, 阈值 5% 在 sparkline 高度的相对位置 (max<=5 时贴底, >5 按 5/max 定位); 超阈值(rate>5)标 ⚠ */
+        const _rMax = Math.max(5, ...((s.rate_trend||[]).slice(-8)));
+        const _thrTop = Math.max(0, Math.round(44 - (5/_rMax)*44)); /* sparkline 高 44, 阈值 5% 的 top 偏移 */
+        const _over = rate>5;
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-          `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div>${_rateSpark}</div>`);
+          `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）${_over?' <span style="color:var(--bad);font-size:10px">⚠ 超 5% 警戒</span>':''}</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div><div style="position:relative">${_rateSpark}<div style="position:absolute;left:0;right:0;top:${_thrTop}px;height:0;border-top:1px dashed ${_over?'var(--bad)':'var(--dim)'}" title="5% 警戒线(异常率越过即超阈值)"></div><div style="position:absolute;right:2px;top:${_thrTop-11}px;font-size:9px;color:var(--dim)">5%</div></div></div>`);
         /* 第 10 卡「本批耗时」: 本轮 tick 用时(s) + 近 8 次耗时趋势(sparkline 复用), 看每批是否变慢(网络/磁盘拖慢) */
         {
           const _durT = (s.dur_trend||[]);

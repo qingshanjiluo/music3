@@ -3462,3 +3462,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
 钳负）③ delta 徽标 `id` 挂 `#mtdigest` 内（`_deltaBadge` 生成 `<span id=mtdeltaLy/Cv>`），随 `mtStat` 重铺幂等重建
 ④ 涨跌色：`>0` 绿（补得比上轮多=好）、`<0` 红（变少=可能异常/断点）、`=0` dim（持平）——与异常率卡同语义方向。
 
+---
+
+## 第139轮（前端 R125 · goal round102）：异常率卡 5% 警戒线（sparkline 内画阈值横线，超警戒标 ⚠）
+
+**完善性（阈值警戒直觉）**：异常率卡已有 `_rateSpark`（`rate_trend` 8 点 sparkline）+ 末位单值，但**是否越过
+5% 警戒**要自己数折线。异常率卡内加**5% 警戒线**——sparkline 容器 `position:relative`，叠一条 `border-top`
+虚线在 5% 值域对应高度（`_thrTop = 44 - (5/_rMax)*44`，`_rMax=max(5,…rate_trend)`）+ 右上「5%」标注；
+**异常率 `rate>5` 时警戒线变红（`--bad`）+ 卡头 `⚠ 超 5% 警戒`**——扫异常率卡一眼看出当前值是否越过警戒线。
+
+**E2E**：`hasCard + hasThr（警戒横线）+ has5Pct（「5%」标注）+ hasSpark + overAlert=False（当前异常率≤5 未超）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r125_threshold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 538→540`，断点 `_归档_封存\SD卡版\英文歌\Numb.mp3`。
+
+**坑**：① 不改通用 `_sparkSvg`（曲库/累计卡也用它），异常率卡单独包 `position:relative` 容器叠警戒线 ② 警戒线
+位置按值域算：`_rMax=max(5,…rate_trend)`（保证 5% 在值域内，全 0 时 `_rMax=5` 线贴底），`_thrTop=44-(5/_rMax)*44`
+（sparkline 高 44，5% 的 top 偏移）③ `rate>5` 时警戒线 `--bad` 红 + 卡头 `⚠`（未超是 `--dim` 灰，不抢眼）④ 警戒线
+`title=5% 警戒线`（悬停说明），右上 `5%` 小标注（`position:absolute right:2px`，`top=_thrTop-11`）。
+
