@@ -2930,6 +2930,8 @@ async function mtRun(){
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
+    /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
+    if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg; _toast(_tm, 'ok'); }
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();

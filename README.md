@@ -3136,3 +3136,22 @@ P%」还没接。`#mtdigest` 的已跑/进度也包 `<a data-jumpto=runs/prog>`�
 自动刷周期内偶发，非清除失败，常亮效果正确）④ 常亮 4s（`setTimeout`）非闪烁（`setInterval`），滚动后卡已
 居中，亮 4s 够看清。
 
+---
+
+## 第122轮（前端 R108 · goal round85）：「跑一轮」完成 toast 汇报（不遮挡卡片）
+
+**完善性（结果可见）**：`mtRun` 普通跑完只在 `#mtmsg` 一闪而过（被后续 `mtStat`/操作覆盖），全库完成才有
+toast。`mtRun` 完成处（`doneMsg` 非空且非全库）加 **`_toast('跑完 N 轮 · ' + doneMsg)`**——右下角 `#__toast__`
+（`position:fixed`）停留 4s，汇总本轮「扫描 X 首 · 歌词 +a/-b · 封面 +c/-d · 清理 e」，不遮挡 9 卡/进度条，
+跑完一眼看到本轮成果。
+
+**E2E**：`#__toast__ = 跑完 1 轮 · 第 1 轮：扫描 20 首 · 歌词 +1/-1 · 封面 +0/-2 · 清理 0`（`position:fixed`，绿）；
+端点 **30/0**、HTML 168734B、JS undefined NONE、CSS 315/315、node 0、console 0、截图 r108_toast.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 501→503`，断点 `_归档_封存\SD卡版\华语经典\周杰伦\等你下课.mp3`。
+
+**坑**：① 复用既有 `_toast(msg,kind)`（`#__toast__` 右下 fixed，4s 自动隐），不新造 toast ② 只在**非全库**普通
+跑完 toast（全库完成 R92 已有专属 toast + 自动刷，不重复弹）③ `doneMsg` 已是「第 N 轮：扫描 · 歌词 · 封面 · 清理」
+汇总（tick 回包拼），toast 直接带，不重算 ④ `#mtmsg`（原地）与 toast（右下）并存：原地给实时进度，toast 给
+跑完定格汇报，各管各。
+
