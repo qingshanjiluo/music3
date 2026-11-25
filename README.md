@@ -3289,3 +3289,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r115_lineno.png。
 时间戳 `HH:MM:SS` 对齐），`font-family` 放容器（子 `.joblog-line` 继承）⑤ `lineno` 是 `.joblog-line` 内 `<span>`
 （非独立列，`#mtjoblog` 整块横滚时行号随行，定位够用不另做 sticky 列）。
 
+---
+
+## 第130轮（前端 R116 · goal round93）：日志「复制到剪贴板」（`#mtlogcopy`）
+
+**完善性（分享/贴 issue）**：`#mtlogexport` 导文件存盘，但贴 issue/分享当前日志还得手动全选复制。
+「导出日志」旁加**「复制日志」钮** `#mtlogcopy`——`mtLogCopy()` 取 `#mtjoblog` 当前可见行（行号 + 正文），
+`navigator.clipboard.writeText`（降级 `execCommand`）写剪贴板 + toast 确认——一键复制当前（含过滤态）日志，
+贴 issue/发群方便。
+
+**E2E**：点「复制日志」→ 剪贴板 `len=10619 + head=1:2026-11-26…`（行号起）+ toast「已复制 200 行日志到剪贴板」；
+端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r116_copy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 518→520`，断点 `_归档_封存\SD卡版\华语经典\陶喆\一念之间.mp3`。
+
+**坑**：① 复制内容 = `.joblog-line` 的 `textContent`（含行号 gutter 文字，贴 issue 带行号好定位），`join('\n')`
+② **只复制当前可见行**（`#mtjoblog` 里的 `.joblog-line`，即过滤态结果），全量要「导出日志」③ `clipboard.writeText`
+需 `clipboard-write` 权限（Playwright 验时 `grant_permissions`），非安全上下文（`http` 非 localhost）降级
+`execCommand`（`textarea` select + copy）④ 日志没加载时点复制 toast「先点看日志」（`#mtjoblog` 不在则提示）。
+

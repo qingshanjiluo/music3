@@ -1039,6 +1039,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
     <button class="ghost sm" id="mtautoref" title="每 5s 自动重拉 9 卡(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化)" onclick="mtAutoRef()">自动刷 5s</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
+    <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
     <span class="n" style="display:flex;gap:4px;align-items:center"><button class="ghost sm" data-lf="歌词">歌词</button><button class="ghost sm" data-lf="封面">封面</button><button class="ghost sm" data-lf="异常">异常</button><button class="ghost sm" data-lf="">全部</button></span>
     <button class="danger sm" id="mtreset">重置断点</button>
@@ -3290,6 +3291,17 @@ async function mtLogDraw(){
 }
 /* 日志滚到顶: 点 #mtlogtop 上箭头, 滚日志回顶 + 隐按钮 */
 function mtLogTop(){ const j=$('#mtjoblog'); if(j){ j.scrollTop=0; j.onscroll&&j.onscroll(); const b=$('#mtlogtop'); if(b) b.style.display='none'; } }
+/* 日志复制到剪贴板: 取 #mtjoblog 当前可见行(行号+正文), 贴 issue/分享; 优先 clipboard API, 降级 execCommand */
+function mtLogCopy(){
+  const j=$('#mtjoblog'); if(!j){ _toast('日志还没加载，先点「看日志」','bad'); return; }
+  const lines=[...j.querySelectorAll('.joblog-line')];
+  if(!lines.length){ _toast('日志为空','bad'); return; }
+  /* 复制内容 = 行号 + 正文(去 lineno span, 只 .joblog-line 文本), 保留过滤态(只复制当前显示的过滤结果) */
+  const txt=lines.map(el=>el.textContent).join('\n');
+  const done=()=>{ _toast('已复制 '+lines.length+' 行日志到剪贴板','ok'); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }); }
+  else { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+}
 /* 日志摘要 data-lf 点击快速过滤: 填 #mtlogfilter + 触发 input(mtLogDraw 重过滤), 摘要↔过滤联动(全局委托, mtLogDraw 重铺后自动生效) */
 document.addEventListener('click', function(e){
   const a=e.target.closest && e.target.closest('#mtlogstat a[data-lf]');
