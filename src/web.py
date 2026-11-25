@@ -1027,6 +1027,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button class="ghost" id="mtstat">看状态</button>
     <button class="ghost" id="mtlog">看日志</button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
+    <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
     <button class="danger sm" id="mtreset">重置断点</button>
   </div>
   <div class="bar">
@@ -3017,12 +3018,18 @@ async function mtStat(){
   }catch(e){}
 }
 let _mtlogTimer=null;
+function _kwsHtml(k){ return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 async function mtLogDraw(){
-  const d = await (await fetch('/api/maintain?act=log&n=120')).json();
-  const lines = d.lines || [];
+  const d = await (await fetch('/api/maintain?act=log&n=200')).json();
+  let lines = d.lines || [];
+  const kw = ((document.querySelector('#mtlogfilter')||{}).value||'').trim();
+  if(kw){ lines = lines.filter(l=>l.indexOf(kw)>=0); }
+  const escL = s=>s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const paint = l=>{ const e=escL(l); return kw? e.replace(_kwsHtml(kw), '<mark style="background:#ffe9a8">$&</mark>') : e; };
   $('#mtresult').innerHTML = lines.length
-    ? `<div class="joblog" style="max-height:320px">${lines.map(esc).join('\n')}</div>`
-    : '<div class="n">日志为空</div>';
+    ? `<div class="joblog" style="max-height:320px">${lines.map(paint).join('\n')}</div>`
+    : `<div class="n">${kw?'无匹配「'+escL(kw)+'」的日志':'日志为空'}</div>`;
+  return lines.length;
 }
 async function mtLog(){
   setMsg($('#mtmsg'), '读日志…');
@@ -3041,6 +3048,7 @@ $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 $('#mtlog').onclick = mtLog;
 $('#mtloglive').onclick = mtLogLive;
+document.addEventListener('input', e=>{ if(e.target && e.target.id==='mtlogfilter'){ if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); } });
 $('#mtreset').onclick = async()=>{
   if(!confirm('重置断点游标？下次会从头扫')) return;
   await fetch('/api/maintain?act=reset');

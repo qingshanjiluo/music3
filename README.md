@@ -2338,3 +2338,24 @@ FULL 回执，落到 `连跑 999999`）→ 加 `FULL_DONE` 哨兵，`r.done` 时
 **坑**：实时日志**单例**（`_mtlogTimer`）——不判旧 timer 直接 `setInterval` 会多轮询叠着刷（重复 fetch
 + DOM 抖动）；「看日志」静态与「实时」共用 `mtLogDraw()`，停实时要 `clearInterval` 归 0。
 
+---
+
+## 第80轮（前端 R66 · goal round43）：看日志关键词过滤 + 命中行高亮（时间戳内置）
+
+**完善性（日志可检索）**：维护日志 200 行全铺、找「歌词+ 某首」要翻。看日志区加**关键词过滤框**
+（`#mtlogfilter`）——本地过滤（`lines.filter(l=>l.indexOf(kw)>=0)`）+ 命中行 `<mark>` 高亮（黄底），
+`input` 事件即重绘（`_mtlogTimer` 实时刷新时也读过滤值，过滤 + 实时叠加生效）。空过滤 = 全显；
+无匹配显「无匹配「X」的日志」。
+
+**简洁性（时间戳）**：`maintain.log()` 本就带 `%Y-%m-%d %H:%M:%S` 前缀（写文件 + stderr 都带），
+过滤框不需要额外加时间戳——读日志即自带，R66 不重复造。
+
+**E2E**：`#mtlogfilter` 填「歌词」→ 过滤后含「歌词」+ **126 个 `<mark>` 高亮**绿；日志首行时间戳
+`2026-11-26 01:43:06` 在；端点 **30/0**、HTML 141623B、JS undefined NONE、CSS 309/309、node 0、
+console 0、截图 r66_logfilter.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 384→388`，断点 `林俊杰\加油.mp3`。
+
+**坑**：过滤+高亮用 `_kwsHtml` 转义正则字符再 `replace`——`kwsHtml` 在 R66 初稿里定义了两次
+（`mtLogDraw` 内 + 外层各一次，内层 `hi` 引用未定义）→ 简化成外层一个 `_kwsHtml`，去内层 `hi`。
+
