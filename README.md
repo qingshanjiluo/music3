@@ -2735,3 +2735,21 @@ JS undefined NONE、CSS 312/312、node 0、console 0、截图 r86_aligned.png。
 `preserveAspectRatio=none` 让折线横向铺满但**纵向不变形**（viewBox 高 22 固定，只 X 拉伸）③ 验收
 `getBoundingClientRect` 取 4 卡 `.mtspark` 尺寸比对 `同高同宽`（headless 1440 视口下卡宽 244）。
 
+---
+
+## 第101轮（前端 R87 · goal round64）：sparkline 首/末点圆点标记
+
+**简洁性（起终点定位）**：R86 对齐后 4 条折线成一行，但折线端点看不清**从哪到哪**（起/终值）。
+`_sparkSvg` 在首/末点加 `<circle>`——起点 `r=1.6`、终点 `r=2.4`（稍大，眼扫先落终点看最新值），
+同色 `var(--acc)/var(--bad)`，不引库。
+
+**E2E**：4 张趋势卡 `circle 数 [2,2,2,2]`（首+末，绿）；端点 **30/0**、HTML 152962B、JS undefined NONE、
+CSS 312/312、node 0、console 0、截图 r87_dots.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 455→457`，断点 `投稿\洛天依\9999＋1！…mp3`。
+
+**坑**：① 首/末点坐标从 `pts`（polyline 的 points 串）`split(' ')` 取首/末再 `split(',')[0/1]` 抽 cx/cy，
+不重算（复用已算好的折线点）② 末点 `r=2.4` 比首点 `r=1.6` 大（视觉重心在最新值，扫一眼落终点）③
+`circle` 在 `preserveAspectRatio=none` 的 svg 里会被拉伸成**椭圆**（X 缩放 Y 不缩）——`mtspark` 容器宽
+100% 拉伸下圆点略变椭圆，可接受（要正圆得算实际像素比，本轮不做）。
+
