@@ -2697,3 +2697,21 @@ HTML 152365B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r84
 `tr.join(' → ')` 出各点（全等值也列全，正确）③ 异常率卡 rate 是**前端算的**（不落 state），
 没法画趋势——留 R85 决定（要趋势需 `tick` 记 rate 到 state）。
 
+---
+
+## 第99轮（前端 R85 · goal round62）：异常率卡挂趋势 sparkline（`rate_trend` 落 state）
+
+**完善性（异常趋势）**：R84 异常率卡是**当前**占比（日志 200 行），看不出近几轮异常率**走势**
+（有没有变好/变坏）。`maintain.tick()` 记本轮 miss 率（`(lyric_miss+cover_miss)/scanned`）到
+`state["rate_trend"]`（近 8 次，满 8 截尾），`status()` 回 `rate_trend`，前端异常率卡下方挂
+`var(--bad)` sparkline（复用 R84 `_sparkSvg`）——异常率爬升/下降一眼看。
+
+**E2E**：`rate_trend=[0.0,0.0]` 落 state + 异常率卡 `svg polyline` 在（`title「异常率(本轮miss%) 近 2 次: 0 → 0」`）；
+端点 **30/0**、HTML 152476B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r85_ratetrend.png。
+
+**完善性（游标续推）**：全库 4+2 批 batch=20 `runs 447→453`，断点 `投稿\周杰伦\周大侠.mp3`。
+
+**坑**：① 首次 4 批在**重启前**跑（旧代码无 `rate_trend`）→ 重启后 `rate_trend` 空，补 2 批才落值 ②
+miss 率用**本轮** `res` 的 `lyric_miss+cover_miss`（不是累计），`scanned=0` 时 rate=0（除零兜底）③
+全库跑顺 miss 全 0 → `rate_trend` 全 0（画平线，正确）；有异常才见斜率。
+

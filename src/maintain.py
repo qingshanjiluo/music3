@@ -190,6 +190,13 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     ct = st.get("cum_trend", [])
     ct.append({"lyric": int(st["totals"].get("lyric", 0)), "cover": int(st["totals"].get("cover", 0))})
     st["cum_trend"] = ct[-8:]
+    # 异常率趋势: 本轮 miss 率 = (lyric_miss+cover_miss)/scanned (供异常率卡 sparkline), 满 8 截尾
+    _scanned = int(res.get("scanned", 0))
+    _miss = int(res.get("lyric_miss", 0)) + int(res.get("cover_miss", 0))
+    _rate = round(_miss * 100.0 / _scanned, 1) if _scanned else 0.0
+    rt = st.get("rate_trend", [])
+    rt.append(_rate)
+    st["rate_trend"] = rt[-8:]
     _write_state(st)
 
     log("本轮完成: 歌词+%d 歌词-%d 封面+%d 封面-%d 清理%d"
@@ -211,6 +218,7 @@ def status():
         "last": st.get("last", {}),
         "trend": st.get("trend", []),
         "cum_trend": st.get("cum_trend", []),
+        "rate_trend": st.get("rate_trend", []),
     }
     return s
 

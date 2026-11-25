@@ -3009,8 +3009,9 @@ async function mtStat(){
         const lls = lg.lines||[];
         const bad = lls.filter(l=>/miss|失败|超时|error|Exception|无封面/i.test(l)).length;
         const rate = lls.length ? Math.round(bad/lls.length*100) : 0;
+        const _rateSpark = _sparkSvg((s.rate_trend||[]).slice(-8), 'var(--bad)', '异常率(本轮miss%)');
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-          `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div></div>`);
+          `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div>${_rateSpark}</div>`);
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');
