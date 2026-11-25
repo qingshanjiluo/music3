@@ -1899,3 +1899,21 @@ HTML 131611B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r44
 ② 颜色断言用 `--ok/#1f6b46` 要取 `rgb(47,125,85)`（色标近似，别按 hex 直写 rgb）
 ③ 改 `_cache/maintain_state.json` 做回归必备份还原（`bak_r44` 清干净），否则 5 卡被永久钉在假 7。
 
+---
+
+## 第59轮（前端 R45 · goal round22）：封面缓存落盘透明化 + 维护页缓存快照行
+
+**完善性**：`covercache.get_cover` 早有落盘机制（`_cache/covers/<md5(path|size|mtime)>.jpg`，
+路径+mtime 做 key，文件换自动失效；无封面写 `.none` 标记免反复解 ID3）——但**全库缓存体量无人看**
+（`_cache/covers/` 已 571 张 / 356.8 MB，只有 `/api/cache` 接口裸着没人用）。
+
+**修**：维护页「看状态」5 卡下方挂**缓存快照行**：
+`封面缓存: 571 张 · 356.8 MB（_cache/covers，命中免解 ID3）`（`/api/cache` files/bytes，mtStat 内联拉取）。
+
+**E2E**：曲库 openDir 后 `.cardcov img` = 8（封面 100% 命中渲染，**新增 0 张**——已缓存全命中，
+`cache before/after` 都是 571/374102746 坐实「命中免解 ID3」语义）；维护页快照行与 `/api/cache` 逐字一致；
+端点 **29/0**、HTML 131966B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r45_cache.png。
+
+**坑**：① 封面 img 选择器是 **`.cardcov img`**（`#grid img[src*=cover]` 0 匹配——src 是 blob: 不是 /api/cover）
+② 缓存「增长」断言在基线已满（571）时恒 0——改断言 `基线>=500 且 grid imgs>0`，新增 delta 只作记录。
+

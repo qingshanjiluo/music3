@@ -2780,6 +2780,13 @@ async function mtStat(){
         <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
+    /* 缓存快照: /api/cache 封面落盘缓存(文件数/体积), 挂 5 卡下方一行 */
+    try{
+      const c = await (await fetch('/api/cache')).json();
+      const mb = ((+c.bytes||0)/1048576).toFixed(1);
+      $('#mtresult').insertAdjacentHTML('beforeend',
+        `<div class="n" style="margin-top:6px">封面缓存: ${c.files||0} 张 · ${mb} MB（_cache/covers，命中免解 ID3）</div>`);
+    }catch(e){}
     /* 数字滚动: 5 卡值 0→终值 单次编排(500ms, reduced-motion 直落) */
     $('#mtresult').querySelectorAll('.statcard .v').forEach(v=>{
       const raw = String(v.textContent).replace(/,/g,'');
