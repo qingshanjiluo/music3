@@ -1027,6 +1027,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button class="ghost" id="mtstat">看状态</button>
     <button class="ghost" id="mtlog">看日志</button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
+    <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
     <span class="n" style="display:flex;gap:4px;align-items:center"><button class="ghost sm" data-lf="歌词">歌词</button><button class="ghost sm" data-lf="封面">封面</button><button class="ghost sm" data-lf="异常">异常</button><button class="ghost sm" data-lf="">全部</button></span>
     <button class="danger sm" id="mtreset">重置断点</button>
@@ -3049,6 +3050,21 @@ $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 $('#mtlog').onclick = mtLog;
 $('#mtloglive').onclick = mtLogLive;
+/* 导出日志: 拉全量 act=log&n=500, 下载 maintain.log 快照 */
+$('#mtlogexport').onclick = async()=>{
+  setMsg($('#mtmsg'), '导出日志…');
+  try{
+    const d = await (await fetch('/api/maintain?act=log&n=500')).json();
+    const lines = (d.lines||[]).join('\n');
+    const blob = new Blob([lines || '(日志为空)'], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'maintain.log.' + new Date().toISOString().slice(0,10) + '.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+    setMsg($('#mtmsg'), `已导出 ${(d.lines||[]).length} 行日志`, 'ok');
+  }catch(e){ setMsg($('#mtmsg'), '导出失败: '+e, 'bad'); }
+};
 document.addEventListener('input', e=>{ if(e.target && e.target.id==='mtlogfilter'){ if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); } });
 /* 日志预设 chip: 一键填过滤框(歌词/封面/异常/全部) + 重绘 */
 document.querySelectorAll('[data-lf]').forEach(c=>{

@@ -2374,3 +2374,18 @@ console 0、截图 r66_logfilter.png。
 **坑**：chip 用 `data-lf` 属性委托（`document.querySelectorAll('[data-lf]')`）——不用每个 chip 单独绑 onclick，
 加预设只改 `data-lf` 值；「全部」用空串 `data-lf=""`（`f.value=''` 清空 = 不过滤）。
 
+---
+
+## 第82轮（前端 R68 · goal round45）：导出维护日志（maintain.log 快照）
+
+**完善性（日志留档）**：维护日志只在页面看，出问题要留档没有出口。加「**导出日志**」按钮
+（`#mtlogexport`）——拉 `act=log&n=500` 全量 → Blob 下载 `maintain.log.YYYY-MM-DD.txt`，回执「已导出 N 行」。
+
+**E2E**：点「导出日志」→ 回执 `已导出 500 行日志` 绿；端点 **30/0**、HTML 142976B、JS undefined NONE、
+CSS 309/309、node 0、console 0、截图 r68_export.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 392→396`，断点 `洛天依\凉凉.mp3`。
+
+**坑**：导出走**前端 Blob 下载**（不新增后端下载端点）——`act=log&n=500` 已能拉全量，前端 `Blob + a.download`
+即可；`URL.revokeObjectURL` 延迟 1s 再回收（浏览器需时间完成下载）。
+
