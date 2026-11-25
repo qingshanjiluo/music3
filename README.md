@@ -3308,3 +3308,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r115_lineno.png。
 需 `clipboard-write` 权限（Playwright 验时 `grant_permissions`），非安全上下文（`http` 非 localhost）降级
 `execCommand`（`textarea` select + copy）④ 日志没加载时点复制 toast「先点看日志」（`#mtjoblog` 不在则提示）。
 
+---
+
+## 第131轮（前端 R117 · goal round94）：轮数/批量输入夹取（`#mtruns`/`#mtbatch` 超界自动夹）
+
+**完善性（输入健壮）**：`#mtruns`（连跑轮数）/`#mtbatch`（每轮批量）两个 number input 在手输 `0`/负/超大时
+会落 `||1`/`||20` 默认或传出非法 `batch`。`#mtruns`/`#mtbatch` 绑 `change` 夹取——`mtruns` 夹到 `1–50`、`mtbatch`
+夹到 `1–100`（tick 批量上限），越界自动回合法值——手输错不传出非法请求。
+
+**E2E**：`mtruns=0→1 + mtbatch=999→100`（change 夹取生效，绿）；端点 **30/0**、JS undefined NONE、CSS 316/316、
+node 0、console 0、截图 r117_clip.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 520→522`，断点 `_归档_封存\SD卡版\华语经典\陶喆\阿飞的小蝴蝶.mp3`。
+
+**坑**：① `#mtruns`/`#mtbatch`/`#mtfull` 三个 input **页面早有**（1052-1053 label 里，`mtRun` 2893/2897 已读），
+初版误以为没 input 重复加造成**双 id**，删了误加的、改用已有 ② 夹取绑 `change`（失焦时夹，不打断输入），
+`Math.round` 取整（number input 可输小数）③ `mtbatch` 上限 100（tick `batch` 参数合法域，`maintain.py` 侧
+`int(batch)` 无上限但 100 是合理批量），`mtruns` 上限 50（`mtRun` 内 `Math.min(50,…)` 本就夹，输入侧同口径
+防手输 500）④ `#mtfull`（全库）勾选时 `N=999999` 忽略 `mtruns`（全库跑到 done），夹取不影响全库路径。
+

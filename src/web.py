@@ -2887,6 +2887,8 @@ function _toast(msg, kind){
   clearTimeout(t.__tt__);
   t.__tt__=setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>{ t.textContent=''; },400); }, 4000);
 }
+/* 轮数/批量输入夹取: 手输 0/负/超大值自动夹到合法范围(mtruns 1-50, mtbatch 1-100), 防落 ||默认 */
+(function(){ const clip=(id,lo,hi,def)=>{ const el=document.getElementById(id); if(!el) return; el.addEventListener('change',()=>{ let v=Math.round(+el.value); if(isNaN(v)||v<lo) v=lo; if(v>hi) v=hi; el.value=v; }); }; clip('mtruns',1,50,1); clip('mtbatch',1,100,20); })();
 async function mtRun(){
   const btn = $('#mtrun');
   btn.disabled = true;
