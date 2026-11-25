@@ -3404,3 +3404,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r121_donut.png。
 并排（环左固定 56px，条右 `flex:1`），挂 `#mtprog` 内（随 `mtStat` 幂等重建，同进度条）⑤ 完成度封顶 100%（`runs×20≥n_total`
 时环满绿 `var(--ok)`，未满是 accent 红）。
 
+---
+
+## 第136轮（前端 R122 · goal round99）：donut 旁「预计跑完全库还需 N 分钟」（`#mteta`，跑全库前心里有数）
+
+**完善性（全库耗时预判）**：`#mtdonut` donut 环显完成度，但跑全库前不知道**还要多久**。`#mtprog` 进度条下方加
+**预计剩余行** `#mteta`——全库未完成时按 `dur_trend` 末位本批耗时 `_perTick` × 剩轮数 `ceil((n_total-已扫)/20)`
+外推，显「预计还需约 N 分钟 · 剩 X 批 · 每批约 Ys」；全库完成（`pct>=100`）显「全库已扫完 ✓」。跑全库前看一眼
+心里有数。
+
+**E2E**：`#mteta + inProg + txt=全库已扫完 ✓`（当前 runs 534 已封 100%，走完成态分支；绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 532→534`，断点 `_归档_封存\SD卡版\英文歌\Best Day of My Life.mp3`。
+
+**坑**：① 外推用 `dur_trend` 末位（最近一批实测 tick 秒，`Math.max(0.5,…)` 防 0/负）× 剩轮数（`ceil`，剩不足一批
+也算 1 批），`/60` 换分钟 `Math.max(1,…)`（未完成至少估 1 分钟）② 全库完成（`_pct>=100`）时 `_left=0`，`_etaTxt`
+直接走「全库已扫完 ✓」分支（不显「还需 0 分钟」）③ `#mteta` 挂 `#mtprog` 内进度条下方（`flex:1` 列内，随 `mtStat`
+幂等重建，同 donut/进度条）④ 未完成态文案 `预计还需约 N 分钟 · 剩 X 批 · 每批约 Ys`（X=剩轮数、Y=`_perTick` 取整）。
+
