@@ -3010,6 +3010,8 @@ async function mtStat(){
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');
             if(f){ f.value=card.dataset.jumplog; }
+            /* 跳日志时停自动刷(否则 mtStat 重铺 #mtresult 会把跳的日志闪掉), 给提示 */
+            if(typeof _mtAutoRefTimer!=='undefined' && _mtAutoRefTimer!==null){ mtAutoRef(); }
             /* 追加日志区到 #mtresult 尾(不清 8 卡) + 过滤 + 滚到 */
             const box=document.getElementById('mtjumplog');
             if(!box){ const d=document.createElement('div'); d.id='mtjumplog'; d.style.cssText='margin-top:10px'; document.querySelector('#mtresult').appendChild(d); }

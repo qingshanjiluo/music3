@@ -2606,3 +2606,20 @@ hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**�
 `mtAutoRef` 是全局函数且要幂等开关）③ 自动刷调 `mtStat` 会重铺 `#mtresult`——挂着跑维护时若已跳日志
 （`#mtjumplog`）会被 `mtStat` 清掉（要跳日志就别挂自动刷，或挂上后重新点异常率卡）。
 
+---
+
+## 第94轮（前端 R80 · goal round57）：自动刷与跳日志互斥
+
+**完善性（互斥）**：R79 自动刷挂着跑维护时，点异常率卡跳日志会被 `mtStat` 每 5s 重铺 `#mtresult`
+→ 跳的日志容器闪掉。改**互斥**：点跳日志时先 `mtAutoRef()` 停自动刷（timer 清 + 按钮取消高亮），
+再挂 `#mtjumplog`——跳日志期间不再被自动刷冲。
+
+**E2E**：开自动刷 → 点异常率卡跳日志 → `_mtAutoRefTimer=null`（自动刷停）+ `#mtjumplog` 容器在（绿）；
+端点 **30/0**、HTML 151187B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r80_mutex.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 431→433`，断点 `许巍\故乡.mp3`。
+
+**坑**：① 跳日志的 `card.onclick` 里判 `typeof _mtAutoRefTimer!=='undefined' && _mtAutoRefTimer!==null`
+（自动刷在跑才停；`_mtAutoRefTimer` 是 `let` 全局，未开时 `null` 不停）② `mtAutoRef()` 是开关——跳日志
+时它非空 → 走「停」分支（清 timer + 取消高亮），正好复用，不用另写停逻辑。
+
