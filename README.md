@@ -3055,3 +3055,24 @@ n_total`（同 R94）③ `s.last_run_str`（后端已格式化）直接显，`es
 字段（`rate_trend`/`dur_trend`/`last`），不用后加的日志异常率（那个要拉 200 行日志，小结保持轻）④
 `_rateArr.length` 兜底（`rate_trend` 空时取 0，不 NaN）。
 
+---
+
+## 第118轮（前端 R104 · goal round81）：小结异常率/本批点击跳卡（双向定位）
+
+**连贯性（小结↔卡片）**：R103 小结有异常率/本批耗时数字，但点它只能看不能跳对应卡片。`#mtdigest` 里
+异常率/本批耗时**段包 `<a data-jumpto>`**（点线 underline 暗示可点），全局 `_mtJump(sel)` 滚到目标
+`.statcard`（`rate`→异常率卡、`dur`→本批耗时卡）+ `outline` 闪 3 次——点小结数字**直接定位到那张卡**，
+小结↔卡片双向。
+
+**E2E**：`hasLinks=2 + hasRate + hasDurLink`，点 `dur` → 本批耗时卡滚到 `top=392`（视口内）；端点 **30/0**、
+HTML 166806B、JS undefined NONE、CSS 315/315、node 0、console 0（无 passive 错）、截图 r104_jump.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 493→495`，断点 `_归档_封存\SD卡版\华语经典\五月天\笑忘歌.mp3`。
+
+**坑（本轮重点）**：① 委托绑 `document click` 初版 `{passive:true}` + 里 `preventDefault` → headless 报
+`Unable to preventDefault inside passive event listener`；改**非 passive**（去 `passive`）`preventDefault` 才生效
+② `scrollIntoView({behavior:'smooth'})` headless 下异步未完成就取 `top`（1044 出视口），改 `behavior:'auto'`
+（同步滚）才测到 `top=392`（真用户仍见平滑可改回）③ `<a>` 随 `mtStat` 重建，**全局委托**（不逐 `<a>` 绑）
+一次绑 `document` 永久生效（`mtStat` 重建 `<a>` 也不丢委托）④ `dur` 卡靠 `.k` 文本含「本批耗时」定位（非固定
+nth-child，卡片顺序变也稳）。
+
