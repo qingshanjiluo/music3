@@ -2529,3 +2529,22 @@ node 0、console 0、截图 r75_delta.png。
 `mtStat` 无 prev（`prev={}`）→ 全卡无 delta（正常，没「上次」可比）；要跨刷新持久得落 `localStorage`
 （本轮不做，会话内对比已够）。
 
+---
+
+## 第90轮（前端 R76 · goal round53）：`_mtLast` 落 localStorage 跨刷新 + delta 双向 +N/-N
+
+**完善性（跨刷新对比）**：R75 `_mtLast` 是会话内快照（`window._mtLast`），刷新页面就丢「上次」。
+改**落 `localStorage._mtLast`**——跨刷新也保留上次累计，下次看状态 delta 仍可算（「+N / -N」跨会话）。
+
+**简洁性（delta 双向）**：`delta(k)` 从「只 +N」改成**双向**（`c-p` 正 `+N` 绿、负 `-N` 红）——
+清缓存后封面 `cumCover` 不变但 `cover` 累计可能因重建变化，减少也 `-N` 红字见（不是只有增量）。
+
+**E2E**：`localStorage._mtLast={lyric:3091,cover:3440,clean:0,runs:425}` 落盘绿；端点 **30/0**、
+HTML 149205B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r76_localstorage.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 423→425`，断点 `英文歌\Skyfall.mp3`。
+
+**坑**：`delta(k)` 用 `prev[k]===undefined?0:prev[k]`（localStorage 首次无 key → 0，别用 `||` 否则
+`prev=0` 时 `prev[k]||0` 也 0 但 `undefined` 语义更清）；`-N` 判断 `delta('k')[0]==='+'` 区分红绿
+（负号 `-` 开头 → 红）。
+
