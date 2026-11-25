@@ -2750,19 +2750,39 @@ async function mtStat(){
   try{
     const s = await (await fetch('/api/maintain')).json();
     const t = s.totals || {};
+    /* ID3 卡语义: 0 已修 + 全库 0 双缺 -> 显示"已核"(muted, 非"缺 0 张"); 有修过 -> 原绿字数字 */
+    let id3v = t.meta_fixed || 0, id3label = 'ID3已修', id3style = '';
+    if(!id3v){
+      /* 快估 60s 窗口缓存: 首调冷读 ID3 ~26s, 同窗口内复用免再卡 */
+      let e = null;
+      try{
+        const _c = window._id3estCache;
+        if(_c && Date.now() - _c.t < 60000) e = _c.d;
+        else {
+          e = await (await fetch('/api/fixmeta?dry=1&offset=0&batch=500&estimate=1')).json();
+          window._id3estCache = { t: Date.now(), d: e };
+        }
+        if(e.estimate && !(e.todo_est || 0)){
+          id3v = '已核'; id3label = `ID3 双缺（${e.total_all||''} 首）`; id3style = 'color:var(--dim)';
+        }
+      }catch(e){}
+    } else {
+      id3style = 'color:var(--ok);-webkit-text-fill-color:var(--ok)';
+    }
     $('#mtresult').innerHTML = `
       <div class="statgrid">
         <div class="statcard"><div class="k">已跑轮次</div><div class="v">${s.runs||0}</div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
-        <div class="statcard"><div class="k">ID3已修</div><div class="v" style="${t.meta_fixed?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${t.meta_fixed||0}</div></div>
+        <div class="statcard"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
     /* 数字滚动: 5 卡值 0→终值 单次编排(500ms, reduced-motion 直落) */
     $('#mtresult').querySelectorAll('.statcard .v').forEach(v=>{
-      const to = parseInt(String(v.textContent).replace(/,/g,''), 10);
-      if(!isNaN(to)) countUp(v, to, 500);
+      const raw = String(v.textContent).replace(/,/g,'');
+      /* 非数值卡(如"已核")跳过滚动, 直保 */
+      if(/^\d+$/.test(raw)) countUp(v, parseInt(raw,10), 500);
     });
   }catch(e){}
 }

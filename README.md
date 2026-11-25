@@ -1857,3 +1857,25 @@ JS undefined NONE、CSS 302/302、node 0、console 0、截图 r42_fixmeta_final.
 handler 报 500（`/api/fixmeta?estimate=1` 200 前必须过 `len()` 关）② 前端快估断言等**终态**文案
 「估算：没有 ID3 双缺」，**不能**匹配中间态占位「快速估算（500 采样外推）…」（0.1s 假绿）。
 
+---
+
+## 第57轮（前端 R43 · goal round20）：维护游标续推 + ID3 卡「已核」语义 + 快估缓存
+
+**完善性（backlog 续推）**：全库游标 8 批 batch=20（lyric+cover）：
+`lyric 3063→3064 · runs 230→238`，断点推进到 `英文歌\Улетали птицы гордыми.mp3`，17.7s。
+
+**ID3 卡语义（完善性）**：`meta_fixed` 恒 0 因全库本就 0 双缺（R42 快估 `todo_est=0`），
+卡片原显「ID3已修 0」语义误导（像「没修过」）。改：`meta_fixed=0 且快估 0 双缺` →
+卡显 **`ID3 双缺（5188 首）= 已核`**（muted ink，`countUp` 跳非数值卡）；有值时原绿字。
+
+**快估缓存（流畅性）**：`/api/fixmeta?estimate=1` 冷读 ID3 ~26s，挂 `window._id3estCache` 60s 窗口：
+首点冷 19.6s → 二点 **1.27s**（缓存命中），`mtStat` 5 卡渲染不再被 estimate 卡住。
+
+**验收**：首点冷 19.6s 出「ID3 双缺（5188 首）=已核」、二点缓存 1.27s 同卡、
+`runs/lyric/cover 三卡与后端 status 逐字同步`（用二点终值断言，冷点中段是 countUp 未到）、
+端点 **29/0**、HTML 131421B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r43_id3card.png。
+
+**坑**：① estimate 外推 `todo * total_all` 忘 `len(todo)` → `list * int` TypeError 500（R42 已修）
+② 5 卡同步断言要用**二点缓存终值**（c2），冷点首帧（c1）是 countUp 500ms 编排中段，`endswith` 假红
+③ `mtStat` 内挂 estimate 必须带 60s 缓存，否则每次看状态卡 26s。
+
