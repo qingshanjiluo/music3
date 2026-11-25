@@ -2679,3 +2679,21 @@ console 0、截图 r83_doublespark.png。
 `_sparkSvg`（不能直接喂对象）③ 累计卡 `cum_trend` 值全相等（全库跑顺、累计不变）→ 斜率平（画一条
 平线，正确）；有增量才见斜率。
 
+---
+
+## 第98轮（前端 R84 · goal round61）：sparkline 悬停出各点值 tooltip
+
+**简洁性（趋势读数）**：R82/R83 的 sparkline 只有折线，看不出**每个点的值**。`_sparkSvg` 加
+`<title>`（原生 tooltip，不引库）——悬停折线出 `已跑轮次 近 8 次: 440 → 441 → … → 447`、
+`累计歌词 近 N 次: …`，不放大也能读各点。
+
+**E2E**：3 条 sparkline 悬停 tooltip 出各点值（`已跑轮次 近 8 次: 440→…→447` 绿）；端点 **30/0**、
+HTML 152365B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r84_tooltip.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 445→447`，断点 `陶喆\秋天的枫.mp3`。
+
+**坑**：① 上轮 edit 把新 `_covSpark`（带 label）加在旧行上方，旧 `_covSpark`（无 label）没删 →
+`const _covSpark` 重复声明 → node 语法错，删旧行 ② `<title>` 放 `<svg>` 内（SVG 原生 tooltip），
+`tr.join(' → ')` 出各点（全等值也列全，正确）③ 异常率卡 rate 是**前端算的**（不落 state），
+没法画趋势——留 R85 决定（要趋势需 `tick` 记 rate 到 state）。
+
