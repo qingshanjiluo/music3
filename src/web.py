@@ -2912,24 +2912,34 @@ function _mtProg(i, total, hide){
   if(fill) fill.style.width=pct+'%';
   if(tx) tx.textContent=i+'/'+total+' 轮';
 }
+/* 取消本轮跑标志: 跑多轮中点「取消」(按钮变红) 置 true, 循环下一轮 break(已跑的轮不回滚, 断点已写); 跑完/取消后按钮回「跑一轮」 */
+let _mtAborted=false;
 async function mtRun(){
   const btn = $('#mtrun');
-  btn.disabled = true;
+  _mtAborted=false;
+  /* 跑中: 按钮变「取消」(点即跳出, 不 disabled 才能点); 跑完/取消后回「跑一轮」 */
+  btn.disabled = false;
+  btn.textContent = '取消';
+  btn.style.background='var(--bad)';
+  const _runOrig=btn.onclick;
+  btn.onclick = ()=>{ _mtAborted=true; };
   const b = +$('#mtbatch').value || 20;
   const sub = curSub || '';
   const t0 = Date.now();
   const FULL = $('#mtfull').checked;   /* 跑到全库: 循环到 done(忽略 N) */
   const N = FULL ? 999999 : Math.max(1, Math.min(50, +$('#mtruns').value || 1));
   /* 跑中 spinner: 按钮文字加转圈, 反馈不空等 */
-  const _lab = btn.textContent;
-  const _spin = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>';
+  const _lab = '取消';
+  const _spin = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:#fff;border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>';
   let ticks=0;
-  const setSpin=(i)=>{ btn.innerHTML = _spin + (FULL ? `跑到全库 第 ${i} 轮…` : (N>1 ? `连跑 ${i}/${N}…` : '跑中…')); };
+  const setSpin=(i)=>{ btn.innerHTML = _spin + (FULL ? `跑到全库 第 ${i} 轮… 取消` : (N>1 ? `连跑 ${i}/${N}… 取消` : '跑中… 取消')); };
+  const _mtUnaborted=()=>{ btn.disabled=true; btn.textContent='跑一轮'; btn.style.background=''; btn.onclick=_runOrig; _mtProg(0,N,true); };
   let doneMsg='';
   let FULL_DONE=false;
   let ticksFirstMs=0;
   try{
     for(let i=1;i<=N;i++){
+      if(_mtAborted){ setMsg($('#mtmsg'), '已取消 · 跑到第 '+Math.min(i, N)+' 轮（已跑的轮不回滚，断点已写）', 'ok'); _mtUnaborted(); break; }
       setSpin(i);
       const _elapsed=Math.round((Date.now()-t0)/100)/10;
       /* 跑到全库: 首 tick 实测后外推预估(首 tick 冷启动, 实测 perTick) */
@@ -2951,12 +2961,13 @@ async function mtRun(){
       const _t1=Date.now();
       const r = await (await fetch(u)).json();
       if(i===1){ ticksFirstMs = Date.now()-_t1; }
-      if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); _mtProg(0, N, true); return; }
+      if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); _mtUnaborted(); _mtProg(0, N, true); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
+    _mtUnaborted(); /* 跑完恢复「跑一轮」按钮态(跑中是「取消」红) */
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
     if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg; _toast(_tm, 'ok'); }

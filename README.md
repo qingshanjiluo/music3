@@ -3776,3 +3776,27 @@ r139_prog.png。
 （`_mtProg(0,N,true)`）⑤ 验收**不真跑 `mtRun`**（跑 tick 污染 `runs` 游标），用 `_mtProg` 直接驱动 `i=1..3` 验进度条显隐/
 宽/文案 + 跑完隐（函数级验，不碰后端）。
 
+---
+
+## 第154轮（前端 R140 · goal round117）：取消本轮跑（`#mtrun` 跑多轮中变「取消」，点即跳出循环 + 隐进度条 + `#mtmsg` 显「已取消 i/N」）
+
+**连贯性（中止长跑）**：`mtRun` 跑多轮（`#mtruns=N`）中，**没法定中止**——得等 N 轮跑完或关页面。`#mtrun` 跑中
+变**「取消」**（红底，不 `disabled` 才能点），点即 `_mtAborted=true` → 循环下一轮顶 `break` + 隐进度条 + `#mtmsg`
+「已取消 · 跑到第 i 轮（已跑的轮不回滚，断点已写）」；跑完/取消后按钮回「跑一轮」——扫一眼可中止长跑，与本轮进度条
+（R139）同「执行控制」直觉。
+
+**E2E**：`初态跑一轮 + 跑中「连跑 1/2… 取消」红(163,38,26)不disabled + 取消后回「跑一轮」+ #mtmsg「已取消 · 跑到第 2 轮
+（已跑的轮不回滚，断点已写）」+ 进度条隐`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r140_abort.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 568→570`，断点 `_归档_封存\SD卡版\华语经典\陈奕迅\葡萄成熟时.mp3`。
+
+**坑**：① 跑中 `#mtrun` 不 `disabled`（改 `btn.disabled=false` + `btn.onclick=()=>{_mtAborted=true}`），文案 `取消`
+（红 `--bad`），`setSpin` 文案尾加「 取消」（`连跑 i/N… 取消`）② `_mtAborted` 全局标志，循环每轮顶 `if(_mtAborted){ setMsg
+「已取消 · 跑到第 i 轮…」; _mtUnaborted(); break; }`——**已跑的轮不回滚**（断点已写 `maintain_state.json`，取消只停后续
+轮，不影响已完成 tick 的补入/断点推进）③ `_mtUnaborted()` 恢复按钮态（`disabled=true` 回 + 文案「跑一轮」+ 清红底 +
+`onclick` 回 `mtRun` + `_mtProg` 隐），跑完/取消/错误三出口都调 ④ 取消按钮红底 `--bad`（区别于正常 accent，危险操作色），
+spinner `border-top-color:#fff`（白，红底上可见）⑤ 验收真跑 `mtRun`（N=2，跑 2 轮 tick 快 ~1s），点取消后 3s 等 `break`
++ 按钮恢复（`_mtAborted` 在第 2 轮顶 break，已跑 1 轮 tick 不回滚——**取消本身会跑 1 轮 tick 污染 `runs`**，验后已续推
+恢复断点）。
+
