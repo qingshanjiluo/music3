@@ -3139,6 +3139,21 @@ async function mtStat(){
           $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
             `<div class="statcard" title="最新一批 tick 用时(秒)；下方折线=近 8 批耗时趋势(变长=网络/磁盘拖慢); 超均值+2σ 标「本批变慢」"><div class="k">本批耗时（近 8 批）${_slow?' <span style="color:var(--warn);font-size:10px">⚠ 本批变慢(超均值+2σ)</span>':''}</div><div class="v" style="${_slow?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${_dur?_dur+'s':'-'}</div>${_durSpark}</div>`);
         }
+        /* 第 11 卡「补入速率」: cum_trend 每批增量(lyric+cover 相邻差)近 8 点 sparkline, 看补入速度是否稳定/掉速 */
+        {
+          const _ct=(s.cum_trend||[]);
+          /* 每批增量速率 = 相邻累计差(lyric+cover), 取末 8 批; 末位=本批, 看速度是否掉(掉=源慢/网络波动/已补完) */
+          const _rateArr=[];
+          for(let i=1;i<_ct.length;i++){ _rateArr.push((_ct[i].lyric||0)+(_ct[i].cover||0)-((_ct[i-1].lyric||0)+(_ct[i-1].cover||0))); }
+          const _rShow=_rateArr.slice(-8);
+          const _rLast=_rShow.length?_rShow[_rShow.length-1]:0;
+          /* 掉速标记: 末位 < 近 4 批均值的一半 (本批补入明显变慢, 提示源慢/网络波动/该库补完) */
+          const _rAvg=_rShow.length>=4?_rShow.slice(-4).reduce((a,b)=>a+b,0)/Math.min(4,_rShow.length):0;
+          const _rSlow=_rShow.length>=4 && _rLast<_rAvg/2;
+          const _rateSpark=_sparkSvg(_rShow, _rSlow?'var(--warn)':'var(--ok)', '补入速率(首/批)');
+          $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
+            `<div class="statcard" title="每批补入速率 = 相邻批累计补入差(歌词+封面, 首/批); 下方折线=近 8 批补入速度(掉速=源慢/网络波动/该库已补完)"><div class="k">补入速率（近 8 批）${_rSlow?' <span style="color:var(--warn);font-size:10px">⚠ 掉速</span>':''}</div><div class="v" style="${_rSlow?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${_rShow.length?_rLast+' 首/批':'-'}</div>${_rateSpark}</div>`);
+        }
         /* 「下一批预计」: 网格下方一行提示 - 按 dur_trend 均值守估算下一批耗时 + 全库剩余曲目需几批跑完 */
         {
           const _durT = (s.dur_trend||[]);
