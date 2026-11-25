@@ -2640,3 +2640,22 @@ hook 放行 ② `removeItem` 必须在 `mtStat()`（其 `setItem`）**之后**�
 兜底（`mtAutoRef` 是全局 `let`，未初始化前 `typeof` 安全）；跑到全库是「跑到 done」的 FULL 分支，
 连跑 N 轮（非 FULL）不挂（N 轮跑完用户可能切页）。
 
+---
+
+## 第96轮（前端 R82 · goal round59）：「已跑轮次」卡迷你趋势线 sparkline
+
+**简洁性（趋势一眼）**：维护页「已跑轮次」只有累计数，看不出**近几轮跑得顺不顺**。
+加**迷你 sparkline**——`maintain.tick()` 存 `st["trend"]`（近 8 次每轮 runs，满 8 截尾），
+`status()` 回 `trend`，前端「已跑轮次」卡下方挂 SVG polyline（`s.trend` 近 8 点，不引库），
+跑得多斜率平、跳了断点斜率陡，一眼看趋势。
+
+**E2E**：`trend=[440,441]` 落 state + 「已跑轮次」卡 `svg polyline` 在（绿）；端点 **30/0**、
+HTML 151953B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r82_sparkline.png。
+
+**完善性（游标续推）**：全库补 2 批 batch=20 `runs 439→441`（趋势凑 ≥2），断点 `陈奕迅\你给我听好.mp3`。
+
+**坑**：① 我在 `maintain.py` 误用 C 风格注释 `/* */`（Python 要 `#`）→ 编译失败 → `/api/maintain` 500，
+改 `#` ② 服务重启瞬断 + 坏 pyc 未清（重启前 `compileall` 失败仍留着旧 pyc）→ tick 早了 ConnectionRefused，
+清 `src\__pycache__\*.pyc` + 重编译 + `Start-Process` 后补 2 批凑 `trend>=2` 才出 sparkline ③ sparkline
+`tr.length<2` 不画（首次 tick 前 trend 空，正常）。
+

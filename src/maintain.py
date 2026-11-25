@@ -182,6 +182,10 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
         st["totals"][kk] = int(st["totals"].get(kk, 0)) + res[k]
     st["last"] = {"lyric_ok": res["lyric_ok"], "cover_ok": res["cover_ok"],
                   "cleaned": res["cleaned"], "scanned": res.get("scanned", 0), "at": time.time()}
+    # runs 趋势: 记近 8 次每轮 runs(供前端迷你 sparkline), 满 8 截尾
+    trend = st.get("trend", [])
+    trend.append(int(st["runs"]))
+    st["trend"] = trend[-8:]
     _write_state(st)
 
     log("本轮完成: 歌词+%d 歌词-%d 封面+%d 封面-%d 清理%d"
@@ -201,6 +205,7 @@ def status():
         "cursor": st.get("cursor", {}),
         "log_lines": len(tail_log(99999)),
         "last": st.get("last", {}),
+        "trend": st.get("trend", []),
     }
     return s
 
