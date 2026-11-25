@@ -2869,3 +2869,21 @@ HTML 157826B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r93
 （同 R85/R92 坑）③ `#mtnextest` 挂 `#mtresult` 尾（非 `.statgrid`），`mtStat` 重铺 `#mtresult` 时自动清掉重建
 （幂等，自动刷 5s 不残留）④ 估算保守：`总耗时=批数×均值`（不含网络抖动，断点真实进度另看 cursor）。
 
+---
+
+## 第108轮（前端 R94 · goal round71）：全库进度条（`#mtprog`，已扫/总量）
+
+**完善性（全库推进度）**：R93「下一批预计」是耗时估算，没直观**进度条**。`mtStat` 在「下一批预计」下
+加 `#mtprog`——`全库进度 = 已跑轮次×20 / n_total`（封顶 100%），文字 `全库进度 N%（已扫约 X / Y 首）`
++ 一条 8px 高 `var(--acc)` 进度条（纯 CSS，`width` 过渡 0.3s）——跑全库维护时看整体推进到哪。
+
+**E2E**：`全库进度 100%（已扫约 5188 / 5188 首）`（runs 475×20=9500 > 5188 封顶 100%）；端点 **30/0**、
+HTML 158641B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r94_prog.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 473→475`，断点 `_归档_封存\SD卡版\…\阶梯.mp3`。
+
+**坑**：① `已扫=runs×20` 是**估算**（断点续传后 runs 重计、cursor 从断点推，真实进度看 cursor；
+进度条封顶 100% 防 `runs×20>n_total` 溢出）② `#mtprog` 挂 `#mtresult` 尾（非 `.statgrid`），`mtStat` 重铺自动
+清掉重建（幂等，自动刷不残留）③ 进度条 `width` 用 `var(--acc)` 色、`transition:width .3s`（自动刷 5s 时
+进度平滑增长，不跳变）。
+

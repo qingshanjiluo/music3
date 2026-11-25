@@ -3049,6 +3049,16 @@ async function mtStat(){
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:8px;font-size:12px;color:var(--muted)" id="mtnextest" title="按近 8 批 tick 平均耗时无损估算; 全库批数=ceil(总曲目/20); 断点续传真实进度见「已跑轮次」cursor">${_estStr}</div>`);
         }
+        /* 全库进度条: runs*20/n_total (已跑轮数×每批20首 / 全库总量), 封顶 100%, 纯 CSS 无库 */
+        {
+          const _scanned = Math.min((s.runs||0)*20, s.n_total||1);
+          const _pct = s.n_total ? Math.min(100, Math.round(_scanned*100/(s.n_total))) : 0;
+          $('#mtresult').insertAdjacentHTML('beforeend',
+            `<div style="margin-top:6px" id="mtprog" title="全库维护进度 = 已跑轮次×20 / 全库总量; 封顶100%(断点续传后重头算)">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:4px">全库进度 <b style="color:var(--acc)">${_pct}%</b>（已扫约 ${_scanned} / ${s.n_total||'-'} 首）</div>
+              <div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:8px;width:${_pct}%;background:var(--acc);border-radius:4px;transition:width .3s"></div></div>
+            </div>`);
+        }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');
