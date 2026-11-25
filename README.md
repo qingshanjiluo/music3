@@ -2941,3 +2941,22 @@ HTML 158731B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r95
 内做），`replace(/"/g,'&quot;')` 防引号转义 ③ `doFind()` 是 async（不 await，fire-and-forget 触发即可，
 命中后 `renderGridBatch` 自渲染）④ `setTab('b')` 后 `#fq` 才在 DOM（曲库 tab 激活才建），先切再填。
 
+---
+
+## 第112轮（前端 R98 · goal round75）：最近补入定位命中高亮首项（闪 + 滚到）
+
+**连贯性（命中可见）**：R97 点最近补入跳曲库搜到这首，但 200 结果里**首条命中淹没**（不滚动、不突出）。
+`_mtLoc` 的 `doFind()` 改 `.then(_flash)`——搜出后取 `#grid` 首项 `.card`，`scrollIntoView({block:'center'})`
+滚到视口中 + `outline:2px var(--acc)` 闪烁 3 次（`setInterval` 180ms × 7 帧）后清——命中一眼看到、不淹没。
+
+**E2E**：点最近补入 → `nCard=1 + firstTop=322（滚到视口内）+ activeTab=曲库 + fq=烂泥Remix.mp3`（绿）；
+端点 **30/0**、HTML 161289B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r98_flash.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 481→483`，断点 `_归档_封存\SD卡版\…\Come Back To Me - 27158959.mp3`。
+
+**坑**：① `doFind()` 是 async，`.then(_flash)` 等搜出再闪（`doFind` 返回 Promise；`p.then` 存在才走
+`catch(()=>{})` 吞失败，否则 `setTimeout 300` 兜底）② 闪 `#grid` 首项（`.card` 或 `firstElementChild`），
+`outline` 7 帧（`n%2` 交替）= 3 次闪烁，`clearInterval` 后清样式 ③ `scrollIntoView({block:'center'})` 首项到
+视口中（headless 验 `firstTop=322` 在 0~900 内）④ 命中 0 条时 `#grid` 空，`_flash` 取不到首项（no-op，
+不误闪）——`doFind` 里已有 `失败:` 提示。
+

@@ -2950,7 +2950,15 @@ async function mtRun(){
 function _mtLoc(el){
   const name=(el&&el.dataset.name)||''; if(!name) return;
   setTab('b');
-  const fq=$('#fq'); if(fq){ fq.value=name; if(typeof doFind==='function') doFind(); }
+  const fq=$('#fq'); if(fq){ fq.value=name; if(typeof doFind==='function'){
+    const p=doFind();
+    /* 命中后高亮首条结果: doFind 是 async, 渲染完取 #grid 首项 outline 闪烁 3 次 + 滚到顶, 不淹没在 200 结果里 */
+    const _flash=()=>{ const g=$('#grid'); const first=g&&(g.querySelector('.card')||g.firstElementChild);
+      if(first){ first.scrollIntoView({block:'center'}); let n=0; const iv=setInterval(()=>{ n++;
+        first.style.outline=(n%2)?'2px solid var(--acc)':'none'; first.style.outlineOffset='2px';
+        if(n>=7){ clearInterval(iv); first.style.outline=''; first.style.outlineOffset=''; } },180); } };
+    if(p&&p.then) p.then(_flash).catch(function(){}); else setTimeout(_flash,300);
+  } }
 }
 async function mtStat(){
   try{
