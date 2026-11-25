@@ -3482,6 +3482,36 @@ function mtCardsFold(){
   localStorage.setItem('_mtCards', fold?'0':'1');
   const b=$('#mtcards'); if(b){ b.innerHTML=(fold?'▾ 展开全部卡片':'▴ 收起卡片'); }
 }
+/* sparkline hover 数值跟随: #mtspark 容器 mousemove, 按 x 比例定位最近折线点, 亮 hover 点 + 标签(该点值); 移开隐 */
+(function(){ try{
+  document.addEventListener('mousemove', e=>{
+    const sp=e.target.closest ? e.target.closest('.mtspark') : null;
+    if(!sp){ return; }
+    /* hover 点 + 标签: 每卡各一(mtspark-hover/-lbl), 亮当前卡的 */
+    const dot=sp.querySelector('.mtspark-hover'), lbl=sp.querySelector('.mtspark-hoverlbl');
+    const tr=JSON.parse(decodeURIComponent(sp.getAttribute('data-tr')||'{}')).t||[];
+    if(!tr.length||!dot||!lbl) return;
+    const r=sp.getBoundingClientRect();
+    const x=Math.max(0,Math.min(r.width, e.clientX-r.left));
+    const w=r.width;
+    const idx=Math.round((x/w)*(tr.length-1));
+    const max=Math.max.apply(null,tr), min=Math.min.apply(null,tr), rng=(max-min)||1;
+    const px=(idx/(tr.length-1))*100;
+    const py=100-((tr[idx]-min)/rng)*100; /* sparkline 高 22px 内 y% */
+    dot.style.left=px+'%'; dot.style.top=py+'%'; /* py = 折线内 y 百分比(顶0 底100), 容器高 ~22px */
+    dot.style.display='block';
+    lbl.style.left=px+'%'; lbl.style.top='0%';
+    lbl.textContent=tr[idx];
+    lbl.style.display='block';
+  }, true);
+  document.addEventListener('mouseout', e=>{
+    const sp=e.target.closest ? e.target.closest('.mtspark') : null;
+    if(!sp) return;
+    const dot=sp.querySelector('.mtspark-hover'), lbl=sp.querySelector('.mtspark-hoverlbl');
+    if(dot) dot.style.display='none';
+    if(lbl) lbl.style.display='none';
+  }, true);
+}catch(e){} })();
 /* 统一点控: mtStat 铺完 #mtcardgrid + 后 6 卡后调用, 按 localStorage._mtCards + 窄屏决定 .fold(宽屏全显/记1全显; 记0且窄才折) */
 function applyMtFold(){
   const g=$('#mtcardgrid'); if(!g) return;

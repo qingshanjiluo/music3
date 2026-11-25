@@ -3644,3 +3644,26 @@ hover）④ hover 抬升 2px 矩阵（`matrix(1,0,0,1,0,-2)`，`translateY(-1px)
 非精确 -1）⑤ 验收 `first.hover` 是 Playwright **locator** 方法（DOM 元素无 `.hover`），`p.locator(…).first.hover()`
 触发 + `getComputedStyle` 读 `transform` 对比 hover/normal。
 
+---
+
+## 第148轮（前端 R134 · goal round111）：sparkline hover 数值跟随（`#mtspark` 折线悬停，点/标签跟 x 定位显该点值）
+
+**连贯性（趋势取数）**：各卡 sparkline 已有末点值标（`_valLabel`）+ hover 点/标签 CSS（`mtspark-hover/-lbl`，
+`display:none` 从不亮），但**悬停折线看任意点值**没跟随。挂全局 `#mtspark` 容器 `mousemove` 委托（`document`
+捕获）——按鼠标 x 比例定位最近折线点（`idx=round((x/w)*(n-1))`），亮该卡 hover 点（`.mtspark-hover`）+ 标签
+（`.mtspark-hoverlbl`，显该点值），`mouseout` 隐。扫趋势悬停看**任意批**的值（不只末值），与末点值标互补。
+
+**E2E**：`yInVp=True（卡 scrollIntoView 到视口内）+ after.dot=block + after.lbl=block + val=554（hover 点/标签亮
++ 数值跟随）+ out.dot=none（移开隐）`（绿）；端点 **30/0**、JS undefined NONE、CSS 318/318、node 0、console 0、
+截图 r134_hover.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 556→558`，断点 `_归档_封存\SD卡版\华语经典\方大同\Love Song.mp3`。
+
+**坑**：① hover 点/标签 CSS 早有（`_sparkSvg` 3062 `mtspark-hover/-lbl`，`display:none`），本轮只挂 **mousemove
+跟随逻辑**（`document` 捕获委托 `e.target.closest('.mtspark')`，每卡各一点不冲突）② x 比例定位 `idx=round((x/w)*
+(n-1))`（`w=容器宽`），y 按 `tr[idx]` 值域映射（`py=100-(v-min)/rng*100`，`top` 相对容器高）③ `data-tr` 存折线数据
+（`encodeURIComponent(JSON.stringify({t,c,l}))`，`_sparkSvg` 3062 已写），mousemove 解 `tr` 取点 ④ hover 点用
+`position:absolute` + `left/top` 百分比（不随 svg `preserveAspectRatio=none` 拉伸成变形，同末点圆点定位法）
+⑤ 验 E2E 时卡 `y=955` 在**视口外**（`viewport height=900`），`mouse.move` 到视口外不触发该卡 `mousemove` →
+`scrollIntoView({block:center})` 把卡滚进视口再 hover（`yInVp=True`）。
+
