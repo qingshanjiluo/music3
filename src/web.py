@@ -1026,6 +1026,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button id="mtrun">跑一轮</button>
     <button class="ghost" id="mtstat">看状态</button>
     <button class="ghost" id="mtlog">看日志</button>
+    <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
     <button class="danger sm" id="mtreset">重置断点</button>
   </div>
   <div class="bar">
@@ -2911,7 +2912,8 @@ async function mtRun(){
         const ago=(t)=>{ if(!t) return ''; const s=(Date.now()/1000 - t); if(s<60) return '刚刚'; if(s<3600) return Math.round(s/60)+' 分钟前'; if(s<86400) return Math.round(s/3600)+' 小时前'; return Math.round(s/86400)+' 天前'; };
         let el = $('#mtlast');
         if(!el){ el = document.createElement('div'); el.id='mtlast'; el.className='n'; el.style.cssText='margin-top:4px;font-size:12px;color:var(--dim)'; $('#mtmsg').insertAdjacentElement('afterend', el); }
-        el.innerHTML = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' '+esc(x.name)+'<span style="color:var(--dim)">（'+ago(x.at)+'）</span>').join(' · ');
+        el.innerHTML = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' <a href="javascript:void(0)" data-jn="'+esc(x.name)+'" style="color:var(--acc);text-decoration:underline">'+esc(x.name)+'</a><span style="color:var(--dim)">（'+ago(x.at)+'）</span>').join(' · ');
+        el.querySelectorAll('a[data-jn]').forEach(a=>{ a.onclick=()=>{ location.hash='#/lib'; const q=(window._findInput||document.querySelector('#findq')); if(q){ q.value=a.dataset.jn; } history.replaceState(null,'','#lib'); if(window._libLoad) window._libLoad(); }; });
       }
     }catch(e){}
     await mtStat();
@@ -3014,20 +3016,31 @@ async function mtStat(){
     }catch(e){}
   }catch(e){}
 }
+let _mtlogTimer=null;
+async function mtLogDraw(){
+  const d = await (await fetch('/api/maintain?act=log&n=120')).json();
+  const lines = d.lines || [];
+  $('#mtresult').innerHTML = lines.length
+    ? `<div class="joblog" style="max-height:320px">${lines.map(esc).join('\n')}</div>`
+    : '<div class="n">日志为空</div>';
+}
 async function mtLog(){
   setMsg($('#mtmsg'), '读日志…');
   try{
-    const d = await (await fetch('/api/maintain?act=log&n=80')).json();
-    const lines = d.lines || [];
-    $('#mtresult').innerHTML = lines.length
-      ? `<div class="joblog" style="max-height:320px">${lines.map(esc).join('\n')}</div>`
-      : '<div class="n">日志为空</div>';
-    setMsg($('#mtmsg'), `共 ${lines.length} 行`);
+    await mtLogDraw();
+    setMsg($('#mtmsg'), `共 ${($('#mtresult').querySelectorAll('.joblog div').length||0)} 行`);
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
+}
+function mtLogLive(){
+  if(_mtlogTimer){ clearInterval(_mtlogTimer); _mtlogTimer=null; setMsg($('#mtmsg'), '实时日志已停', 'ok'); return; }
+  setMsg($('#mtmsg'), '实时日志 · 每 2s 刷新…');
+  mtLogDraw().catch(()=>{});
+  _mtlogTimer=setInterval(()=>{ mtLogDraw().catch(()=>{}); }, 2000);
 }
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 $('#mtlog').onclick = mtLog;
+$('#mtloglive').onclick = mtLogLive;
 $('#mtreset').onclick = async()=>{
   if(!confirm('重置断点游标？下次会从头扫')) return;
   await fetch('/api/maintain?act=reset');
