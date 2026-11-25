@@ -2843,7 +2843,7 @@ async function mtStat(){
     }
     $('#mtresult').innerHTML = `
       <div class="statgrid">
-        <div class="statcard"><div class="k">已跑轮次</div><div class="v">${s.runs||0}</div></div>
+        <div class="statcard" title="维护 tick 累计；里程碑 300/350"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
@@ -2876,7 +2876,7 @@ async function mtStat(){
         `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条 · ${mbP} MB`+
         ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词+取链缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
         `</div>`+
-        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB / ${libCount||'-'} 首的 <b>${ratio}%</b> · 取链累计命中 <b>${pv.hits||0}</b> 次（清缓存连同命中计数一起清）</div>`);
+        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB ${libMB>=1024?'（≈'+(libMB/1024).toFixed(1)+' GB）':''} / ${libCount||'-'} 首的 <b>${ratio}%</b> · 取链累计命中 <b>${pv.hits||0}</b> 次（清缓存连同命中计数一起清）</div>`);
       $('#mtcacheclr').onclick = async ()=>{
         const btn = $('#mtcacheclr');
         if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)+取链('+(pv.files||0)+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;

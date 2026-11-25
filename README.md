@@ -2101,3 +2101,25 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 **坑**：清缓存必须**连命中计数一起清**（`_pv_reset_hits` 删文件 + 归 0 + 清脏）——只清三类缓存文件
 留 `hits` 旧值会让「缓存 0 条但命中 N 次」自相矛盾（用户以为缓存还在）。
 
+---
+
+## 第69轮（前端 R55 · goal round32）：runs 里程碑刻度 + 全库体积 GB 换算 + 修 mtStat 静默断链
+
+**完善性（里程碑）**：维护页「已跑轮次」卡加**里程碑刻度**（tooltip「维护 tick 累计；里程碑 300/350」，
+`runs≥300` 时值变绿 `var(--ok)`）——runs 破 300 后一眼看见「到刻度了」。
+
+**简洁性**：占比行全库体积加 GB 换算：`36560 MB（≈35.7 GB）`（`libMB≥1024` 才显示，免小库噪声）。
+
+**完善性（游标）**：全库 8 批 batch=20 `runs 300→308`，断点 `宋冬野\无题.mp3`（lyric/cover 本批 0 补——
+尾部全是嵌入型，加速层只长新补）。
+
+**E2E**：6 卡全出（含 runs 里程碑 + 缓存三合）、`runs=308` 绿 `rgb(47,125,85)`、占比行 `≈35.7 GB` 绿；
+端点 **30/0**、HTML 135121B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r55_milestone.png。
+
+**坑（本轮最大）**：R55 给 runs 卡 tooltip 写 `${b||20}`——`b` 是 `mtRun` 局部变量，**mtStat 作用域没有**
+→ `ReferenceError` 被 mtStat 外层 `catch(e){}` **静默吞掉** → `$('#mtresult').innerHTML` 赋值整个没执行
+→ **0 卡 + mtcacheclr 不出现**（E2E 卡死 240s）。逐段打点（hook fetch 看只发了 maintain+fixmeta 两个
+请求、无后续）才定位。修：tooltip 用字面量 `20`，不跨作用域引变量。
+教训：mtStat 外层 `catch(e){}` 吞一切——**改 5 卡 HTML 时引入未定义变量 = 整块静默断链**，
+E2E 必须断「6 卡都在」而非只等一个选择器。
+
