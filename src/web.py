@@ -3122,13 +3122,19 @@ async function mtStat(){
         const _over = rate>5;
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
           `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）${_over?' <span style="color:var(--bad);font-size:10px">⚠ 超 5% 警戒</span>':''}</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div><div style="position:relative">${_rateSpark}<div style="position:absolute;left:0;right:0;top:${_thrTop}px;height:0;border-top:1px dashed ${_over?'var(--bad)':'var(--dim)'}" title="5% 警戒线(异常率越过即超阈值)"></div><div style="position:absolute;right:2px;top:${_thrTop-11}px;font-size:9px;color:var(--dim)">5%</div></div></div>`);
-        /* 第 10 卡「本批耗时」: 本轮 tick 用时(s) + 近 8 次耗时趋势(sparkline 复用), 看每批是否变慢(网络/磁盘拖慢) */
+        /* 第 10 卡「本批耗时」: 本轮 tick 用时(s) + 近 8 次耗时趋势(sparkline 复用), 看每批是否变慢(网络/磁盘拖慢)
+           耗时异常标记: 末位 _dur 超 mean(dur_trend)+2σ 时卡头标「⚠ 本批变慢」(本批显著慢于近期, 提示网络/磁盘拖慢某批) */
         {
           const _durT = (s.dur_trend||[]);
           const _dur = _durT.length ? _durT[_durT.length-1] : 0;
-          const _durSpark = _sparkSvg(_durT.slice(-8), 'var(--muted)', '本批耗时(s)');
+          /* 均值 + 2σ 警戒: _slow = 末位 > mean + 2*std (dur_trend 不足 3 条时不判异常, 样本太少) */
+          const _dArr=_durT.slice(-8).filter(x=>typeof x==='number');
+          const _dMean=_dArr.length?_dArr.reduce((a,b)=>a+b,0)/_dArr.length:0;
+          const _dStd=_dArr.length>=3?Math.sqrt(_dArr.reduce((a,b)=>a+(b-_dMean)*(b-_dMean),0)/_dArr.length):0;
+          const _slow=_dArr.length>=3 && _dur>_dMean+2*_dStd;
+          const _durSpark = _sparkSvg(_durT.slice(-8), _slow?'var(--warn)':'var(--muted)', '本批耗时(s)');
           $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-            `<div class="statcard" title="最新一批 tick 用时(秒)；下方折线=近 8 批耗时趋势(变长=网络/磁盘拖慢)"><div class="k">本批耗时（近 8 批）</div><div class="v">${_dur?_dur+'s':'-'}</div>${_durSpark}</div>`);
+            `<div class="statcard" title="最新一批 tick 用时(秒)；下方折线=近 8 批耗时趋势(变长=网络/磁盘拖慢); 超均值+2σ 标「本批变慢」"><div class="k">本批耗时（近 8 批）${_slow?' <span style="color:var(--warn);font-size:10px">⚠ 本批变慢(超均值+2σ)</span>':''}</div><div class="v" style="${_slow?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${_dur?_dur+'s':'-'}</div>${_durSpark}</div>`);
         }
         /* 「下一批预计」: 网格下方一行提示 - 按 dur_trend 均值守估算下一批耗时 + 全库剩余曲目需几批跑完 */
         {

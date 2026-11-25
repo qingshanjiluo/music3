@@ -3481,3 +3481,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
 （sparkline 高 44，5% 的 top 偏移）③ `rate>5` 时警戒线 `--bad` 红 + 卡头 `⚠`（未超是 `--dim` 灰，不抢眼）④ 警戒线
 `title=5% 警戒线`（悬停说明），右上 `5%` 小标注（`position:absolute right:2px`，`top=_thrTop-11`）。
 
+---
+
+## 第140轮（前端 R126 · goal round103）：本批耗时「异常标记」（末位超均值+2σ → `⚠ 本批变慢`）
+
+**完善性（某批是否变慢）**：本批耗时卡显 `dur_trend` 末位（本轮 tick 秒）+ 近 8 批 sparkline，但**某批是否显著
+变慢**（网络/磁盘拖慢）要自己对比折线。卡加**耗时异常标记**——`_dur`（末位）超 `mean(dur_trend 末 8)+2σ` 时
+卡头标 `⚠ 本批变慢(超均值+2σ)`（`--warn` 黄）+ sparkline 变色，扫状态一眼看出某批是否异常拖慢。
+
+**E2E**：`hasCard + dur=0.7s + hasSpark + slowMark=False`（本批 0.7s 未超 mean+2σ，无变慢标记；绿）；端点
+**30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r126_slow.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 540→542`，断点 `_归档_封存\SD卡版\英文歌\Somebody to Love.mp3`。
+
+**坑**：① `mean+2σ` 用 `dur_trend` 末 8（`_dArr=filter(number)`），`_dStd=√(Σ(x-mean)²/n)`（总体 σ，非样本）；
+`_dArr<3` 不判异常（样本太少 `2σ` 无意义）② `_slow = _dur > _dMean + 2*_dStd`（末位显著超近期，才标「本批变慢」；
+全稳定时 σ 小但末位也在带内 → 不标，避免误报）③ 变慢用 `--warn` 黄（非 `--bad` 红——耗时慢≠异常失败，区别于
+异常率卡的 `--bad`）④ `dur_trend` 末位 `_dur` 与异常率卡同取法（`_durT[末]`），本批耗时卡的 `_dur` 与 `#mtdigest`
+`_jumpDur` 同源。
+
