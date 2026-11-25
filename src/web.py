@@ -2955,7 +2955,7 @@ async function mtStat(){
     }
     $('#mtresult').innerHTML = `
       <div class="statgrid mtgrid">
-        <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=350?400:350;return '维护 tick 累计；里程碑 '+(ms===400?'350/400':'300/350')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=350?400:350;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=350?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
+        <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
@@ -2973,16 +2973,23 @@ async function mtStat(){
       $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
         `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0}/${pv.calls||0}（命中率 ${pv.hit_rate||0}%，命中落盘重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`+
         `<div class="statcard" title="取链缓存命中率 = 命中 ${pv.hits||0} / 调用 ${pv.calls||0}（命中免 get_url 联网, 走本地 _cache/qq_*.json TTL 1800s）"><div class="k">取链命中率</div><div class="v" style="${(pv.hit_rate||0)>=80?'color:var(--ok);-webkit-text-fill-color:var(--ok)':(pv.calls||0)>=20?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${pv.hit_rate||0}%</div></div>`);
+      /* 第 8 卡「异常率」: 拉日志 200 行, 数异常行(miss/失败/超时/error/Exception)占比, 红 >5% */
+      try{
+        const lg = await (await fetch('/api/maintain?act=log&n=200')).json();
+        const lls = lg.lines||[];
+        const bad = lls.filter(l=>/miss|失败|超时|error|Exception|无封面/i.test(l)).length;
+        const rate = lls.length ? Math.round(bad/lls.length*100) : 0;
+        $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
+          `<div class="statcard" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div></div>`);
+      }catch(e){}
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
-      if(!libMB){
         try{
           const hz = await (await fetch('/api/health')).json();
           libMB = (+hz.total_size_mb||0); libCount = hz.total_all||0;
           window._health = window._health || hz;
         }catch(e){}
-      }
       const ratio = (libMB > 0) ? (totCache / libMB * 100).toFixed(1) : '0';
       $('#mtresult').insertAdjacentHTML('beforeend',
         `<div class="n" style="margin-top:6px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">`+
