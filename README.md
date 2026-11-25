@@ -3174,3 +3174,22 @@ toast。`mtRun` 完成处（`doneMsg` 非空且非全库）加 **`_toast('跑完
 会挤）③ 删 `nth-child` 覆盖（旧 4+3 布局的 `grid-column:1` 归位，`auto-fill` 自然换行不需要，留着反而错位）
 ④ `@media(max-width:640px)` 的 `.mtgrid` 旧 `repeat(2,1fr)` 覆盖保留（640 以下强制 2 列，移动端兜底）。
 
+---
+
+## 第124轮（前端 R110 · goal round87）：「本轮补入 mini 横滑条」（`recent` 近 5 条 pill）
+
+**简洁性（扫一眼本轮）**：「最近补入」列表（R96–R99）在卡片下方，扫一眼本轮刚补了啥要往下翻。`#mtdigest`
+下方加**「本轮补入」横滑条** `#mtrecentbar`——`state.recent` 近 5 条 pill（`歌词/封面` 色 + 文件名，`max-width`
+溢出省略），`overflow-x:auto` 横滑看全，点 pill `_mtLoc` 跳曲库搜这首——挂小结正下方，不展开「最近补入」区
+就扫到本轮补入。
+
+**E2E**：`nPill=5 + sample=歌词 Levels.mp3`（横滑条 5 条 pill，绿）；端点 **30/0**、JS undefined NONE、CSS 315/315、
+node 0、console 0、截图 r110_bar.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 505→507`，断点 `_归档_封存\SD卡版\华语经典\李荣浩\年少有为.mp3`。
+
+**坑**：① pill `onclick="_mtLoc(this)"` 复用 R97 最近补入定位函数（同 `data-name` 结构，省新函数）② pill 用**内联**
+`_wI/_wC`（`_wIcon/_wColor` 在下方 `#mtrecent` 块定义，`_recBar` 在其前 → `const` TDZ，内联判 `what` 规避）
+③ `overflow-x:auto` 横滑（近 5 条超出容器宽才出滚动条，`scrollWidth>clientWidth` 判定）④ `recent` 空时横滑条
+整块不渲染（`_recBar` 返回 `''`，不显「暂无」占位，保持首屏干净）。
+
