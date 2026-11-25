@@ -1938,3 +1938,21 @@ HTML 131611B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r44
 **坑**：① 歌词缓存 0 条 ≠ 坏——「嵌入优先」架构下它是加速层不是唯一真相，断言别写「清后必须回填 N 条」
 ② `confirm` 弹窗 E2E 要 `p.on("dialog", accept)` 放行，否则清缓存按钮点了无下文。
 
+---
+
+## 第61轮（前端 R47 · goal round24）：preview 双段计时 + 试听缓存反馈
+
+**流畅性（缓存透明化）**：`/api/preview` 原来 `use_cache=True` 白开——用户看不见秒回来源。
+拆两段计时回传：`search_ms`（router.search 路由查段）+ `total_ms`（含 get_url 取链全程）
++ `cached`（search_ms<300 判命中）。试听反馈文案双段：
+`搜索缓存 0.0s / 全程 0.1s` 或 `搜索冷查 1.4s / 全程 1.5s`。
+
+**E2E**：`稻香` 冷 `search_ms=772 total_ms=2567 cached=False` → 热 `search_ms=0 total_ms=115 cached=True`
+（**搜索段 160×**，全程仍 ~1s 因 get_url 每次取链——诚实标「全程」不冒充全快）；
+UI 试听文案双段反馈绿；端点 **29/0**、HTML 133136B、JS undefined NONE、CSS 302/302、node 0、console 0、
+截图 r47_preview_ui2.png。
+
+**坑**：① `elapsed_ms` 量全程会混进 get_url 网络段——cached 误判冷查（「热 0.123s」其实是取链快，
+搜索段要单量 `search_ms`）② UI 点 `.src` 列读到搜索摘要不是预听——预听按钮在操作列
+`#tb tr .rowops button`（R28 rowops 116px 三钮 ▶★⬇ 的第一个）。
+

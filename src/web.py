@@ -1878,7 +1878,14 @@ async function previewOne(i){
     a.src = d.proxy || d.url;   // 走本机代理，绕 CDN 防盗链/跨域
     a.play().catch(()=>{});
     showPvBar(d.title, d.artists);
-    setMsg($('#msg'), '正在试听（未下载，仅在线流）: '+d.title, 'ok');
+    /* 缓存反馈双段: 搜索段(search_ms, 缓存命中秒级) + 全程(total_ms, 含取链) */
+    let tag = '';
+    if(d.search_ms != null){
+      tag = d.cached
+        ? ' · 搜索缓存 '+(d.search_ms/1000).toFixed(1)+'s / 全程 '+(d.total_ms/1000).toFixed(1)+'s'
+        : ' · 搜索冷查 '+(d.search_ms/1000).toFixed(1)+'s / 全程 '+(d.total_ms/1000).toFixed(1)+'s';
+    }
+    setMsg($('#msg'), '正在试听（未下载，仅在线流）: '+d.title+tag, 'ok');
   }catch(e){ setMsg($('#msg'),'试听失败: '+e,'bad'); }
 }
 function showPvBar(title, artists){
@@ -3558,12 +3565,16 @@ class Handler(BaseHTTPRequestHandler):
 
             # ---- 预览试听：取在线直链，返回 URL 给浏览器 <audio> 直连 ----
             if u.path == "/api/preview":
+                import time as _pt
                 from . import config as _cfg
+                _pv_t0 = _pt.time()
                 kw = g("q", "").strip()
                 n = int(g("n", "1"))
                 srcs = [x.strip() for x in g("sources", "qq,netease").split(",") if x.strip()]
                 bili = "bilibili" in srcs
                 res = router.search(kw, sources=srcs, limit=15, bili=bili, use_cache=True)
+                _pv_search_ms = round((_pt.time() - _pv_t0) * 1000)   # 只算 router.search 段
+                _pv_cached = (_pv_search_ms < 300)   # 搜索缓存命中特征: 远快于冷查(~1.5s)
                 if not res:
                     return self._send(200, {"ok": False, "log": "无结果"})
                 t = None
@@ -3599,9 +3610,13 @@ class Handler(BaseHTTPRequestHandler):
                 if not url:
                     return self._send(200, {"ok": False, "log": "取链失败（vkey 过期？换一首）"})
                 proxy = "/api/pvstream?url=" + _urlquote(url, safe="")
+                _pv_total_ms = round((_pt.time() - _pv_t0) * 1000)
                 return self._send(200, {"ok": True, "url": url, "proxy": proxy,
                                        "title": t.title, "artists": t.artists,
-                                       "ext": ext or "mp3"})
+                                       "ext": ext or "mp3",
+                                       "search_ms": _pv_search_ms,
+                                       "total_ms": _pv_total_ms,
+                                       "cached": _pv_cached})
 
             # ---- 曲库文件夹管理：新建/改名/删除（限 DEFAULT_ROOT 内）----
             if u.path == "/api/lib":
