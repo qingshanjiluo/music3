@@ -3250,3 +3250,23 @@ node 0、console 0、截图 r113_logstat.png。
 `含「歌词」且非异常行`（`!_isBad` 排掉 miss，miss 行归异常不归补入）④ `#mtlogstat` 挂 `#mtlogwrap` 内 `#mtjoblog`
 前（摘要在日志正文上，不随日志滚）。
 
+---
+
+## 第128轮（前端 R114 · goal round91）：日志摘要异常/补数点击快速过滤（摘要↔过滤联动）
+
+**连贯性（摘要→过滤）**：R113 摘要有「异常 M / 歌词补 X / 封面补 Y」数字，想只看某类日志还得手动往
+`#mtlogfilter` 里打字。`#mtlogstat` 的**异常/歌词补/封面补**数包 `<a data-lf>`（点线 accent 暗示可点）——
+点「异常」填 `#mtlogfilter=miss`、点「歌词补」填 `歌词`、点「封面补」填 `封面`，触发 `input` 让 `mtLogDraw`
+重过滤——看全貌后**一键只看某类日志**，不用手敲过滤词。
+
+**E2E**：`n=3 + 点「封面补」→ #mtlogfilter=封面 + 日志过滤到封面行`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 316/316、node 0、console 0、截图 r114_logfilter.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 514→516`，断点 `_归档_封存\SD卡版\华语经典\陈奕迅\不要说话.mp3`。
+
+**坑**：① `data-lf` 走**全局委托**（绑 `document`，非 passive）——`#mtlogstat` 随 `mtLogDraw` 重铺，逐 `<a>`
+绑会丢，委托一次绑永久生效（同 R104）② 过滤词映射：异常→`miss`（`_isBad` 主标识，非中文「异常」）、歌词补→
+`歌词`、封面补→`封面`（与 `paint` 红字/统计口径一致）③ `#mtlogfilter` 填值后 `dispatchEvent(new Event('input',
+{bubbles}))` 触发既有 `document input` 委托（3344，自动 `mtLogDraw` 重过滤，不另写过滤逻辑）④ 摘要已过滤态
+（`kw`）显示「（过滤 X [清除]）」，`清除` 也 `data-lf=""` 一键清。
+
