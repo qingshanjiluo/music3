@@ -3270,3 +3270,22 @@ CSS 316/316、node 0、console 0、截图 r114_logfilter.png。
 {bubbles}))` 触发既有 `document input` 委托（3344，自动 `mtLogDraw` 重过滤，不另写过滤逻辑）④ 摘要已过滤态
 （`kw`）显示「（过滤 X [清除]）」，`清除` 也 `data-lf=""` 一键清。
 
+---
+
+## 第129轮（前端 R115 · goal round92）：日志行号 gutter（`.joblog-line` 左侧 `N:`）
+
+**完善性（长日志定位）**：`#mtjoblog` 200 行日志报「哪行异常」只能截内容，没行号。`.joblog-line` 加**左侧
+行号 gutter**（`<span class=lineno>N:`，`inline-block` 固定宽 34px 右对齐 `dim` 色 `opacity:.6` `user-select:none`）
+——日志每行带序号，定位/报位置直接说「第 N 行」；`#mtjoblog` 加 `font-family:ui-monospace,Consolas,monospace`
+（日志等宽更易读，时间戳/数字对齐）。
+
+**E2E**：`nLine=200 + nLno=200（每行 .lineno）+ firstLine=1:2026-11-26 05:01:07… + hasMono`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r115_lineno.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 516→518`，断点 `_归档_封存\SD卡版\华语经典\陈奕迅\葡萄成熟时.mp3`。
+
+**坑**：① 行号 `i+1`（`data-i` 是 0 起索引，显示 1 起）② `width:34px` 兜住 3 位数行号（200 行 `198:` 不顶格）
++ `min-width` 防折叠 ③ `user-select:none` 行号不参与选中（复制日志正文不带行号）④ `#mtjoblog` 等宽字体（日志
+时间戳 `HH:MM:SS` 对齐），`font-family` 放容器（子 `.joblog-line` 继承）⑤ `lineno` 是 `.joblog-line` 内 `<span>`
+（非独立列，`#mtjoblog` 整块横滚时行号随行，定位够用不另做 sticky 列）。
+
