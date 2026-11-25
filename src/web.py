@@ -1028,6 +1028,7 @@ tbody tr.playing td{background:#fbe9e4}
     <button class="ghost" id="mtlog">看日志</button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
+    <span class="n" style="display:flex;gap:4px;align-items:center"><button class="ghost sm" data-lf="歌词">歌词</button><button class="ghost sm" data-lf="封面">封面</button><button class="ghost sm" data-lf="异常">异常</button><button class="ghost sm" data-lf="">全部</button></span>
     <button class="danger sm" id="mtreset">重置断点</button>
   </div>
   <div class="bar">
@@ -3049,6 +3050,11 @@ $('#mtstat').onclick = mtStat;
 $('#mtlog').onclick = mtLog;
 $('#mtloglive').onclick = mtLogLive;
 document.addEventListener('input', e=>{ if(e.target && e.target.id==='mtlogfilter'){ if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); } });
+/* 日志预设 chip: 一键填过滤框(歌词/封面/异常/全部) + 重绘 */
+document.querySelectorAll('[data-lf]').forEach(c=>{
+  c.onclick=()=>{ const f=document.querySelector('#mtlogfilter'); if(!f) return; f.value=c.dataset.lf;
+    if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); };
+});
 $('#mtreset').onclick = async()=>{
   if(!confirm('重置断点游标？下次会从头扫')) return;
   await fetch('/api/maintain?act=reset');

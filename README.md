@@ -2359,3 +2359,18 @@ console 0、截图 r66_logfilter.png。
 **坑**：过滤+高亮用 `_kwsHtml` 转义正则字符再 `replace`——`kwsHtml` 在 R66 初稿里定义了两次
 （`mtLogDraw` 内 + 外层各一次，内层 `hi` 引用未定义）→ 简化成外层一个 `_kwsHtml`，去内层 `hi`。
 
+---
+
+## 第81轮（前端 R67 · goal round44）：日志过滤预设 chip（歌词 / 封面 / 异常 一键）
+
+**简洁性（免手打过滤词）**：R66 过滤框要手打关键词。加**预设 chip**（`[data-lf]`：`歌词 / 封面 / 异常 / 全部`）
+——点一下填 `#mtlogfilter` + 触发 `mtLogDraw()` 重绘；「全部」= 清空过滤。4 个 chip 跟过滤框并排。
+
+**E2E**：点「歌词」chip → 过滤框 `歌词` + **126 个 `<mark>` 高亮**绿；点「全部」→ 过滤框清空 `''`；
+端点 **30/0**、HTML 142155B、JS undefined NONE、CSS 309/309、node 0、console 0、截图 r67_logchip.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 388→392`，断点 `毛不易\城市傍晚.mp3`。
+
+**坑**：chip 用 `data-lf` 属性委托（`document.querySelectorAll('[data-lf]')`）——不用每个 chip 单独绑 onclick，
+加预设只改 `data-lf` 值；「全部」用空串 `data-lf=""`（`f.value=''` 清空 = 不过滤）。
+
