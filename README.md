@@ -2753,3 +2753,23 @@ CSS 312/312、node 0、console 0、截图 r87_dots.png。
 `circle` 在 `preserveAspectRatio=none` 的 svg 里会被拉伸成**椭圆**（X 缩放 Y 不缩）——`mtspark` 容器宽
 100% 拉伸下圆点略变椭圆，可接受（要正圆得算实际像素比，本轮不做）。
 
+---
+
+## 第102轮（前端 R88 · goal round65）：sparkline 圆点正圆修（HTML 覆盖层）
+
+**简洁性（圆点不畸变）**：R87 圆点在 `preserveAspectRatio=none` 的 svg 里被 X 拉伸成**椭圆**
+（viewBox 110 宽拉到卡宽 244，X 放大 2.2×）。修——圆点移出 svg，改 `.mtspark` 内 **HTML 绝对定位
+`<span>`**（`position:relative` 锚 + `left=0/100%` 定位首/末点 X、`top` 按 `yOf` 百分比、`width/height`
+固定像素 + `border-radius:50%`）——**正圆不畸变**（不随 svg 拉伸），折线仍 `preserveAspectRatio=none`
+铺满。
+
+**E2E**：4 卡圆点实际像素 `['4x4','6x6']×4`（首 4 末 6，全正圆 宽=高）；端点 **30/0**、HTML 153178B、
+JS undefined NONE、CSS 312/312、node 0、console 0、截图 r88_dots.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 457→459`，断点 `投稿\洛天依\孩子气的战争.mp3`。
+
+**坑**：① `preserveAspectRatio=none` 只适合折线（polyline 铺满要拉伸），**圆点/文字会被拉成椭圆**——
+点/文字移出 svg 用 HTML 定位 ② 首/末点 X 用 `left=0%/100%`（`tr.length>=2` 时首末点固定在首/末端），
+`top` 用 `yOf(v)*100%`（`yOf` 从 px 改百分比）③ `span` 用 `margin:-size/2 0 0 -size/2` 居中在定位点 ④
+验收 `[...sp].map`（NodeList 要展开，`sp.map` 在某些实现报错）。
+
