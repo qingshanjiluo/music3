@@ -3364,3 +3364,23 @@ node 0、console 0、截图 r117_clip.png。
 ② 持久化只记**开关态**（不记「挂到哪个点」，刷新后从头挂 5s 循环即可）③ 验后**关自动刷 + `_mtAuto=0`**（免污染
 后续会话的自动刷态）④ `mtStat` 每 5s 重拉 9 卡（已有），本特性只加**状态记忆**，不动 5s 循环。
 
+---
+
+## 第134轮（前端 R120 · goal round97）：实时日志自动滚到底（贴底跟 / 上翻不抢）
+
+**流畅性（盯最新日志）**：`#mtloglive` 每 2s 重铺 `#mtjoblog`，新日志行加尾部，但重铺后 `scrollTop`
+被重置，盯最新得手动再拉到底。`mtLogDraw` 加**自动滚底**——重铺前记旧 `#mtjoblog` 是否**贴底**
+（`scrollTop+clientHeight>=scrollHeight-8`），重铺后若贴底则 `scrollTop=scrollHeight`（跟最新）；**手动上翻过**
+（非贴底）则不抢（保持用户看的旧位置），实时日志盯最新 vs 翻历史两不误。
+
+**E2E**：`stickBottom=True（贴底重铺仍贴底）+ stayedTop=True（上翻重铺不抢停顶）`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r120_sticky.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 528→530`，断点 `_归档_封存\SD卡版\纯音乐\The Ludlows.mp3`。
+
+**坑**：① 重铺前取**旧** `#mtjoblog`（`_oldJl`）判 sticky（重铺后 DOM 已换，旧引用失效），`_oldJl` 为 null
+（首次看日志无旧区）时 `_sticky=true`（默认跟底）② 贴底判定容差 8px（`scrollHeight-8`，避免像素级抖动误判
+「贴底」）③ 上翻不抢：`_sticky=false` 时重铺后**不**设 `scrollTop`（浏览器保持 0，即用户翻到顶看历史，新日志
+进尾部但视口不动）④ 与 R111 新行淡闪、R112 滚到顶钮**正交**（淡闪标新行、滚顶钮回顶、滚底跟尾，三机制各自
+独立触发互不干扰）。
+
