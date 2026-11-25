@@ -2978,3 +2978,23 @@ HTML 163377B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r99
 空类显「近 5 条无 X 补入」（不留空）④ tab 按钮事件**逐按钮**绑（`mtStat` 重建后重新绑，不委托——
 委托会因 `#mtresult` 重铺丢监听；逐按钮 onclick 随重建一起重绑最稳）。
 
+---
+
+## 第114轮（前端 R100 · goal round77）：「看状态」区折叠（`#mtresult` toggle + localStorage 记忆）
+
+**简洁性（一屏放不下）**：R92–R99 维护 tab「看状态」区越堆越大（9 卡 + 本批耗时 + 下一批预计 + 全库进度条
++ 最近补入 5 条 + 跳日志），一屏装不下，往下滚找东西累。「维护守护」标题旁加**「▾ 折叠」toggle**
+（`#mtfold`，`float:right`），`mtFold()` 切 `#mtresult` 显示 + 记忆 `localStorage._mtFold`，按钮 `▾折叠/▸展开`
+切换；载入时按记忆恢复折叠态——维护 tab 常态折叠只露标题，点开才展开整区。
+
+**E2E**：`foldBtn + before=show → afterFold=none + 文案「▸ 展开」+ afterUnfold=show + stored=0`（折叠/展开/记忆
+三态对，绿）；端点 **30/0**、HTML 164113B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r100_fold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 485→487`，断点 `_归档_封存\SD卡版\…\Love Is Gone Acoustic.mp3`。
+
+**坑**：① 折叠**只藏 `#mtresult`**（卡片+进度+最近补入+跳日志 `#mtjumplog` 全 append 到它，一盖全盖），
+不另找日志区 id（初版误引 `#mtlogbox` 死 id，已删）② `mtFold` 全局（HTML `onclick` 调），`let hid=_mtFold===1`
+再取反（折叠=置 1 隐藏、展开=置 0 显示）③ 载入 IIFE 按 `_mtFold==='1'` 恢复折叠（`#mtresult` display:none +
+按钮 `▸ 展开`），首访无 key 不折叠 ④ 折叠时 `#mtstat` 仍点了会重铺 `#mtresult`（内容在，只是 display:none
+不显，展开即现）——不阻断数据刷新。
+

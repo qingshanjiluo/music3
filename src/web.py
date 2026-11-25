@@ -1025,6 +1025,7 @@ tbody tr.playing td{background:#fbe9e4}
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
     <b style="font-size:13px">维护守护</b>
+    <button class="ghost sm" id="mtfold" style="float:right;margin-top:-2px" title="折叠/展开「看状态」区(卡片+进度+最近补入+日志), 记忆到 localStorage" onclick="mtFold()">▾ 折叠</button>
   </div>
   <div class="bar">
     <button id="mtrun">跑一轮</button>
@@ -2960,6 +2961,17 @@ function _mtLoc(el){
     if(p&&p.then) p.then(_flash).catch(function(){}); else setTimeout(_flash,300);
   } }
 }
+/* 折叠「看状态」区: 藏 #mtresult(卡片+进度+最近补入+跳日志全在此), 记忆到 localStorage._mtFold, 按钮 ▾/▸ 切换 */
+function mtFold(){
+  const r=$('#mtresult'); if(!r) return;
+  let hid=(localStorage.getItem('_mtFold')==='1');
+  hid=!hid;
+  try{ localStorage.setItem('_mtFold', hid?'1':'0'); }catch(e){}
+  r.style.display=hid?'none':'';
+  const b=$('#mtfold'); if(b) b.textContent=hid?'▸ 展开':'▾ 折叠';
+}
+/* 载入时按记忆恢复折叠态 */
+(function(){ try{ if(localStorage.getItem('_mtFold')==='1'){ const r=$('#mtresult'); if(r) r.style.display='none'; const b=$('#mtfold'); if(b) b.textContent='▸ 展开'; } }catch(e){} })();
 async function mtStat(){
   try{
     /* 看状态时间戳: 落 localStorage, 「看状态」旁显「上次看 N 分钟前」 */
