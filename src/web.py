@@ -2993,7 +2993,7 @@ async function mtStat(){
       const _gid='spk'+(++_sparkSeq);
       const _area=pts+' '+w+','+h+' 0,'+h;
       /* 面积/渐变用 CSS 变量色时, linearGradient 的 stop 需具体色 - 传 color 可能是 var(), stop-color 支持 var() */
-      return `<div class="mtspark" style="position:relative" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><defs><linearGradient id="${_gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0"></stop><stop offset="1" stop-color="${color}" stop-opacity="0.18"></stop></linearGradient></defs><title>${tt}</title><polygon points="${_area}" fill="url(#${_gid})" stroke="none"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(_lastVal),100,6)}${_valLabel}</div>`; };
+      return `<div class="mtspark" data-tr='${encodeURIComponent(JSON.stringify({t:tr,c:color,l:label||''}))}' style="position:relative;cursor:crosshair" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><defs><linearGradient id="${_gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0"></stop><stop offset="1" stop-color="${color}" stop-opacity="0.18"></stop></linearGradient></defs><title>${tt}</title><polygon points="${_area}" fill="url(#${_gid})" stroke="none"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(_lastVal),100,6)}${_valLabel}<span class="mtspark-hover" style="position:absolute;left:-99px;top:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span class="mtspark-hoverlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:${color};white-space:nowrap;display:none;pointer-events:none"></span></div>`; };
     const _runSpark = _sparkSvg((s.trend||[]).slice(-8), (s.runs||0)>=400?'var(--ok)':'var(--acc)', '已跑轮次');
     const _lyrSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.lyric), 'var(--acc)', '累计歌词');
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');
@@ -3136,6 +3136,31 @@ async function mtLog(){
     setMsg($('#mtmsg'), `共 ${($('#mtresult').querySelectorAll('.joblog div').length||0)} 行`);
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
 }
+/* sparkline hover: 委托 mousemove 命中 .mtspark, 按 X 定位最近点, 显高亮圆点+值(纯JS不引库) */
+(function(){
+  document.addEventListener('mousemove', function(e){
+    const box=e.target.closest && e.target.closest('.mtspark');
+    if(!box){ document.querySelectorAll('.mtspark-hover,.mtspark-hoverlbl').forEach(function(x){x.style.display='none';}); return; }
+    const raw=box.dataset.tr; if(!raw) return;
+    let d; try{ d=JSON.parse(decodeURIComponent(raw)); }catch(e2){ return; }
+    const t=d.t||[]; if(t.length<2) return;
+    const r=box.getBoundingClientRect();
+    const frac=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    const idx=Math.round(frac*(t.length-1));
+    const max=Math.max.apply(null,t), min=Math.min.apply(null,t), rng=(max-min)||1;
+    const yPct=Math.round((22-((t[idx]-min)/rng)*22)*100);
+    const hov=box.querySelector('.mtspark-hover'), lbl=box.querySelector('.mtspark-hoverlbl');
+    if(hov){ hov.style.display='block'; hov.style.left=(idx/(t.length-1)*100)+'%'; hov.style.top=yPct+'%'; }
+    if(lbl){ lbl.style.display='block'; lbl.style.left=(idx/(t.length-1)*100)+'%'; lbl.style.top='-2px'; lbl.textContent=t[idx]; }
+  }, {passive:true});
+  document.addEventListener('mouseout', function(e){
+    const box=e.target.closest && e.target.closest('.mtspark');
+    if(box && !(e.relatedTarget && box.contains(e.relatedTarget))){
+      const h=box.querySelector('.mtspark-hover'), l=box.querySelector('.mtspark-hoverlbl');
+      if(h)h.style.display='none'; if(l)l.style.display='none';
+    }
+  }, {passive:true});
+})();
 /* 自动刷 9 卡: 每 5s 调 mtStat(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化), 再点停 */
 let _mtAutoRefTimer=null;
 function mtAutoRef(){

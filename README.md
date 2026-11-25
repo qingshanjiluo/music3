@@ -2810,3 +2810,24 @@ CSS 312/312、node 0、console 0、截图 r90_area.png。
 node `Missing catch or finally after try`。删 R89 遗留 return 修复。**教训**：`_sparkSvg` 这种「整函数
 体一行重写」的 edit，old_string 必须含到旧的 `};` 闭合行，否则新旧 return 叠加。
 
+---
+
+## 第105轮（前端 R91 · goal round68）：sparkline hover 高亮当前点（跟随读值）
+
+**简洁性（跟随读值）**：R90 面积渐变后，折线中间点只能靠 `<title>` 原生 tooltip（要悬停整折线），
+扫 4 卡想读**某个 X 处的值**不方便。`_sparkSvg` 加 `.mtspark` 内 hover 层——`data-tr` 存 `{t,c,l}`
+（序列/色/名，`encodeURIComponent` 免引号冲突）；全局**事件委托**（`document` mousemove 命中
+`.mtspark` 则按鼠标 X 算最近点 `idx`，显高亮圆点 + 值标签，`left/top` 按 `idx` 定位，mouseout 清）——
+鼠标扫折线，白边圆点 + 数字**跟着当前点走**，读任意 X 处的趋势值。
+
+**E2E**：切维护 tab + 真 `mouse.move` 到 30% X → hover `hovLeft=57.14%`（`461→465` 序列第 2 点）+
+`lblTxt=462`（绿）；端点 **30/0**、HTML 156127B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r91_hover.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 463→465`，断点 `投稿\热门歌曲\爱情讯息 - 郭静.mp3`。
+
+**坑（本轮重点）**：① 验收直接调 `mtStat()`（不切维护 tab）时 `.mtspark` **section 未激活 `getBoundingClientRect`
+全 0** → `frac=NaN` 定位失败（`hovLeft=-99px`）；**切 `.tab[data-p="d"]` 激活后容器有宽（244）才正常**——
+功能无误，是验收姿势 ② `data-tr` 用 `encodeURIComponent(JSON)`（免引号/`&` 转义），取用 `decodeURIComponent`
+③ hover 高亮点 HTML 绝对定位（同 R88 圆点不随 svg 拉伸），`border:2px solid #fff` 白边在折线上清晰
+④ 事件委托 `passive` + `e.target.closest('.mtspark')`（不逐卡绑，`mtStat` 反复重建 9 卡也复用同一委托）。
+
