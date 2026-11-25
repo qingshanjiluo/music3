@@ -2946,6 +2946,12 @@ async function mtRun(){
     setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮`:'') + `完成，耗时 ${_dt} s`, 'ok');
   }
 }
+/* 最近补入条目点击定位: 切曲库 tab + #fq 填文件名(去扩展名) -> doFind() 命中高亮 (全局, HTML onclick 调) */
+function _mtLoc(el){
+  const name=(el&&el.dataset.name)||''; if(!name) return;
+  setTab('b');
+  const fq=$('#fq'); if(fq){ fq.value=name; if(typeof doFind==='function') doFind(); }
+}
 async function mtStat(){
   try{
     /* 看状态时间戳: 落 localStorage, 「看状态」旁显「上次看 N 分钟前」 */
@@ -3065,7 +3071,9 @@ async function mtStat(){
           const _wAgo = t=>{ if(!t) return ''; const s2=(Date.now()-t*1000)/1000; if(s2<60) return Math.floor(s2)+'秒前'; if(s2<3600) return Math.floor(s2/60)+'分前'; if(s2<86400) return Math.floor(s2/3600)+'时前'; return Math.floor(s2/86400)+'天前'; };
           const _wIcon = w=> w==='lyric'?'歌词':'封面';
           const _wColor = w=> w==='lyric'?'var(--acc)':'var(--ok)';
-          const _rows = _rec.length ? _rec.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--line);font-size:12px"><span style="color:${_wColor(r.what)};font-weight:600">${_wIcon(r.what)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${(r.name||'').replace(/</g,'&lt;')}</span><span style="color:var(--muted);white-space:nowrap">${_wAgo(r.at)}</span></div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（暂无补入记录）</div>';
+          /* 点击定位: 切曲库 tab + #fq 填文件名(去扩展名) -> doFind() 命中高亮 */
+          const _loc = r=>{ setTab('b'); const fq=$('#fq'); if(fq){ fq.value=(r.name||'').replace(/\.[^.]+$/,''); if(typeof doFind==='function') doFind(); } };
+          const _rows = _rec.length ? _rec.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--line);font-size:12px;cursor:pointer" onclick="_mtLoc(this)" data-name="${(r.name||'').replace(/"/g,'&quot;')}" title="点击去曲库搜这首"><span style="color:${_wColor(r.what)};font-weight:600">${_wIcon(r.what)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${(r.name||'').replace(/</g,'&lt;')}</span><span style="color:var(--muted);white-space:nowrap">${_wAgo(r.at)}</span></div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（暂无补入记录）</div>';
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:10px" id="mtrecent" title="最近补入歌词/封面(近 5 条, 来自维护 tick; 类型色: 歌词=accent 封面=ok)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">最近补入（近 5 条）</div>${_rows}</div>`);
         }

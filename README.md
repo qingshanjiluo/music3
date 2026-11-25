@@ -2923,3 +2923,21 @@ HTML 158731B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r95
 自动刷 5s 不残留，同 R93/R94）③ 文件名 `r.name.replace(/</g,'&lt;')` 防注入 + `overflow:hidden` 长名省略
 ④ 相对时间 `_wAgo(at)`：秒/分/时/天前（`at` 是 unix 秒，×1000 转 ms）。
 
+---
+
+## 第111轮（前端 R97 · goal round74）：维护「最近补入」条目点击定位（跳曲库搜索）
+
+**连贯性（补入→定位）**：R96「最近补入」列表只能看，想知道「刚补的这首在曲库哪」还得手动切曲库搜。
+`#mtrecent` 行加 `onclick`（`data-name` 存文件名）→ 全局 `_mtLoc(el)`——`setTab('b')` 切曲库 + `#fq`
+填文件名（去扩展名）+ `doFind()` 命中高亮——点某条**直接跳曲库搜到这首**，不用翻。
+
+**E2E**：点最近补入行 → `name=烂泥Remix.mp3 → fqVal=烂泥Remix.mp3 + activeTab=曲库 + _mtLoc 在`（绿）；
+端点 **30/0**、HTML 160694B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r97_locate.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 479→481`，断点 `_归档_封存\SD卡版\…\24K Magic.mp3`。
+
+**坑**：① HTML 行 `onclick="_mtLoc(this)"` 需**全局** `_mtLoc`（`mtStat` 作用域内定义的函数 HTML 调不到，
+挂到 `mtStat` 前的顶层）② `data-name` 存**完整文件名带扩展名**（`#fq` 搜全名更准，去扩展名是 `doFind`
+内做），`replace(/"/g,'&quot;')` 防引号转义 ③ `doFind()` 是 async（不 await，fire-and-forget 触发即可，
+命中后 `renderGridBatch` 自渲染）④ `setTab('b')` 后 `#fq` 才在 DOM（曲库 tab 激活才建），先切再填。
+
