@@ -2042,3 +2042,22 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 ③ 服务偶发拒连（ThreadingHTTPServer 单 handler 被 health 深扫占满？requests 连 127.0.0.1 仍拒）
 → 验脚本加**连接重试 4×3s**，别一次拒连就整轮报废。
 
+---
+
+## 第66轮（前端 R52 · goal round29）：取链命中计数 + 维护页「缓存（三合）」第 6 卡
+
+**完善性（缓存可量化）**：R49 取链缓存只落盘没记命中——缓存好不好用看不见。加模块级
+`_PV_HITS`（`/api/preview` 命中时 `+=1`，进程内、重启归 0）+ `/api/cache` `previews.hits`。
+维护页 5 卡升**6 卡**：第 6 卡 `缓存（三合·命中 N）= 总条数`
+（`covers+lyrics+previews` 条数，tooltip 拆 `封面 X + 歌词 Y + 取链 Z；本进程取链命中 N 次`）。
+
+**E2E**：预热取链 3 调（首写+2 命中）→ `/api/cache` `previews {files:2, bytes:566, hits:2}`；
+维护页 6 卡 `['已跑轮次 284','累计补歌词 3070','累计补封面 3422','累计清理 0','ID3 双缺（5188 首）已核','缓存（三合·命中 2）11']`；
+端点 **30/0**、HTML 134876B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r52_cachecard.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `lyric 3067→3070 · cover 3419→3422 · runs 284`，
+断点 `洛天依\洛天依\周边.mp3`。
+
+**坑**：命中计数是**进程内**（`_PV_HITS` 模块级）——服务重启归 0，`hits` 只反映本进程，
+文案标「本进程」免误导；卡片条数 `11 = covers 6 + lyrics 3 + previews 2`。
+

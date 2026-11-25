@@ -35,6 +35,8 @@ from src.models import norm
 HOST = "127.0.0.1"
 PORT = 8420
 
+_PV_HITS = 0   # 取链缓存命中计数(进程内, 供 /api/cache 报 previews.hits)
+
 PAGE = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2794,6 +2796,10 @@ async function mtStat(){
       const cv = c.covers||{}, ly = c.lyrics||{}, pv = c.previews||{};
       const mbC = ((+cv.bytes||0)/1048576).toFixed(1), lbL = ((+ly.bytes||0)/1048576).toFixed(1), mbP = ((+pv.bytes||0)/1048576).toFixed(1);
       const totCache = ((+cv.bytes||0) + (+ly.bytes||0) + (+pv.bytes||0)) / 1048576;
+      /* 第 6 卡「缓存」: 三缓存总条数 + 取链命中数 */
+      const totFiles = ((+cv.files||0) + (+ly.files||0) + (+pv.files||0));
+      $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
+        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；本进程取链命中 ${pv.hits||0} 次"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
@@ -3584,6 +3590,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             # ---- 预览试听：取在线直链，返回 URL 给浏览器 <audio> 直连 ----
+            global _PV_HITS
             if u.path == "/api/preview":
                 import time as _pt
                 from . import config as _cfg
@@ -3624,6 +3631,7 @@ class Handler(BaseHTTPRequestHandler):
                         if _pj.get("exp", 0) > _t2.time() and _pj.get("url"):
                             url, ext = _pj["url"], _pj.get("ext", "mp3")
                             _url_cached = True
+                            _PV_HITS += 1   # 命中计数(进程内, 重启归 0)
                     except Exception:
                         pass
                 if url is None and not _url_cached:
@@ -4205,7 +4213,7 @@ class Handler(BaseHTTPRequestHandler):
                                 bz += os.path.getsize(f)
                             except Exception:
                                 pass
-                    return {"files": fn, "bytes": bz}
+                    return {"files": fn, "bytes": bz, "hits": _PV_HITS}
 
                 if g("clear_all", "") == "1":
                     n1 = covercache.cover_cache_clear()
