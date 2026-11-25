@@ -720,7 +720,7 @@ tbody tr.playing td{background:#fbe9e4}
       </div>
     </div>
     <div class="mnote">
-      这个工具从第一行代码到 46 条踩坑记录都是实打实趟出来的。<br>
+      这个工具从第一行代码到 <b id="mnotePits">46</b> 条踩坑记录都是实打实趟出来的（<span id="mnoteRounds">—</span> 轮迭代 · <span id="mnoteCommits">—</span> 次提交）。<br>
       觉得有用就点个 ⭐ Star，这是最直接的鼓励。<br>
       有问题、提需求、聊实现，加微信 <b style="color:var(--acc)">andyloveanny</b>
     </div>
@@ -2887,9 +2887,15 @@ document.addEventListener('keydown', e=>{
 /* ---------- 关于弹窗 ---------- */
 const REPO_URL = 'https://github.com/qingshanjiluo/music3';
 
-function aboutOpen(){ _opener=document.activeElement; document.body.classList.add('ov');
+async function aboutOpen(){ _opener=document.activeElement; document.body.classList.add('ov');
   $('#aboutmodal').classList.add('on');
-  const f=$('#aboutmodal').querySelector('button,a'); if(f) setTimeout(()=>f.focus(),30); }
+  const f=$('#aboutmodal').querySelector('button,a'); if(f) setTimeout(()=>f.focus(),30);
+  /* 动态计数: 坑/轮/提交数从 README+git 实时算, 免硬编码 46 */
+  try{
+    const d = await (await fetch('/api/about')).json();
+    if(d.pits){ $('#mnotePits').textContent = d.pits; $('#mnoteRounds').textContent = d.rounds||'—'; $('#mnoteCommits').textContent = d.commits||'—'; }
+  }catch(e){}
+}
 function aboutClose(){ document.body.classList.remove('ov'); $('#aboutmodal').classList.remove('on');
   if(_opener && _opener.focus) _opener.focus(); }
 
@@ -4120,6 +4126,31 @@ class Handler(BaseHTTPRequestHandler):
                 )
 
             # ---- 封面缓存管理 ----
+            if u.path == "/api/about":
+                # 动态计数: 扫 README 累加坑(含×N)+轮数 + git commit 数, 免硬编码 46
+                import re as _re
+                _pits = 0
+                _rounds = 0
+                _commits = 0
+                _rd = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "README.md")
+                try:
+                    if os.path.exists(_rd):
+                        _txt = open(_rd, "r", encoding="utf-8").read()
+                        _rounds = len(_re.findall(r"^## 第\d+轮", _txt, _re.M))
+                        for _m in _re.finditer(r"\*\*坑[^*]*\*\*(×\d+)?[:：]", _txt):
+                            _pits += int(_m.group(1)[1:]) if _m.group(1) else 1
+                except Exception:
+                    pass
+                try:
+                    import subprocess
+                    _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    _r = subprocess.run(["git", "rev-list", "--count", "HEAD"],
+                                        cwd=_root, capture_output=True, text=True, timeout=15)
+                    _commits = int((_r.stdout or "").strip() or 0)
+                except Exception:
+                    _commits = 0
+                return self._send(200, {"pits": _pits, "rounds": _rounds, "commits": _commits})
+
             if u.path == "/api/cache":
                 from . import covercache, lyricfill
 

@@ -1956,3 +1956,21 @@ UI 试听文案双段反馈绿；端点 **29/0**、HTML 133136B、JS undefined N
 搜索段要单量 `search_ms`）② UI 点 `.src` 列读到搜索摘要不是预听——预听按钮在操作列
 `#tb tr .rowops button`（R28 rowops 116px 三钮 ▶★⬇ 的第一个）。
 
+---
+
+## 第62轮（前端 R48 · goal round25）：about 弹窗坑计数动态化（脱 46 硬编码）
+
+**简洁性（自维护数字）**：about 弹窗「46 条踩坑记录」是 R34 硬编码的，48 轮后早已失实
+（实际 40 坑节 / 48 轮 / 52 提交）。改**动态**：新增 `/api/about` 扫 `README.md` 累加坑
+（含 `**坑**：` 与 `**坑（…）**：` 双变体、`×N` 计 N）+ 轮数（`^## 第\d+轮`）
++ `git rev-list --count HEAD` 提交数；`aboutOpen()` 打开弹窗时 fetch 填充
+`#mnotePits/#mnoteRounds/#mnoteCommits`，占位「46」只在请求失败时兜底。
+
+**E2E**：`/api/about` `{pits:40, rounds:48, commits:52}` 与离线 `re` 逐字一致；
+弹窗动态值 `40/48/52` 全同步、**脱 46**；端点 **30/0**（新基线：`/api/about` 入列，
+skip 6 后总数 34）、HTML 133516B、JS undefined NONE、CSS 302/302、node 0、console 0、
+截图 r48_about.png。
+
+**坑**：① 坑正则 `\*\*坑\*\*[:：]` 漏 `**坑（双杀）**：` 变体（4/40）→ 放宽 `\*\*坑[^*]*\*\*[:：]` 全收 40
+② 端点基线 29→**30**（R48 起含 `/api/about`），后续轮全量循环按 34 总数 / 30 可测断。
+
