@@ -1026,6 +1026,7 @@ tbody tr.playing td{background:#fbe9e4}
   </div>
   <div class="bar">
     <label class="chk">每轮 <input type="number" id="mtbatch" value="20" min="1" max="100" style="width:56px;flex:0 0 auto;padding:6px 8px"> 首</label>
+    <label class="chk">连跑 <input type="number" id="mtruns" value="1" min="1" max="10" style="width:48px;flex:0 0 auto;padding:6px 8px"> 轮</label>
     <label class="chk"><input type="checkbox" id="mtlyric" checked> 补歌词</label>
     <label class="chk"><input type="checkbox" id="mtcover" checked> 补封面</label>
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
@@ -2860,22 +2861,26 @@ async function mtRun(){
   const b = +$('#mtbatch').value || 20;
   const sub = curSub || '';
   const t0 = Date.now();
+  const N = Math.max(1, Math.min(10, +$('#mtruns').value || 1));
   /* 跑中 spinner: 按钮文字加转圈, 反馈不空等 */
   const _lab = btn.textContent;
-  btn.innerHTML = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>跑中…';
-  setMsg($('#mtmsg'), `跑一轮（每轮 ${b} 首${sub?' · '+sub:''}）…`);
-  /* 跑中计时: 每 500ms 刷一次已耗时 */
-  const _tm = setInterval(()=>{ setMsg($('#mtmsg'), `跑一轮… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`); }, 500);
+  const _spin = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>';
+  const setSpin=(i)=>{ btn.innerHTML = _spin + (N>1 ? `连跑 ${i}/${N}…` : '跑中…'); };
+  let doneMsg='';
   try{
-    const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
-      + `&lyric=${$('#mtlyric').checked?1:0}`
-      + `&cover=${$('#mtcover').checked?1:0}`
-      + `&clean=${$('#mtclean').checked?1:0}`;
-    const r = await (await fetch(u)).json();
-    if(r.error){ setMsg($('#mtmsg'), '错误: '+r.error, 'bad'); return; }
-    setMsg($('#mtmsg'),
-      `本轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}`
-      + (r.done ? ' · 已跑完一圈' : ''), 'ok');
+    for(let i=1;i<=N;i++){
+      setSpin(i);
+      setMsg($('#mtmsg'), `跑第 ${i}/${N} 轮（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`);
+      const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
+        + `&lyric=${$('#mtlyric').checked?1:0}`
+        + `&cover=${$('#mtcover').checked?1:0}`
+        + `&clean=${$('#mtclean').checked?1:0}`;
+      const r = await (await fetch(u)).json();
+      if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
+      doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
+      if(r.done && i<N){ /* 一圈跑完, 连跑剩余轮会从头, 提示 */ doneMsg += '（下一圈）'; }
+    }
+    setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();
@@ -2890,11 +2895,10 @@ async function mtRun(){
     await mtStat();
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
   finally{
-    clearInterval(_tm);
     btn.disabled = false;
     const _dt = Math.round((Date.now()-t0)/100)/10;
     btn.textContent = _lab;
-    setMsg($('#mtmsg'), `完成，耗时 ${_dt} s`, 'ok');
+    setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮`:'') + `完成，耗时 ${_dt} s`, 'ok');
   }
 }
 async function mtStat(){
@@ -2924,7 +2928,7 @@ async function mtStat(){
     }
     $('#mtresult').innerHTML = `
       <div class="statgrid">
-        <div class="statcard" title="维护 tick 累计；里程碑 300/350，下一里程碑 350 还差 ${Math.max(0,350-(s.runs||0))}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.round((s.runs||0)/350*100))}%;background:${(s.runs||0)>=350?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
+        <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=350?400:350;return '维护 tick 累计；里程碑 '+(ms===400?'350/400':'300/350')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=350?400:350;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=350?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
