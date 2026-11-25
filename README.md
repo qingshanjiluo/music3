@@ -3500,3 +3500,23 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r122_eta.png。
 异常率卡的 `--bad`）④ `dur_trend` 末位 `_dur` 与异常率卡同取法（`_durT[末]`），本批耗时卡的 `_dur` 与 `#mtdigest`
 `_jumpDur` 同源。
 
+---
+
+## 第141轮（前端 R127 · goal round104）：累计歌词/封面 占比双段条（`#mtmixbar`，看哪类补得多）
+
+**简洁性（比例直觉）**：`#mtdigest` 有累计歌词/封面**绝对值**（`t.lyric/t.cover`），但哪类补得多要自己算。
+`#mtresult` 卡片区下方（`#mtcursor` 后）加**占比双段条** `#mtmixbar`——`歌词 N（X%）/ 封面 M（Y%）` 双段条
+（歌词=`--acc` 红、封面=`--ok` 绿，两段 `width` 按占比 `X/Y`，合计 100%）——扫状态一眼看出歌词/封面哪类补得多，
+与 donut 完成度同「比例」直觉。
+
+**E2E**：`has + inResult + hasBar + lyW=47% / cvW=53%（累计歌词 47 vs 封面 53）+ hasLyCv`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 316/316、node 0、console 0、截图 r127_mix.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 542→544`，断点 `_归档_封存\SD卡版\英文歌\Unwritten.mp3`。
+
+**坑**：① 占比 `t.lyric/t.cover`（累计，`#mtdigest` 的 `_cumLy/_cumCv` 同源），双段条 `width` 按
+`_mLyPct/_mCvPct`（`歌词%` + `封面%=100-歌词%`，合计 100，`_mTot=0` 时两段各 0）② 双段 `display:flex` 并排
+（`overflow:hidden` 圆角裁），歌词段 `--acc` 封面段 `--ok`（与 `#mtrecent` 类型色同：歌词=accent 封面=ok）
+③ 数值标签 `justify-content:space-between`（左歌词、右封面，各带累计数 + 占比 `%`）④ 挂 `#mtresult`（`#mtcursor`
+后 `insertAdjacentHTML`，随 `mtStat` 幂等重建，同 donut/断点行/进度条）。
+

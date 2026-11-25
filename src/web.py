@@ -3178,6 +3178,14 @@ async function mtStat(){
             ? `<div id="mtcursor" style="margin-top:6px;font-size:11px;color:var(--dim);padding:6px 10px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius)" title="断点续传游标: 下次「跑维护」从这里继续扫(已补的不重补, 只重扫定位)"><span style="color:var(--muted)">断点续传游标</span> <b style="color:var(--acc);font-family:ui-monospace,Consolas,monospace">${esc(_tail)}</b><span style="color:var(--dim);margin-left:8px">· 已扫约 ${_scanned} / ${s.n_total||'-'} 首 · 下次跑维护从此处续</span></div>`
             : `<div id="mtcursor" style="margin-top:6px;font-size:11px;color:var(--dim);padding:6px 10px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius)" title="断点已重置/未设置, 下次跑维护从头扫全库">断点未设置（下次跑维护从头扫全库）</div>`;
           $('#mtresult').insertAdjacentHTML('beforeend', _cursorHtml);
+          /* 累计歌词/封面占比双段条: t.lyric vs t.cover 累计补入数, 双段条(歌词=accent, 封面=ok)看哪类补得多, 与 donut 完成度同「比例」直觉 */
+          {
+            const _mLy = (t && t.lyric)||0, _mCv=(t && t.cover)||0;
+            const _mTot = _mLy+_mCv;
+            const _mLyPct = _mTot?Math.round(_mLy*100/_mTot):0, _mCvPct=_mTot?100-_mLyPct:0;
+            $('#mtresult').insertAdjacentHTML('beforeend',
+              `<div id="mtmixbar" style="margin-top:6px" title="累计补入占比: 歌词 vs 封面(看哪类补得多)"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:3px"><span><b style="color:var(--acc)">歌词 ${_mLy}</b>（${_mLyPct}%）</span><span><b style="color:var(--ok)">封面 ${_mCv}</b>（${_mCvPct}%）</span></div><div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden;display:flex"><div style="height:8px;width:${_mLyPct}%;background:var(--acc);transition:width .3s"></div><div style="height:8px;width:${_mCvPct}%;background:var(--ok);transition:width .3s"></div></div></div>`);
+          }
         }
         /* 最近补入列表: state.recent(近5条 {what,name,at}) - 看刚补了哪首歌词/封面 + 时间, 非卡片(挂#mtresult尾随mtStat重建幂等) */
         {
