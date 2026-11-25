@@ -3059,6 +3059,16 @@ async function mtStat(){
           $('#mtresult').insertAdjacentHTML('beforeend',
             `<div style="margin-top:6px" id="mtprog" title="全库维护进度 = 已跑轮次×20 / 全库总量; 封顶100%(断点续传后重头算)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">${_ptxt} <b style="color:${_pc}">${_pct}%</b>（已扫约 ${_scanned} / ${s.n_total||'-'} 首）</div><div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:8px;width:${_pct}%;background:${_pc};border-radius:4px;transition:width .3s"></div></div></div>`);
         }
+        /* 最近补入列表: state.recent(近5条 {what,name,at}) - 看刚补了哪首歌词/封面 + 时间, 非卡片(挂#mtresult尾随mtStat重建幂等) */
+        {
+          const _rec = s.recent||[];
+          const _wAgo = t=>{ if(!t) return ''; const s2=(Date.now()-t*1000)/1000; if(s2<60) return Math.floor(s2)+'秒前'; if(s2<3600) return Math.floor(s2/60)+'分前'; if(s2<86400) return Math.floor(s2/3600)+'时前'; return Math.floor(s2/86400)+'天前'; };
+          const _wIcon = w=> w==='lyric'?'歌词':'封面';
+          const _wColor = w=> w==='lyric'?'var(--acc)':'var(--ok)';
+          const _rows = _rec.length ? _rec.map(r=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed var(--line);font-size:12px"><span style="color:${_wColor(r.what)};font-weight:600">${_wIcon(r.what)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${(r.name||'').replace(/</g,'&lt;')}</span><span style="color:var(--muted);white-space:nowrap">${_wAgo(r.at)}</span></div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:4px 0">（暂无补入记录）</div>';
+          $('#mtresult').insertAdjacentHTML('beforeend',
+            `<div style="margin-top:10px" id="mtrecent" title="最近补入歌词/封面(近 5 条, 来自维护 tick; 类型色: 歌词=accent 封面=ok)"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">最近补入（近 5 条）</div>${_rows}</div>`);
+        }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');

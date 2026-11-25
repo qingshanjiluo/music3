@@ -2904,3 +2904,22 @@ HTML 158731B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r95
 （一处判分 3 用）② 100% 是**封顶**（`runs×20≥n_total`），非真「每首都补完」——全库跑完一轮，
 断点续传后 `runs` 重置会重回进行中色（cursor 决定真实位置）③ 绿 `rgb(47,125,85)` = `var(--ok)`。
 
+---
+
+## 第110轮（前端 R96 · goal round73）：维护「最近补入」列表（`state.recent`）
+
+**完善性（刚补了什么）**：9 卡 + 进度条都是**汇总数字**，没「刚补了哪几首」——`maintain_state.json` 早有
+`recent`（每 tick `insert(0,{what,name,at})`，只保近 5），`status()` 已回 `recent`，但前端没消费。`mtStat` 加
+**「最近补入（近 5 条）」列表**（`#mtrecent`）——每行 `类型(歌词/封面)｜文件名｜相对时间`，类型色（歌词=accent
+封面=ok），文件名 `overflow:hidden` 省略号——看刚补了什么 + 什么时候，免翻维护日志。
+
+**E2E**：`最近补入 歌词 烂泥Remix.mp3 12分前 … 封面 让天依 catch your heart.mp3 46分前`（5 条 recent，绿）；
+端点 **30/0**、HTML 160100B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r96_recent.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 477→479`，断点 `_归档_封存\SD卡版\…\四季 夏.mp3`。
+
+**坑**：① `recent` 只在 `lyric_ok/cover_ok` 时 insert（miss 不记），全库跑顺时 recent 稀疏（正常，
+无补入就没条目）② `#mtrecent` 挂 `#mtresult` 尾（非 `.statgrid`），`mtStat` 重铺自动清掉重建（幂等，
+自动刷 5s 不残留，同 R93/R94）③ 文件名 `r.name.replace(/</g,'&lt;')` 防注入 + `overflow:hidden` 长名省略
+④ 相对时间 `_wAgo(at)`：秒/分/时/天前（`at` 是 unix 秒，×1000 转 ms）。
+
