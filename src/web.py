@@ -3349,7 +3349,10 @@ function mtLogCopy(){
   if(!lines.length){ _toast('日志为空','bad'); return; }
   /* 复制内容 = 行号 + 正文(去 lineno span, 只 .joblog-line 文本), 保留过滤态(只复制当前显示的过滤结果) */
   const txt=lines.map(el=>el.textContent).join('\n');
-  const done=()=>{ _toast('已复制 '+lines.length+' 行日志到剪贴板','ok'); };
+  /* 过滤态标记: #mtlogfilter 有值时复制的是「命中行」, toast 带(过滤 X)+ #mtlogcopy 钮 title 动态标, 贴 issue 精准 */
+  const f=document.querySelector('#mtlogfilter'), kw=f?(f.value||'').trim():'';
+  const _cbtn=document.querySelector('#mtlogcopy');
+  const done=()=>{ _toast('已复制 '+lines.length+' 行日志到剪贴板'+(kw?'（过滤「'+kw+'」）':''),'ok'); if(_cbtn){ _cbtn.textContent='复制日志'+(kw?'（已过滤 '+lines.length+' 行）':''); } };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }); }
   else { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
 }

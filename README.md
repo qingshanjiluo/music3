@@ -3539,3 +3539,24 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r127_mix.png。
 ④ `清除` 链接 `data-lf=""` 复用 R114 全局委托（`#mtlogstat a[data-lf]` 点击 → `#mtlogfilter.value=''` 触发
 `mtLogDraw` 重过滤），匹配计数随之消失。
 
+---
+
+## 第143轮（前端 R129 · goal round106）：复制「当前过滤结果」（`#mtlogcopy` 过滤态只复制命中行，toast/钮标「已过滤 N 行」）
+
+**连贯性（复制精准）**：`#mtlogcopy`（R116）取 `#mtjoblog` 当前可见行（即过滤结果），但**复制的是命中还是全量**
+没提示。`mtLogCopy` 读 `#mtlogfilter` 值 `kw`——过滤态 toast `已复制 N 行日志到剪贴板（过滤「X」）` + `#mtlogcopy`
+钮文案 `复制日志（已过滤 N 行）`（`done` 时动态改 `textContent`），贴 issue/分享时清楚复制的是**命中结果**而非全量
+200 行；非过滤态 toast/钮不标（保持原样）。
+
+**E2E**：过滤「歌词」→ 复制 `copied=154 == nBefore=154`（剪贴板行数 = 命中行）+ toast「已复制 154 行日志到剪贴板
+（过滤「歌词」）」+ 钮「复制日志（已过滤 154 行）」（绿）；端点 **30/0**、JS undefined NONE、CSS 316/316、node 0、
+console 0、截图 r129_fcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 546→548`，断点 `_归档_封存\SD卡版\华语经典\周传雄\忘记.mp3`。
+
+**坑**：① 复制内容本就 = `.joblog-line`（当前过滤态结果），R116 已支持「只复制命中行」，本轮只加**提示**（toast +
+钮文案标过滤）② `#mtlogfilter` 有值时 `kw` 非空，`done` 改 `#mtlogcopy.textContent=复制日志（已过滤 N 行）`（`N=命中
+行数 lines.length`）；清空过滤再复制则钮回 `复制日志`（`kw` 空）③ 剪贴板行数验 = `txt.split('\n').length`（含末行
+换行差 1，验 `copied==nBefore` 即只复制命中）④ `#mtlogcopy` 是静态按钮（不随 `mtLogDraw` 重铺），改 `textContent`
+持久到下次复制/刷新，不冲突。
+
