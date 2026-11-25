@@ -3076,3 +3076,23 @@ HTML 166806B、JS undefined NONE、CSS 315/315、node 0、console 0（无 passiv
 一次绑 `document` 永久生效（`mtStat` 重建 `<a>` 也不丢委托）④ `dur` 卡靠 `.k` 文本含「本批耗时」定位（非固定
 nth-child，卡片顺序变也稳）。
 
+---
+
+## 第119轮（前端 R105 · goal round82）：小结累计歌词/封面也跳卡（4 面全可跳）
+
+**连贯性（小结↔卡片补全）**：R104 小结异常率/本批耗时可跳卡，但「歌词/封面」只有本轮补数、累计数没
+法跳对应累计卡。`#mtdigest` 改**累计** `歌词 N + 封面 M`（`t.totals`，非本轮 `_dLy`）也包 `<a
+data-jumpto=lyr/cov>`，`_mtJump` 加 `lyr/cov` 分支（按 `.k` 含「累计补歌词/封面」定位卡）——小结 4 面
+（累计歌词/封面/异常率/本批耗时）**全可点跳卡**，点哪个数字直接定位那张卡。
+
+**E2E**：`n=4 + kinds=[lyr,cov,rate,dur]`，点 `lyr` → 累计补歌词卡滚到 `top=387`（视口内）；端点 **30/0**、
+HTML 167xxx B、JS undefined NONE、CSS 315/315、node 0、console 0（无 passive 错）、截图 r105_jump2.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 495→497`，断点 `_归档_封存\SD卡版\华语经典\周传雄\男人海洋.mp3`。
+
+**坑**：① 小结「歌词/封面」改显**累计**（`t.totals.lyric/cover`）非本轮 `_dLy`（跳的是累计卡，值该一致），
+本轮补数收进「（本轮补 X+Y）」括注 ② `_mtJump` 的 `lyr/cov` 用 `.k` 文本含「累计补歌词/封面」定位卡（非
+固定 `nth-child`，卡顺序变也稳）③ `data-jumpto` 4 种（`lyr/cov/rate/dur`）走同一全局委托（R104 非 passive
+绑 `document`，新增 `<a>` 自动生效，不重绑）④ 异常率仍 `[data-jumplog=异常]` 卡、本批「本批耗时」卡，口径
+不变。
+
