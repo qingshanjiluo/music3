@@ -186,6 +186,10 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     trend = st.get("trend", [])
     trend.append(int(st["runs"]))
     st["trend"] = trend[-8:]
+    # 累计补歌词/封面趋势: 近 8 次累计值(看累计爬升斜率), 满 8 截尾
+    ct = st.get("cum_trend", [])
+    ct.append({"lyric": int(st["totals"].get("lyric", 0)), "cover": int(st["totals"].get("cover", 0))})
+    st["cum_trend"] = ct[-8:]
     _write_state(st)
 
     log("本轮完成: 歌词+%d 歌词-%d 封面+%d 封面-%d 清理%d"
@@ -206,6 +210,7 @@ def status():
         "log_lines": len(tail_log(99999)),
         "last": st.get("last", {}),
         "trend": st.get("trend", []),
+        "cum_trend": st.get("cum_trend", []),
     }
     return s
 

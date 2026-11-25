@@ -2659,3 +2659,23 @@ HTML 151953B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r82
 清 `src\__pycache__\*.pyc` + 重编译 + `Start-Process` 后补 2 批凑 `trend>=2` 才出 sparkline ③ sparkline
 `tr.length<2` 不画（首次 tick 前 trend 空，正常）。
 
+---
+
+## 第97轮（前端 R83 · goal round60）：累计补歌词/封面卡也挂 sparkline（双趋势）
+
+**简洁性（双趋势）**：R82 只有「已跑轮次」卡有 sparkline，累计卡看不出**爬升斜率**。
+`maintain.tick()` 存 `st["cum_trend"]`（近 8 次 `{lyric,cover}` 累计，满 8 截尾），`status()` 回
+`cum_trend`，前端泛化 `_sparkSvg(tr,color)` 生成器，「累计补歌词/封面」卡下方各挂一条
+`var(--acc)` sparkline——3 张卡全带趋势，累计爬得陡/平一眼看。
+
+**E2E**：`cum_trend` 落 state（`[{"lyric":3092,"cover":3440},…]`）+ 前 3 卡 `svg polyline`
+`[True,True,True]` 全绿；端点 **30/0**、HTML 152200B、JS undefined NONE、CSS 310/310、node 0、
+console 0、截图 r83_doublespark.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 441→445`，断点 `陶喆\Kiss goodbye.mp3`。
+
+**坑**：① `_sparkSvg` 从内联 IIFE 泛化成 `(tr,color)=>{}` 函数（3 卡复用，color 参数化）②
+`cum_trend` 是**对象数组**（`{lyric,cover}`），前端 `map(o=>o.lyric)`/`map(o=>o.cover)` 抽序列再喂
+`_sparkSvg`（不能直接喂对象）③ 累计卡 `cum_trend` 值全相等（全库跑顺、累计不变）→ 斜率平（画一条
+平线，正确）；有增量才见斜率。
+
