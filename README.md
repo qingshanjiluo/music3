@@ -3520,3 +3520,22 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r127_mix.png。
 ③ 数值标签 `justify-content:space-between`（左歌词、右封面，各带累计数 + 占比 `%`）④ 挂 `#mtresult`（`#mtcursor`
 后 `insertAdjacentHTML`，随 `mtStat` 幂等重建，同 donut/断点行/进度条）。
 
+---
+
+## 第142轮（前端 R128 · goal round105）：日志过滤匹配计数（`#mtlogstat` 过滤态显「匹配 N 行」）
+
+**简洁性（还剩多少命中）**：`#mtlogfilter` 输入过滤词后 `#mtlogstat` 有「（过滤 X）」前缀，但**命中了多少行**
+没数，翻日志不知道还剩几条。`#mtlogstat` 过滤态加**匹配计数**——`（匹配 N 行 · 过滤 X [清除]）`（`N`=过滤后
+命中行数，`<b>` accent 加粗），扫日志知道当前关键词还剩多少命中。
+
+**E2E**：过滤「歌词」→ `#mtlogstat hasStat + hasCnt + cnt=153（命中 153 行）+ hasMatch + hasClear`（绿）；端点
+**30/0**、JS undefined NONE、CSS 316/316、node 0、console 0、截图 r128_match.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 544→546`，断点 `_归档_封存\SD卡版\华语经典\五月天\垃圾车.mp3`。
+
+**坑**：① 过滤态 `lines` 已是**过滤后**命中行，`_nTotal=lines.length` 即命中数（非全量），故「匹配 N 行」直接用
+`_nTotal`（与下方「共 ${_nTotal} 行」同源，过滤态「共」语义变「匹配」）② 非过滤态（`kw` 空）**不显**匹配计数
+（`kw?'…':''`，全量态没有「匹配」概念）③ 命中数 `0` 时「匹配 0 行」（全不中，提示改过滤词），仍显（不隐藏）
+④ `清除` 链接 `data-lf=""` 复用 R114 全局委托（`#mtlogstat a[data-lf]` 点击 → `#mtlogfilter.value=''` 触发
+`mtLogDraw` 重过滤），匹配计数随之消失。
+

@@ -3322,7 +3322,7 @@ async function mtLogDraw(){
   const _nLy = lines.filter(l=>/歌词/.test(l) && !_isBad(l)).length;
   const _nCv = lines.filter(l=>/封面/.test(l) && !_isBad(l)).length;
   const _lfLink = (v, label, n)=> `<a href="javascript:void(0)" data-lf="${escL(v)}" style="color:var(--acc);text-decoration:underline dotted;font-weight:600" title="点击过滤含「${escL(v)}」的日志行">${label} ${n}</a>`;
-  const _logStat = `<div id="mtlogstat" style="font-size:11px;color:var(--dim);margin-bottom:4px">${kw?'（过滤 '+escL(kw)+' <a href="javascript:void(0)" data-lf="" style="color:var(--acc);text-decoration:underline" title="清除过滤">清除</a>）':''}共 ${_nTotal} 行 ｜ ${_lfLink('miss','异常',_nBad)} ｜ ${_lfLink('歌词','歌词补',_nLy)} · ${_lfLink('封面','封面补',_nCv)}</div>`;
+  const _logStat = `<div id="mtlogstat" style="font-size:11px;color:var(--dim);margin-bottom:4px">${kw?('（匹配 <b style="color:var(--acc)">'+_nTotal+'</b> 行 · 过滤 '+escL(kw)+' <a href="javascript:void(0)" data-lf="" style="color:var(--acc);text-decoration:underline" title="清除过滤">清除</a>）'):''}共 ${_nTotal} 行 ｜ ${_lfLink('miss','异常',_nBad)} ｜ ${_lfLink('歌词','歌词补',_nLy)} · ${_lfLink('封面','封面补',_nCv)}</div>`;
   /* 实时刷新自动滚底: 重铺前记旧日志是否贴底(sticky), 重铺后若贴底则滚到底看最新; 手动上翻过则不抢 */
   const _oldJl=document.querySelector('#mtjoblog');
   const _sticky = _oldJl ? (_oldJl.scrollTop+_oldJl.clientHeight >= _oldJl.scrollHeight-8) : true;
