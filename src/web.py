@@ -3026,6 +3026,14 @@ async function mtStat(){
         const _rateSpark = _sparkSvg((s.rate_trend||[]).slice(-8), 'var(--bad)', '异常率(本轮miss%)');
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
           `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div>${_rateSpark}</div>`);
+        /* 第 10 卡「本批耗时」: 本轮 tick 用时(s) + 近 8 次耗时趋势(sparkline 复用), 看每批是否变慢(网络/磁盘拖慢) */
+        {
+          const _durT = (s.dur_trend||[]);
+          const _dur = _durT.length ? _durT[_durT.length-1] : 0;
+          const _durSpark = _sparkSvg(_durT.slice(-8), 'var(--muted)', '本批耗时(s)');
+          $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
+            `<div class="statcard" title="最新一批 tick 用时(秒)；下方折线=近 8 批耗时趋势(变长=网络/磁盘拖慢)"><div class="k">本批耗时（近 8 批）</div><div class="v">${_dur?_dur+'s':'-'}</div>${_durSpark}</div>`);
+        }
         /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
         document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
           card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');

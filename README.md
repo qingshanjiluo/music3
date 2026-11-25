@@ -2831,3 +2831,22 @@ node `Missing catch or finally after try`。删 R89 遗留 return 修复。**教
 ③ hover 高亮点 HTML 绝对定位（同 R88 圆点不随 svg 拉伸），`border:2px solid #fff` 白边在折线上清晰
 ④ 事件委托 `passive` + `e.target.closest('.mtspark')`（不逐卡绑，`mtStat` 反复重建 9 卡也复用同一委托）。
 
+---
+
+## 第106轮（前端 R92 · goal round69）：维护 tab「本批耗时」卡（`dur_trend` 落 state）
+
+**完善性（批次性能趋势）**：8 卡都是**结果指标**（歌词/封面/异常率），缺**性能指标**——每批 tick
+用时多长、有没有变慢（网络拖 / 磁盘卡 / 曲目多了）。`maintain.tick()` 头记 `_t0=time.time()`、尾记
+`_dur=round(time.time()-_t0,1)` 落 `res["duration"]` + `state["dur_trend"]`（近 8 批，满 8 截尾），
+`status()` 回 `dur_trend`；前端「看状态」加**第 10 张卡「本批耗时（近 8 批）」**——值=最新一批 `s.dur_trend`
+末位（`X.Xs`），下方挂 `var(--muted)` sparkline（近 8 批耗时折线，变长=拖慢）。
+
+**E2E**：`dur_trend=[6.0,2.6]` 落 state + 本批耗时卡 `durV=2.6s + durSpark=True`（第 10 张卡，绿）；
+端点 **30/0**、HTML 156672B、JS undefined NONE、CSS 312/312、node 0、console 0、截图 r92_dur.png。
+
+**完善性（游标续推）**：全库 2+2 批 batch=20 `runs 465→469`，断点 `投稿\陈奕迅\淘汰.mp3`。
+
+**坑**：① 值取 `s.dur_trend` **末位**（最新一批），不依赖 `s.last.duration`（`st["last"]` 在 tick 头写、
+来不及算 `_dur`，故不塞 last）② 首次 2 批在**重启前**跑（旧代码无 `dur_trend`）→ 重启后空，补 2 批才落值
+（同 R85 坑）③ `_sparkSvg` 色传 `var(--muted)`（中性色，耗时非好坏指标，不用红绿）。
+

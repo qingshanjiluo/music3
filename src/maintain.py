@@ -96,6 +96,7 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     """跑一轮维护。返回本轮统计。"""
     from . import lyricfill, coverfill, health, tagreader
 
+    _t0 = time.time()
     st = _read_state()
     res = {"lyric_ok": 0, "lyric_miss": 0, "cover_ok": 0, "cover_miss": 0,
            "cleaned": 0, "scanned": 0, "cursor": "", "done": False}
@@ -181,8 +182,7 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     for k, kk in (("lyric_ok", "lyric"), ("cover_ok", "cover"), ("cleaned", "clean")):
         st["totals"][kk] = int(st["totals"].get(kk, 0)) + res[k]
     st["last"] = {"lyric_ok": res["lyric_ok"], "cover_ok": res["cover_ok"],
-                  "cleaned": res["cleaned"], "scanned": res.get("scanned", 0), "at": time.time()}
-    # runs 趋势: 记近 8 次每轮 runs(供前端迷你 sparkline), 满 8 截尾
+                  "cleaned": res["cleaned"], "scanned": res.get("scanned", 0), "at": time.time()}    # runs 趋势: 记近 8 次每轮 runs(供前端迷你 sparkline), 满 8 截尾
     trend = st.get("trend", [])
     trend.append(int(st["runs"]))
     st["trend"] = trend[-8:]
@@ -197,6 +197,12 @@ def tick(batch=20, sub="", do_lyric=True, do_cover=True, do_clean=True,
     rt = st.get("rate_trend", [])
     rt.append(_rate)
     st["rate_trend"] = rt[-8:]
+    # 本批耗时趋势: 本轮 tick 用时(秒, 1 位小数), 近 8 次(供耗时卡 sparkline), 满 8 截尾
+    _dur = round(time.time() - _t0, 1)
+    res["duration"] = _dur
+    dt = st.get("dur_trend", [])
+    dt.append(_dur)
+    st["dur_trend"] = dt[-8:]
     _write_state(st)
 
     log("本轮完成: 歌词+%d 歌词-%d 封面+%d 封面-%d 清理%d"
@@ -219,6 +225,7 @@ def status():
         "trend": st.get("trend", []),
         "cum_trend": st.get("cum_trend", []),
         "rate_trend": st.get("rate_trend", []),
+        "dur_trend": st.get("dur_trend", []),
     }
     return s
 
