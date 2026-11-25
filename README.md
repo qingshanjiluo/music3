@@ -2123,3 +2123,24 @@ CSS 302/302、node 0、console 0、截图 r50_3cache.png。
 教训：mtStat 外层 `catch(e){}` 吞一切——**改 5 卡 HTML 时引入未定义变量 = 整块静默断链**，
 E2E 必须断「6 卡都在」而非只等一个选择器。
 
+---
+
+## 第70轮（前端 R56 · goal round33）：runs 下一里程碑进度条 + 取链命中率（hits/calls）
+
+**完善性（里程碑可视化）**：「已跑轮次」卡加**下一里程碑进度条**（350 为满刻度，`runs/350` 百分比，
+`<350` 走 `var(--acc)`、`≥350` 变绿；tooltip「下一里程碑 350 还差 N」）——runs 316 时条走 90% 一眼到。
+
+**完善性（命中率）**：R53 只报命中数、没分母。加 `_PV_CALLS`（每次 `/api/preview` 取链段 +1，
+进程内）+ `/api/cache` `previews.{calls, hit_rate}`；占比行 + 第 6 卡 tooltip 都显 `取链命中 H/C（命中率 R%）`。
+
+**E2E**：预热 6 调 → `previews {files:3, hits:5, calls:6, hit_rate:83}`；runs 卡 `316` 进度条 90%、
+tooltip「下一里程碑 350 还差 34」；占比行 `取链命中 5/6（命中率 83%）`；6 卡全在、端点 **30/0**、
+HTML 135505B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r56_progress.png。
+
+**完善性（游标续推）**：全库 8 批 batch=20 `lyric 3074→3075 · runs 308→316`，
+断点 `整理后分类\thisistruemusic\纯音乐\River.mp3`。
+
+**坑**：命中率分母 `calls` 是**进程内**（不随 hits 落盘）——重启后 hits 从 `pv_hits.json` 读回、
+calls 归 0，命中率会虚高（hits 旧累计 / calls 新分母）；接受此偏差（命中率本就是「本进程观测」，
+文案不标「跨重启」）。
+

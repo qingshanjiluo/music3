@@ -41,6 +41,7 @@ _PV_HITS_FILE = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath
 _PV_HITS = 0
 _PV_HITS_DIRTY = False
 _PV_HITS_LAST_FLUSH = 0.0
+_PV_CALLS = 0   # 累计取链调用次数(命中率分母, 进程内)
 
 
 def _pv_load_hits():
@@ -2843,7 +2844,7 @@ async function mtStat(){
     }
     $('#mtresult').innerHTML = `
       <div class="statgrid">
-        <div class="statcard" title="维护 tick 累计；里程碑 300/350"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div></div>
+        <div class="statcard" title="维护 tick 累计；里程碑 300/350，下一里程碑 350 还差 ${Math.max(0,350-(s.runs||0))}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.round((s.runs||0)/350*100))}%;background:${(s.runs||0)>=350?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
@@ -2859,7 +2860,7 @@ async function mtStat(){
       /* 第 6 卡「缓存」: 三缓存总条数 + 取链命中数 */
       const totFiles = ((+cv.files||0) + (+ly.files||0) + (+pv.files||0));
       $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0} 次（落盘, 重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
+        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0}/${pv.calls||0}（命中率 ${pv.hit_rate||0}%，命中落盘重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
@@ -2876,7 +2877,7 @@ async function mtStat(){
         `封面缓存 <b>${cv.files||0}</b> 张 · ${mbC} MB &nbsp; 歌词缓存 <b>${ly.files||0}</b> 条 · ${lbL} MB &nbsp; 取链缓存 <b>${pv.files||0}</b> 条 · ${mbP} MB`+
         ` <button class="ghost sm" id="mtcacheclr" title="清空封面+歌词+取链缓存(文件保留在库, 只清 _cache)">清缓存</button>`+
         `</div>`+
-        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB ${libMB>=1024?'（≈'+(libMB/1024).toFixed(1)+' GB）':''} / ${libCount||'-'} 首的 <b>${ratio}%</b> · 取链累计命中 <b>${pv.hits||0}</b> 次（清缓存连同命中计数一起清）</div>`);
+        `<div class="n" style="margin-top:4px;color:var(--dim)">缓存共 ${totCache.toFixed(1)} MB · 占全库 ${libMB?libMB.toFixed(0):'-'} MB ${libMB>=1024?'（≈'+(libMB/1024).toFixed(1)+' GB）':''} / ${libCount||'-'} 首的 <b>${ratio}%</b> · 取链命中 <b>${pv.hits||0}</b>/${pv.calls||0}（命中率 <b>${pv.hit_rate||0}%</b>，清缓存连同命中计数一起清）</div>`);
       $('#mtcacheclr').onclick = async ()=>{
         const btn = $('#mtcacheclr');
         if(!confirm('清空封面('+cv.files+' 张)+歌词('+ly.files+' 条)+取链('+(pv.files||0)+' 条)缓存？\n文件本身不动, 下次访问会重建。')) return;
@@ -3681,6 +3682,8 @@ class Handler(BaseHTTPRequestHandler):
                 from . import config as _cfg2
                 _PV_DIR = _cfg2.get("cache_dir") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_cache", "previews")
                 _PV_TTL = 1800  # 取链有效期(vkey 直链一般 30min 内)
+                global _PV_CALLS
+                _PV_CALLS += 1   # 取链调用累计(命中率分母)
                 _pvkey = "%s_%s" % (t.source, t.track_id)
                 _pvf = os.path.join(_PV_DIR, _pvkey + ".json")
                 url = ext = None
@@ -4274,7 +4277,8 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception:
                                 pass
                     _pv_flush_hits()   # 读时落一次脏, 保 /api/cache 报准
-                    return {"files": fn, "bytes": bz, "hits": _PV_HITS}
+                    _rate = round(_PV_HITS / _PV_CALLS * 100) if _PV_CALLS else 0
+                    return {"files": fn, "bytes": bz, "hits": _PV_HITS, "calls": _PV_CALLS, "hit_rate": _rate}
 
                 if g("clear_all", "") == "1":
                     n1 = covercache.cover_cache_clear()
