@@ -383,7 +383,8 @@ tbody tr.playing td{background:#fbe9e4}
 /* 维护页 7 卡: 两行 4+3(桌面), 窄屏 auto-fit 自动折 */
 .mtgrid{grid-template-columns:repeat(4,1fr)}
 .mtgrid .statcard:nth-child(5){grid-column:1}
-@media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5){grid-column:auto}}
+.mtgrid .statcard:nth-child(9){grid-column:1}
+@media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5),.mtgrid .statcard:nth-child(9){grid-column:auto}}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
@@ -2980,7 +2981,28 @@ async function mtStat(){
         const bad = lls.filter(l=>/miss|失败|超时|error|Exception|无封面/i.test(l)).length;
         const rate = lls.length ? Math.round(bad/lls.length*100) : 0;
         $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-          `<div class="statcard" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div></div>`);
+          `<div class="statcard" data-jumplog="异常" style="cursor:pointer" title="维护日志(近 200 行)异常占比 = 异常 ${bad} / ${lls.length}；异常含 miss/失败/超时/error/无封面，>5% 变红；点我看日志"><div class="k">异常率（日志 ${lls.length} 行）</div><div class="v" style="${rate>5?'color:var(--bad);-webkit-text-fill-color:var(--bad)':rate>0?'color:var(--warn);-webkit-text-fill-color:var(--warn)':'color:var(--ok);-webkit-text-fill-color:var(--ok)'}">${rate}%</div></div>`);
+        /* 异常率卡点击 -> 跳日志区 + 过滤填「异常」+ 红字 */
+        document.querySelectorAll('#mtresult .statcard[data-jumplog]').forEach(card=>{
+          card.onclick=()=>{ const f=document.querySelector('#mtlogfilter');
+            if(f){ f.value=card.dataset.jumplog; }
+            /* 追加日志区到 #mtresult 尾(不清 8 卡) + 过滤 + 滚到 */
+            const box=document.getElementById('mtjumplog');
+            if(!box){ const d=document.createElement('div'); d.id='mtjumplog'; d.style.cssText='margin-top:10px'; document.querySelector('#mtresult').appendChild(d); }
+            if(typeof mtLogDraw==='function'){
+              /* 临时把 mtLogDraw 的输出容器指到 box */
+              const _mtresult=document.getElementById('mtresult');
+              /* 直接拉日志填 box */
+              fetch('/api/maintain?act=log&n=200').then(r=>r.json()).then(d=>{
+                let lines=d.lines||[]; const kw=((f.value||'').trim());
+                if(kw){ lines=lines.filter(l=>l.indexOf(kw)>=0); }
+                box.innerHTML = lines.length ? `<div class="joblog" style="max-height:300px">${lines.map(l=>l.replace(/</g,'&lt;')).join('\n')}</div>` : '<div class="n">无匹配日志</div>';
+                box.scrollIntoView({behavior:'smooth',block:'center'});
+              }).catch(()=>{});
+            }
+            setMsg($('#mtmsg'), `已跳日志 + 过滤「${card.dataset.jumplog}」`, 'ok');
+          };
+        });
       }catch(e){}
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;

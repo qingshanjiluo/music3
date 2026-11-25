@@ -2434,3 +2434,23 @@ CSS 309/309、node 0、console 0、截图 r70_mile450.png。
 **坑**：在 `mtStat` 的 try 块中间插代码（异常率卡 insert）容易挤掉作用域外变量的 `let` 声明 + 配平
 catch——insert 后要 `node --check` 抓 `Missing catch/finally`（配平错），别只看 `compile` 过。
 
+---
+
+## 第85轮（前端 R71 · goal round48）：8 卡两行 4+4 归位 + 异常率卡点跳日志
+
+**简洁性（8 卡排版）**：R70 异常率卡后维护页 8 卡 4+4，第 5 卡 `grid-column:1` 归位（已有），
+加第 9 卡占位规则（`.mtgrid .statcard:nth-child(9){grid-column:1}`，卡数增长自动续排），窄屏 2 列。
+
+**完善性（异常率卡可点）**：异常率卡 `data-jumplog="异常"` 可点——点它**追加**日志容器 `#mtjumplog`
+到 `#mtresult` 尾（`mtlogfilter` 自动填「异常」+ 拉日志过滤 + 滚到），**不清 8 卡**（`appendChild` 非
+`innerHTML` 全替换）；异常率 0%（全库跑顺）时容器显「无匹配日志」。
+
+**E2E**：8 卡 `cols=4 c5 第二行 c5col=1`；点异常率卡 → `fv=异常 / hasBox / boxVisible / cards=8`（容器在、
+不清卡）绿；端点 **30/0**、HTML 145674B、JS undefined NONE、CSS 310/310、node 0、console 0、截图 r71_jumplog.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 404→408`，断点 `红心收藏\Mr. Feel.mp3`。
+
+**坑**：① 跳日志容器 `#mtjumplog` 最初挂 `class="n"`（`n` = `display:none`）→ hidden，去掉 `n` 类 ② 容器
+append 到 `#mtresult` 但父级在 `d` tab 未激活时 hidden——验收用 `wait_for_selector(state="attached")`
+（不要求 visible）断言容器在，别等 visible。
+
