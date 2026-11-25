@@ -1026,7 +1026,7 @@ tbody tr.playing td{background:#fbe9e4}
   </div>
   <div class="bar">
     <label class="chk">每轮 <input type="number" id="mtbatch" value="20" min="1" max="100" style="width:56px;flex:0 0 auto;padding:6px 8px"> 首</label>
-    <label class="chk">连跑 <input type="number" id="mtruns" value="1" min="1" max="10" style="width:48px;flex:0 0 auto;padding:6px 8px"> 轮</label>
+    <label class="chk">连跑 <input type="number" id="mtruns" value="1" min="1" max="50" style="width:48px;flex:0 0 auto;padding:6px 8px"> 轮 <input type="checkbox" id="mtfull" title="勾选则忽略轮数, 连跑到全库跑完一圈(5188 首, 每 tick 20 首)"> 跑到全库</label>
     <label class="chk"><input type="checkbox" id="mtlyric" checked> 补歌词</label>
     <label class="chk"><input type="checkbox" id="mtcover" checked> 补封面</label>
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
@@ -2861,26 +2861,29 @@ async function mtRun(){
   const b = +$('#mtbatch').value || 20;
   const sub = curSub || '';
   const t0 = Date.now();
-  const N = Math.max(1, Math.min(10, +$('#mtruns').value || 1));
+  const FULL = $('#mtfull').checked;   /* 跑到全库: 循环到 done(忽略 N) */
+  const N = FULL ? 999999 : Math.max(1, Math.min(50, +$('#mtruns').value || 1));
   /* 跑中 spinner: 按钮文字加转圈, 反馈不空等 */
   const _lab = btn.textContent;
   const _spin = '<span class="spin" style="display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin-right:6px;vertical-align:-1px;animation:spin .7s linear infinite"></span>';
-  const setSpin=(i)=>{ btn.innerHTML = _spin + (N>1 ? `连跑 ${i}/${N}…` : '跑中…'); };
+  let ticks=0;
+  const setSpin=(i)=>{ btn.innerHTML = _spin + (FULL ? `跑到全库 第 ${i} 轮…` : (N>1 ? `连跑 ${i}/${N}…` : '跑中…')); };
   let doneMsg='';
   try{
     for(let i=1;i<=N;i++){
       setSpin(i);
-      setMsg($('#mtmsg'), `跑第 ${i}/${N} 轮（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`);
+      setMsg($('#mtmsg'), `${FULL?'跑到全库 · 第 '+i+' 轮':'跑第 '+i+'/'+N+' 轮'}（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${Math.round((Date.now()-t0)/100)/10} s`);
       const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
         + `&lyric=${$('#mtlyric').checked?1:0}`
         + `&cover=${$('#mtcover').checked?1:0}`
         + `&clean=${$('#mtclean').checked?1:0}`;
       const r = await (await fetch(u)).json();
       if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
+      ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
-      if(r.done && i<N){ /* 一圈跑完, 连跑剩余轮会从头, 提示 */ doneMsg += '（下一圈）'; }
+      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
-    setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
+    if(!(FULL && doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();
@@ -2944,7 +2947,8 @@ async function mtStat(){
       /* 第 6 卡「缓存」: 三缓存总条数 + 取链命中数 */
       const totFiles = ((+cv.files||0) + (+ly.files||0) + (+pv.files||0));
       $('#mtresult .statgrid').insertAdjacentHTML('beforeend',
-        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0}/${pv.calls||0}（命中率 ${pv.hit_rate||0}%，命中落盘重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`);
+        `<div class="statcard" title="封面 ${cv.files||0} + 歌词 ${ly.files||0} + 取链 ${pv.files||0}；取链累计命中 ${pv.hits||0}/${pv.calls||0}（命中率 ${pv.hit_rate||0}%，命中落盘重启不归 0）"><div class="k">缓存（三合·命中 ${pv.hits||0}）</div><div class="v">${totFiles}</div></div>`+
+        `<div class="statcard" title="取链缓存命中率 = 命中 ${pv.hits||0} / 调用 ${pv.calls||0}（命中免 get_url 联网, 走本地 _cache/qq_*.json TTL 1800s）"><div class="k">取链命中率</div><div class="v" style="${(pv.hit_rate||0)>=80?'color:var(--ok);-webkit-text-fill-color:var(--ok)':(pv.calls||0)>=20?'color:var(--warn);-webkit-text-fill-color:var(--warn)':''}">${pv.hit_rate||0}%</div></div>`);
       /* 全库体积: 优先吃 health tab 已扫的 window._health, 免每次重扫 */
       let libMB = 0, libCount = 0;
       if(window._health && window._health.total_size_mb){ libMB = +window._health.total_size_mb; libCount = window._health.total_all||0; }
