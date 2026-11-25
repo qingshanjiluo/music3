@@ -3753,3 +3753,26 @@ var(--acc)` + `padding-left:8px`（可点行视觉提示，与曲库卡可点态
 `48,125,85`（`47,125,85` 经 antialias 渲 48，`is_green` 容 `r∈{47,48}`）；关态灰 `119,112,106`（`--dim`）+ `transition`
 渲后微偏（`108,114,103`）。
 
+---
+
+## 第153轮（前端 R139 · goal round116）：跑维护「本轮进度条 i/N」（`#mtrunprog`，跑多轮显 i/N，跑完隐）
+
+**连贯性（跑到第几轮）**：`mtRun` 跑多轮（`#mtruns=N`）时 `#mtmsg` 文案显 `跑第 i/N 轮`，但**扫一眼进度**要读文案。
+`#mtrun` 按钮旁加**本轮进度条** `#mtrunprog`（120px 条 + `#mtrunprogin` 填充 + `#mtrunprogtx` 文案）——跑多轮（`N>1`）
+每轮 `i` 更新宽 `i/N`（33%→67%→…→100%）+ 文案 `i/N 轮`，**单轮/全库隐**，**跑完/错误隐**——扫一眼跑到第几轮/还剩多少，
+与「跑一轮」按钮同「执行反馈」直觉。
+
+**E2E**：`seq[i=1..3]: vis=True + 宽 33%/67%/100% + 文案 1/3 轮 → 2/3 轮 → 3/3 轮 + 跑完 hidden=True`（绿，用 `_mtProg`
+直接驱动验，不真跑 `mtRun` 免污染游标）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r139_prog.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 566→568`，断点 `_归档_封存\SD卡版\华语经典\陈奕迅\不要说话.mp3`。
+
+**坑**：① `_mtProg(i,total,hide)` 统一驱动进度条：`hide` 或 `total<=1`（单轮/全库 `N=999999`）→ 隐（`#mtrunprog`+`#mtrunprogtx`
+`display:none` + 填充宽 0）；跑多轮 → 显 + `#mtrunprogin` 宽 `i/total`（`33/67/100`）+ 文案 `i/N 轮` ② 挂 `#mtrun` 按钮后
+（顶栏 `#mtrunprog` 120px 条，`#mtrunprogin` accent 填充 `transition width .3s`，`#mtrunprogtx` accent 文案）③ `mtRun` 循环
+每轮 `if(!FULL) _mtProg(i,N,false)`（全库 `N=999999` 不显进度条，全库用 donut/eta 另算）④ 隐时机三处：单轮跑完（`N=1` 循环
+`_mtProg` 显 1/1 后 `for` 结束）、跑完（`for` 后 `_mtProg(N,N,!(FULL_DONE||doneMsg))`——非全库 N/N 跑完隐）、错误 `return`
+（`_mtProg(0,N,true)`）⑤ 验收**不真跑 `mtRun`**（跑 tick 污染 `runs` 游标），用 `_mtProg` 直接驱动 `i=1..3` 验进度条显隐/
+宽/文案 + 跑完隐（函数级验，不碰后端）。
+

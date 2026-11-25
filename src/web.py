@@ -1045,6 +1045,8 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="bar">
     <button id="mtrun">跑一轮</button>
+    <div id="mtrunprog" style="display:none;width:120px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-left:8px;vertical-align:middle" title="本轮进度 (i/N)"><div id="mtrunprogin" style="width:0;height:6px;background:var(--acc);border-radius:3px;transition:width .3s"></div></div>
+    <span id="mtrunprogtx" style="display:none;font-size:11px;color:var(--acc);font-weight:600;margin-left:6px"></span>
     <button class="ghost" id="mtstat">看状态<span id="mtdotStat" class="mtrun-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--dim)" title="自动刷 5s 运行指示"></span></button>
     <button class="ghost sm" id="mtrefresh" title="只重拉 8 卡数据(不重铺日志区)">刷新</button>
     <button class="ghost" id="mtlog">看日志<span id="mtdotLog" class="mtrun-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--dim)" title="实时日志运行指示"></span></button>
@@ -2901,6 +2903,15 @@ function _toast(msg, kind){
 }
 /* 轮数/批量输入夹取: 手输 0/负/超大值自动夹到合法范围(mtruns 1-50, mtbatch 1-100), 防落 ||默认 */
 (function(){ const clip=(id,lo,hi,def)=>{ const el=document.getElementById(id); if(!el) return; el.addEventListener('change',()=>{ let v=Math.round(+el.value); if(isNaN(v)||v<lo) v=lo; if(v>hi) v=hi; el.value=v; }); }; clip('mtruns',1,50,1); clip('mtbatch',1,100,20); })();
+/* 本轮进度条: 跑多轮(N>1)时 #mtrunprog 显 i/N, 每轮 update; 跑完/单轮/全库隐; 扫一眼跑到第几轮/还剩多少 */
+function _mtProg(i, total, hide){
+  const bar=$('#mtrunprog'), fill=$('#mtrunprogin'), tx=$('#mtrunprogtx');
+  if(hide || (total && total<=1)){ if(bar) bar.style.display='none'; if(tx) tx.style.display='none'; if(fill) fill.style.width='0'; return; }
+  if(bar) bar.style.display=''; if(tx) tx.style.display='';
+  const pct=Math.min(100, Math.round(i*100/Math.max(1,total)));
+  if(fill) fill.style.width=pct+'%';
+  if(tx) tx.textContent=i+'/'+total+' 轮';
+}
 async function mtRun(){
   const btn = $('#mtrun');
   btn.disabled = true;
@@ -2932,6 +2943,7 @@ async function mtRun(){
         estTxt = ` · 预计全库约 ${Math.max(1,Math.round(ticksFirstMs/1000*totalTicks/60))} 分钟`;
       }
       setMsg($('#mtmsg'), `${FULL?'跑到全库 · 第 '+i+' 轮':'跑第 '+i+'/'+N+' 轮'}（每轮 ${b} 首${sub?' · '+sub:''}）… 已耗时 ${_elapsed}s${estTxt}`);
+      if(!FULL){ _mtProg(i, N, false); }  /* 本轮进度: 跑多轮显 i/N, 全库(N=999999)不显进度条 */
       const u = `/api/maintain?act=tick&batch=${b}&sub=${encodeURIComponent(sub)}`
         + `&lyric=${$('#mtlyric').checked?1:0}`
         + `&cover=${$('#mtcover').checked?1:0}`
@@ -2939,11 +2951,12 @@ async function mtRun(){
       const _t1=Date.now();
       const r = await (await fetch(u)).json();
       if(i===1){ ticksFirstMs = Date.now()-_t1; }
-      if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); return; }
+      if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); _mtProg(0, N, true); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
+    _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
     if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg; _toast(_tm, 'ok'); }
