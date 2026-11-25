@@ -1879,3 +1879,23 @@ handler 报 500（`/api/fixmeta?estimate=1` 200 前必须过 `len()` 关）② �
 ② 5 卡同步断言要用**二点缓存终值**（c2），冷点首帧（c1）是 countUp 500ms 编排中段，`endswith` 假红
 ③ `mtStat` 内挂 estimate 必须带 60s 缓存，否则每次看状态卡 26s。
 
+---
+
+## 第58轮（前端 R44 · goal round21）：ID3 卡 tooltip + `meta_fixed>0` 分支回归
+
+**完善性（卡片语义双分支坐实）**：R43 只验过「已核」负分支，`meta_fixed>0` 绿字分支从未实测。
+用 state 文件构造 `meta_fixed=7` 临时回归（备份→改→验→**还原**，`_cache/maintain_state.json` 现 `meta_fixed=None`）：
+- **正分支**：卡 `k='ID3已修' v='7' color=rgb(47,125,85)(--ok)`、tooltip `累计已写回 7 首 ID3 双缺（标题←文件名 · 歌手←父目录）`
+- **负分支**（还原后终态）：`k='ID3 双缺（5188 首）' v='已核' color=rgb(119,112,106)(--dim)`、
+  tooltip **`500 采样外推 0 双缺 / 5188 首 · 采样 0.8s（悬停看证据）`**（estimate 证据直接挂卡）
+
+**完善性（backlog 续推）**：全库游标再推 8 批 batch=20：`cover 3413→3415 · runs 246`，
+断点 `华语经典\周杰伦\时光机.mp3`（`lyric 3064` 窗口内全命中已补，0 新增）。
+
+**验收**：双分支断言全绿（正/负各 1）、state 还原 `meta_fixed=None`、端点 **29/0**、
+HTML 131611B、JS undefined NONE、CSS 302/302、node 0、console 0、截图 r44_id3tooltip.png。
+
+**坑**：① 5 卡同步/还原断言要 `wait_for_selector('.v:has-text("已核")')` **等终态**（短等读到 mtStat 未跑完的旧卡）
+② 颜色断言用 `--ok/#1f6b46` 要取 `rgb(47,125,85)`（色标近似，别按 hex 直写 rgb）
+③ 改 `_cache/maintain_state.json` 做回归必备份还原（`bak_r44` 清干净），否则 5 卡被永久钉在假 7。
+

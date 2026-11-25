@@ -2751,7 +2751,7 @@ async function mtStat(){
     const s = await (await fetch('/api/maintain')).json();
     const t = s.totals || {};
     /* ID3 卡语义: 0 已修 + 全库 0 双缺 -> 显示"已核"(muted, 非"缺 0 张"); 有修过 -> 原绿字数字 */
-    let id3v = t.meta_fixed || 0, id3label = 'ID3已修', id3style = '';
+    let id3v = t.meta_fixed || 0, id3label = 'ID3已修', id3style = '', id3title = '';
     if(!id3v){
       /* 快估 60s 窗口缓存: 首调冷读 ID3 ~26s, 同窗口内复用免再卡 */
       let e = null;
@@ -2764,10 +2764,12 @@ async function mtStat(){
         }
         if(e.estimate && !(e.todo_est || 0)){
           id3v = '已核'; id3label = `ID3 双缺（${e.total_all||''} 首）`; id3style = 'color:var(--dim)';
+          id3title = `500 采样外推 0 双缺 / ${e.total_all} 首 · 采样 ${e.sample_seconds}s（悬停看证据）`;
         }
       }catch(e){}
     } else {
       id3style = 'color:var(--ok);-webkit-text-fill-color:var(--ok)';
+      id3title = `累计已写回 ${id3v} 首 ID3 双缺（标题←文件名 · 歌手←父目录）`;
     }
     $('#mtresult').innerHTML = `
       <div class="statgrid">
@@ -2775,7 +2777,7 @@ async function mtStat(){
         <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
         <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
         <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
-        <div class="statcard"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
+        <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
     /* 数字滚动: 5 卡值 0→终值 单次编排(500ms, reduced-motion 直落) */
