@@ -1838,3 +1838,22 @@ CSS 302/302、node 0、console 0、截图 r41_maint.png。
 **坑**：`tick` 是外部 API 限速的（一轮 20 首 ~3s），全库一圈约 260 轮；**游标存盘 + 断点**是唯一的
 续推通道（`reset_cursor` 会从零再来）——R41 只推 6 轮留余量，别一次 tick 到 `done`。
 
+---
+
+## 第56轮（前端 R42 · goal round19）：修ID3 快速估算（500 采样外推）
+
+**流畅性**：点「修ID3」原流程 = **全量 236s dry 扫**（5188 首逐首读 ID3）才确认 → 0 双缺时白等 4 分钟。
+
+**修**：`/api/fixmeta?estimate=1` 快估（**只读首片 500 首**，`todo_est = len(todo) × total_all / scanned` 外推）
++ `sample_seconds`（采样耗时，估「精确全扫约需 N 分钟」）；前端「修ID3」先快估：
+- 估 0 → **秒级收尾**「估算：没有 ID3 双缺曲目（500 采样外推 0 / 5188 首）」，不跑全扫
+- 估 >0 → confirm「精确全扫约需 N 分钟」再走原全扫/写入流程
+
+**验收**：estimate 接口 `todo_est=0 total_all=5188 sample_seconds=0.7`（首次 26.8s 读 ID3 后**缓存命中**，复测 0.7s）、
+UI 快估终态 0.9s「估算：没有 ID3 双缺」`cls=msg ok`、端点 **29/0**、HTML 130675B、
+JS undefined NONE、CSS 302/302、node 0、console 0、截图 r42_fixmeta_final.png。
+
+**坑**：① estimate 外推写 `todo * total_all` 忘 `len(todo)`（todo 是 list）→ `TypeError: list * int`，
+handler 报 500（`/api/fixmeta?estimate=1` 200 前必须过 `len()` 关）② 前端快估断言等**终态**文案
+「估算：没有 ID3 双缺」，**不能**匹配中间态占位「快速估算（500 采样外推）…」（0.1s 假绿）。
+

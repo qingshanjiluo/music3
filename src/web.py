@@ -878,7 +878,7 @@ tbody tr.playing td{background:#fbe9e4}
     <label class="chk"><input type="checkbox" id="hdeep"> 读 ID3（准但慢）</label>
     <button class="ghost" id="hfixcover" title="对「无封面」列表逐首联网补">补封面</button>
     <button class="ghost" id="hfixlyric" title="对「缺歌词」列表逐首联网补">补歌词</button>
-    <button class="ghost" id="hfixmeta" title="ID3 双缺批量修复：标题=清洗文件名，歌手=非通用父目录">修ID3</button>
+    <button class="ghost" id="hfixmeta" title="ID3 双缺批量修复：标题=清洗文件名，歌手=非通用父目录（先 500 采样快估，估 0 秒级收尾）">修ID3</button>
     <span class="n" id="hdeeptip">深扫全库约 136s（读 ID3）；快扫按文件名约 5s</span>
   </div>
   <div class="msg" id="hmsg2" role="status" aria-live="polite"></div>
@@ -2668,6 +2668,19 @@ $('#hfixcover').onclick = async()=>{
 /* ID3 双缺批量修复：dry 预览 → 确认 → 写回 TIT2/TPE1 */
 $('#hfixmeta').onclick = async ()=>{
   const HB = 500;  // 每片 500 首（全库读 ID3 分批，避免单请求 >120s 超时）
+  /* 快估先行: 500 采样外推(首片读ID3 ~3-30s)。估 0 -> 直接收尾, 不跑 ~236s 全扫; 估 >0 -> 确认精确全扫 */
+  try{
+    setMsg($('#hmsg2'), '快速估算（500 采样外推）…');
+    const e = await (await fetch(`/api/fixmeta?dry=1&offset=0&batch=${HB}&estimate=1`)).json();
+    if(e.error){ setMsg($('#hmsg2'), '错误: '+e.error, 'bad'); return; }
+    const est = e.todo_est || 0;
+    if(!est){
+      setMsg($('#hmsg2'), `估算：没有 ID3 双缺曲目（500 采样外推 0 / ${e.total_all} 首 · ${e.sample_seconds}s）`, 'ok');
+      return;
+    }
+    const mins = Math.max(1, Math.round((e.total_all / 500) * e.sample_seconds / 60));
+    if(!confirm(`估算约 ${est} 首 ID3 双缺（500 采样外推 / ${e.total_all} 首）。\n精确全扫约需 ${mins} 分钟（逐首读 ID3）。开始？`)) return;
+  }catch(err){ setMsg($('#hmsg2'),'估算失败: '+err,'bad'); return; }
   setMsg($('#hmsg2'), '扫描 ID3 双缺（分批 500/片）…');
   let off=0, todo=0, scanned=0, total=0, ex='', d=null;
   try{
@@ -2681,7 +2694,7 @@ $('#hfixmeta').onclick = async ()=>{
       setMsg($('#hmsg2'), `扫描进度 ${scanned}/${total} · 待修 ${todo}…`);
     }
   }catch(e){ setMsg($('#hmsg2'), '扫描失败: '+e, 'bad'); return; }
-  if(!todo){ setMsg($('#hmsg2'), '没有 ID3 双缺曲目（扫 '+scanned+' 首）', 'ok'); return; }
+  if(!todo){ setMsg($('#hmsg2'), '没有 ID3 双缺曲目（全扫 '+scanned+' 首）', 'ok'); return; }
   if(!confirm('扫描 '+scanned+' 首，发现 '+todo+' 首 ID3 双缺。\n写入（歌名←文件名，歌手←父目录）：\n'+ex+'\n\n确认写入？')) return;
   setMsg($('#hmsg2'), '写入 '+todo+' 首 ID3…');
   let written=0, wtodo=0;
@@ -3603,13 +3616,19 @@ class Handler(BaseHTTPRequestHandler):
             # ---- 曲目删除 / 改名（browse 已有能力，补端点）----
             if u.path == "/api/fixmeta":
                 # ID3 双缺批量修复：title=清洗文件名，artist=非通用父目录 → 写回 TIT2/TPE1
+                import time as _tm
                 from . import tagger as _tg, lyricfill as _lf2, browse as _br, tagreader as _tr2
                 sub = g("sub", "")
                 dry = g("dry", "1") == "1"
+                estimate = g("estimate", "") == "1"
+                _t0 = _tm.time()
                 off = int(g("offset", "0") or 0)
                 batch = int(g("batch", "0") or 0)
                 _all = _br.list_tracks(library.DEFAULT_ROOT, sub, limit=1000000)
                 total_all = len(_all)
+                # 快估模式: 只读前 500 首(首片采样), 外推全库估计(避免 236s 全扫)
+                if estimate and off == 0:
+                    off, batch = 0, min(batch or 500, 500)
                 tracks = _all[off: off + batch] if batch > 0 else _all
                 todo = []
                 for t in tracks:
@@ -3625,7 +3644,14 @@ class Handler(BaseHTTPRequestHandler):
                 results = {"scanned": len(tracks), "todo": len(todo),
                            "written": 0, "dry": dry, "items": todo[:40],
                            "total_all": total_all, "offset": off, "batch": batch,
-                           "more": (off + len(tracks)) < total_all}
+                           "more": (off + len(tracks)) < total_all,
+                           "sample_seconds": round(_tm.time() - _t0, 1)}
+                if estimate:
+                    # 外推: 采样 todo 密度 × 全库规模(采样取首片, 有目录偏差 -> 文案标「约」)
+                    results["estimate"] = True
+                    results["todo_est"] = (
+                        int(round(len(todo) * total_all / max(len(tracks), 1)))
+                        if len(tracks) else 0)
                 if not dry:
                     for it in todo:
                         try:
