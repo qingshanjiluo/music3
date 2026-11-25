@@ -1026,6 +1026,7 @@ tbody tr.playing td{background:#fbe9e4}
   <div class="bar">
     <button id="mtrun">跑一轮</button>
     <button class="ghost" id="mtstat">看状态</button>
+    <button class="ghost sm" id="mtrefresh" title="只重拉 8 卡数据(不重铺日志区)">刷新</button>
     <button class="ghost" id="mtlog">看日志</button>
     <button class="ghost sm" id="mtloglive" title="每 2s 刷新日志(跑维护时挂上)">实时日志</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
@@ -2957,9 +2958,9 @@ async function mtStat(){
     $('#mtresult').innerHTML = `
       <div class="statgrid mtgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div></div>
-        <div class="statcard"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
-        <div class="statcard"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
-        <div class="statcard"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
+        <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}</div></div>
+        <div class="statcard" title="维护累计补封面条数(缓存+抓取)；点看状态重拉"><div class="k">累计补封面</div><div class="v">${t.cover||0}</div></div>
+        <div class="statcard" title="维护累计清理的临时/过期缓存条目"><div class="k">累计清理</div><div class="v">${t.clean||0}</div></div>
         <div class="statcard" title="${esc(id3title)}"><div class="k">${id3label}</div><div class="v" style="${id3style}">${id3v}</div></div>
       </div>
       <div class="n" style="margin-top:8px">上次运行: ${esc(s.last_run_str||'从未')}</div>`;
@@ -3081,6 +3082,13 @@ function mtLogLive(){
 }
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
+/* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */
+$('#mtrefresh').onclick = async()=>{
+  const hadJump = !!document.querySelector('#mtjumplog');
+  setMsg($('#mtmsg'), '刷新…');
+  try{ await mtStat(); if(hadJump && !document.querySelector('#mtjumplog')){ document.querySelector('#mtresult .statcard[data-jumplog]') && document.querySelector('#mtresult .statcard[data-jumplog]').click(); } setMsg($('#mtmsg'), '已刷新', 'ok'); }
+  catch(e){ setMsg($('#mtmsg'), '刷新失败: '+e, 'bad'); }
+};
 $('#mtlog').onclick = mtLog;
 $('#mtloglive').onclick = mtLogLive;
 /* 导出日志: 拉全量 act=log&n=500, 下载 maintain.log 快照 */

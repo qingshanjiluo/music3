@@ -2454,3 +2454,21 @@ catch——insert 后要 `node --check` 抓 `Missing catch/finally`（配平错�
 append 到 `#mtresult` 但父级在 `d` tab 未激活时 hidden——验收用 `wait_for_selector(state="attached")`
 （不要求 visible）断言容器在，别等 visible。
 
+---
+
+## 第86轮（前端 R72 · goal round49）：8 卡 tooltip 全补 + 「刷新」按钮
+
+**简洁性（tooltip 统一）**：R71 后维护页 8 卡，「累计补歌词/封面/清理」3 卡**无 title**（悬停没说明）。
+统一补 tooltip（`维护累计补歌词条数(命中缓存+补全)…`），8 卡悬停全出统计说明，**无 tooltip 卡数 = 0**。
+
+**完善性（缓存刷新）**：`#mtrefresh` 按钮——只重拉 8 卡数据（`await mtStat()`），保留已跳日志容器
+（`#mtjumplog` 曾建过则重挂异常率卡点击），不重铺整区；回执「已刷新」。
+
+**E2E**：8 卡 `无 tooltip 数 = 0`；点「刷新」→ `已刷新 / cards=8` 绿；端点 **30/0**、HTML 146311B、
+JS undefined NONE、CSS 310/310、node 0、console 0、截图 r72_refresh.png。
+
+**完善性（游标续推）**：全库 4 批 batch=20 `runs 408→412`，断点 `纯音乐\Sadness and Sorrow.mp3`。
+
+**坑**：① 验收脚本 `p.evaluate("=>…")` 箭头语法错（要 `"()=>{…}"`）——evaluate 首参必须是函数表达式字符串
+② `#mtrefresh` 刷新若 `#mtjumplog` 已被 `mtStat` 的 `#mtresult` 重铺清掉，要 `hadJump` 记状态 + 重挂异常率卡点击。
+
