@@ -386,6 +386,10 @@ tbody tr.playing td{background:#fbe9e4}
 .mtspark{display:block;width:100%;height:22px;margin-top:6px;overflow:hidden;position:relative}
 .mtspark svg{display:block;width:100%;height:22px}
 @media(max-width:640px){.mtgrid{grid-template-columns:repeat(2,1fr)}.mtgrid .statcard:nth-child(5),.mtgrid .statcard:nth-child(9){grid-column:auto}}
+/* 11 卡窄屏折叠: .mtgrid.fold 时只显前 5 卡, 后 6 卡(#mtcards 展开后 .fold 移除)默认隐 */
+.mtgrid.fold .statcard:nth-child(n+6){display:none}
+#mtcards{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--acc);cursor:pointer;margin-top:6px;padding:2px 8px;background:var(--bg2);border-radius:10px}
+#mtcards:hover{background:var(--panel);border-color:var(--acc)}
 .statcard{
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:14px 16px;
@@ -3090,7 +3094,8 @@ async function mtStat(){
     $('#mtresult').innerHTML = `
       <div id="mtdigest" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)" title="维护小结: 本轮补入(歌词/封面)+ 累计轮次 + 全库进度; 挂卡片网格上方扫一眼全貌">${_digest}</div>
       ${_recBar}
-      <div class="statgrid mtgrid">
+      <button type="button" id="mtcards" onclick="mtCardsFold()" title="窄屏折叠: 默认前 5 卡, 展开全部 11 卡 / 收起" style="display:${_recBar?'':'none'}">▾ 展开全部卡片</button>
+      <div class="statgrid mtgrid" id="mtcardgrid">
         <div class="statcard" title="${(()=>{const ms=(s.runs||0)>=400?450:400;return '维护 tick 累计；里程碑 '+(ms===450?'400/450':'350/400')+'，下一里程碑 '+ms+' 还差 '+Math.max(0,ms-(s.runs||0));})()}"><div class="k">已跑轮次</div><div class="v" style="${(s.runs||0)>=300?'color:var(--ok);-webkit-text-fill-color:var(--ok)':''}">${s.runs||0}</div><div style="height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${(()=>{const ms=(s.runs||0)>=400?450:400;return Math.min(100,Math.round((s.runs||0)/ms*100));})()}%;background:${(s.runs||0)>=400?'var(--ok)':'var(--acc)'};border-radius:2px"></div></div>${_runSpark}</div>
         <div class="statcard" title="维护累计补歌词条数(命中缓存+补全)；点看状态重拉${delta('lyric')?'，本次 '+delta('lyric'):''}"><div class="k">累计补歌词</div><div class="v">${t.lyric||0}${delta('lyric')?`<span style="font-size:11px;color:${delta('lyric')[0]==='+'?'var(--ok)':'var(--bad)'};margin-left:6px">${delta('lyric')}</span>`:''}</div>${_lyrSpark}</div>
         <div class="statcard" title="维护累计补封面条数(缓存+抓取)；点看状态重拉${delta('cover')?'，本次 '+delta('cover'):''}"><div class="k">累计补封面</div><div class="v">${t.cover||0}${delta('cover')?`<span style="font-size:11px;color:${delta('cover')[0]==='+'?'var(--ok)':'var(--bad)'};margin-left:6px">${delta('cover')}</span>`:''}</div>${_covSpark}</div>
@@ -3314,6 +3319,8 @@ async function mtStat(){
       }
     }catch(e){}
   }catch(e){}
+  /* 11 卡窄屏折叠统一点控: #mtcardgrid + 后 6 卡铺完后按 _mtCards + 窄屏定 .fold */
+  applyMtFold();
 }
 let _mtlogTimer=null;
 let _mtLogLastLines=[];   /* 上次 mtLogDraw 的日志行, 实时刷新时对比找新增行淡闪 */
@@ -3465,6 +3472,26 @@ document.querySelectorAll('[data-lf]').forEach(c=>{
   c.onclick=()=>{ const f=document.querySelector('#mtlogfilter'); if(!f) return; f.value=c.dataset.lf;
     if($('#mtresult .joblog')) mtLogDraw().catch(()=>{}); };
 });
+/* 11 卡窄屏折叠: #mtcards 点切 .fold(前5卡/全11卡); 默认窄屏(clientWidth<1100)+未展开(localStorage._mtCards!=1)折, 宽屏全显 */
+function mtCardsFold(){
+  const g=$('#mtcardgrid'); if(!g) return;
+  const fold=g.classList.toggle('fold');
+  localStorage.setItem('_mtCards', fold?'0':'1');
+  const b=$('#mtcards'); if(b){ b.innerHTML=(fold?'▾ 展开全部卡片':'▴ 收起卡片'); }
+}
+/* 统一点控: mtStat 铺完 #mtcardgrid + 后 6 卡后调用, 按 localStorage._mtCards + 窄屏决定 .fold(宽屏全显/记1全显; 记0且窄才折) */
+function applyMtFold(){
+  const g=$('#mtcardgrid'); if(!g) return;
+  const narrow=window.innerWidth<1100;
+  const wantFold=narrow&&localStorage.getItem('_mtCards')!=='1';
+  g.classList.toggle('fold', wantFold);
+  const b=$('#mtcards');
+  if(b){ b.innerHTML=wantFold?'▾ 展开全部卡片':'▴ 收起卡片'; b.style.display=narrow?'':'none'; }
+}
+/* 载入: resize 时切窄宽(宽屏全显不折, 窄屏按 _mtCards 恢复) */
+(function(){ try{
+  window.addEventListener('resize',()=>{ const b=$('#mtcards'); if(!b) return; const g=$('#mtcardgrid'); if(g) g.classList.remove('fold'); b.style.display=(window.innerWidth<1100)?'':'none'; });
+}catch(e){} })();
 $('#mtreset').onclick = async()=>{
   let cur='未知';
   try{ const st=await (await fetch('/api/maintain')).json(); cur=(st.cursor&&st.cursor._all)?st.cursor._all.split('\\').slice(-2).join('\\'):'(无)'; }catch(e){}

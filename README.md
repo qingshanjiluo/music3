@@ -3602,3 +3602,24 @@ JS undefined NONE、CSS 316/316、node 0、console 0、截图 r131_rate.png。
 全库已扫完末批增量 0 但**近 4 批也 0**，`_rAvg=0` 不满足「< 0」，不误报掉速）④ 速率 `0 首/批`（全库补完态，
 sparkline 全 0 平线，`--ok` 绿——补完不是异常，用绿不用 warn）。
 
+---
+
+## 第146轮（前端 R132 · goal round109）：11 卡窄屏「展开更多」折叠（`#mtcards`，窄屏默认前 5 卡）
+
+**简洁性（窄屏不挤）**：R131 加补入速率卡后维护 tab 卡片 11 张，`auto-fill` 窄容器（手机/分屏）2 列 × 6 行
+挤成一长串。卡片区加**「展开更多」折叠** `#mtcards`——**窄屏**（`window.innerWidth<1100`）默认折前 5 卡
+（`.mtgrid.fold .statcard:nth-child(n+6){display:none}`，后 6 卡隐）+ 按钮「▾ 展开全部卡片」；**宽屏**（`>=1100`）
+全显 11 卡 + 按钮隐；点按钮切展开/收起，记 `localStorage._mtCards`（`1`=已展开）——窄屏扫状态不挤，要看全再展开。
+
+**E2E**：窄视口 500 → `total=11 + foldNow=True（默认折）+ visNow=5（前 5 卡）+ 点展开后 visAfter=11 + store=1`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 317/317、node 0、console 0、截图 r132_fold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 552→554`，断点 `_归档_封存\SD卡版\华语经典\周杰伦\梯田.mp3`。
+
+**坑**：① 折叠点控挂 `mtStat` 末 `applyMtFold()`（`#mtcardgrid` 是 `mtStat` 铺的，**载入 IIFE 时还没有**
+`#mtresult`，故不能在载入点控，须 `mtStat` 铺完 + 后 6 卡 `insertAdjacentHTML` 完再点控）② 窄屏判 `window.innerWidth`
+（非 `document.body.clientWidth`——body 未渲染满时 width 可能 0/非预期，`innerWidth` 是视口宽更稳）③ `.mtgrid.fold`
+CSS（`.fold` 类挂 `#mtcardgrid`，`#mtcardgrid` 同时有 `mtgrid`+`fold`，选择器 `.mtgrid.fold .statcard:nth-child(n+6)`
+匹配）④ 宽屏 `#mtcards` `display:none`（`b.style.display`，`resize` 监听切窄宽：宽→隐 + 全显，窄→显按 `_mtCards` 恢复）
+⑤ `localStorage._mtCards=1`（已展开）窄屏也全显（用户显式展开过，尊重记忆）。
+
