@@ -2985,7 +2985,10 @@ async function mtStat(){
     const _sparkSvg = (tr, color, label)=>{ if(!tr||tr.length<2) return ''; const w=110,h=22, max=Math.max.apply(null,tr), min=Math.min.apply(null,tr); const rng=(max-min)||1; const yOf=v=>Math.round((h-((v-min)/rng)*h)*100); const pts=tr.map((v,i)=>((i/(tr.length-1))*w).toFixed(1)+','+(h-((v-min)/rng)*h).toFixed(1)).join(' '); const tt=label? label+' 近 '+tr.length+' 次: '+tr.join(' → ') : '近 '+tr.length+' 次: '+tr.join(' → ');
       /* 圆点用 HTML 绝对定位(不随 svg preserveAspectRatio=none 拉伸成正圆), 首点 left=0 末点 left=100% */
       const _dot=(topPct,leftPct,size)=>`<span style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${size}px;height:${size}px;margin:${-size/2}px 0 0 ${-size/2}px;border-radius:50%;background:${color}"></span>`;
-      return `<div class="mtspark" style="position:relative" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><title>${tt}</title><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(tr[tr.length-1]),100,6)}</div>`; };
+      /* 末点值标签: 最新值数字, 悬在末点圆点上方(transform 上移不占布局, 不随 svg 拉伸) */
+      const _lastVal=tr[tr.length-1];
+      const _valLabel=`<span style="position:absolute;left:100%;top:${yOf(_lastVal)}%;transform:translate(-50%,-160%);font-size:10px;font-weight:600;color:${color};white-space:nowrap">${_lastVal}</span>`;
+      return `<div class="mtspark" style="position:relative" title="${tt}"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:22px;display:block"><title>${tt}</title><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/></svg>${_dot(yOf(tr[0]),0,4)}${_dot(yOf(_lastVal),100,6)}${_valLabel}</div>`; };
     const _runSpark = _sparkSvg((s.trend||[]).slice(-8), (s.runs||0)>=400?'var(--ok)':'var(--acc)', '已跑轮次');
     const _lyrSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.lyric), 'var(--acc)', '累计歌词');
     const _covSpark = _sparkSvg(((s.cum_trend||[]).slice(-8)).map(o=>o.cover), 'var(--acc)', '累计封面');

@@ -2773,3 +2773,21 @@ JS undefined NONE、CSS 312/312、node 0、console 0、截图 r88_dots.png。
 `top` 用 `yOf(v)*100%`（`yOf` 从 px 改百分比）③ `span` 用 `margin:-size/2 0 0 -size/2` 居中在定位点 ④
 验收 `[...sp].map`（NodeList 要展开，`sp.map` 在某些实现报错）。
 
+---
+
+## 第103轮（前端 R89 · goal round66）：sparkline 末点值标签（最新值数字）
+
+**简洁性（末点读数）**：R88 圆点正圆后，末点圆点只看不读，扫折线还得放大才知**终点值**。
+`_sparkSvg` 末点圆点旁加**最新值数字标签**（HTML `<span>`，`transform:translate(-50%,-160%)` 悬在
+末点上方不占布局，同色 `var(--acc)/var(--bad)`）——扫一眼看 4 卡终点读数：`已跑 461 / 歌词 3098 /
+封面 3445 / 异常率 0`。
+
+**E2E**：4 卡末点值标签 `['461','3098','3445','0']`（绿）；端点 **30/0**、HTML 153490B、JS undefined NONE、
+CSS 312/312、node 0、console 0、截图 r89_lastval.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 459→461`，断点 `投稿\洛天依\生.mp3`。
+
+**坑**：① 值标签 HTML 绝对定位（同 R88 圆点，不随 svg 拉伸），`transform:translate(-50%,-160%)` 上移
+悬在末点圆点上方 ② 标签同色 `color`（`var(--ok)/var(--acc)/var(--bad)`），异常率 0 显 `0`（绿，跑顺）③
+`_valLabel` 只在有 sparkline（`tr.length>=2`）时渲染，空趋势不显值。
+
