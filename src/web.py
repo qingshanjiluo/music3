@@ -3889,6 +3889,8 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
     let _dtl='本轮回 +'+back+'（歌词 +'+(lyr||0)+' / 封面 +'+(cov||0)+'）· 本轮耗 '+dur+'s · 累计 '+(totalDur!==undefined?totalDur:'-')+'s · 跑到 '+i+'/'+_Ndisp;
     /* 双轨联动(R170): 自动刷 5s 开(_mtAutoRefTimer 非空)时, 详情补「· 自动刷 5s 中(下次 ≤5s)」-- 跑维护+自动刷 9 卡双轨看细, 扫一眼下轮自动刷何时到 */
     try{ if(typeof _mtAutoRefTimer!=='undefined' && _mtAutoRefTimer){ _dtl+=' · 自动刷 5s 中（下次 ≤5s）'; } }catch(e){}
+    /* R230 跑中详情补全折叠域5键当前态(自含全折叠域当前态, 与R222-R229补全折叠域字段同域) */
+    _dtl+=' · [全折叠域当前态] _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0');
     el.setAttribute('data-dtl',_dtl);
     el.style.cursor='help';
   }
@@ -3908,7 +3910,9 @@ function mtLiveBadgeDone(N, totalDur){
 function mtLiveBadgeDoneCopy(){
   const li=window._mtLiveDoneInfo;
   if(!li){ if(typeof _toast==='function'){ _toast('无全库维护完成详情可复制（先跑全库维护）', 'bad'); } return; }
-  const _txt='#music3 全库维护完成 · '+new Date().toLocaleString()+'\n共 '+li.N+' 轮 · 耗时 '+li.totalDur+'s';
+  let _txt='#music3 全库维护完成 · '+new Date().toLocaleString()+'\n共 '+li.N+' 轮 · 耗时 '+li.totalDur+'s';
+  /* R230 全库完成详情补全折叠域5键当前态(自含全折叠域当前态, 与R222-R229补全折叠域字段同域) */
+  _txt+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0');
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制全库维护完成详情（共 '+li.N+' 轮 · 耗时 '+li.totalDur+'s）', 'ok'); } }).catch(function(){ _copyFallback(_txt); });
   } else { _copyFallback(_txt); }

@@ -6496,3 +6496,33 @@ PNG 快照补全折叠域段）③ 与 R158 双图区 PNG 快照 / R222 维护�
 底栏色带），不真跑 `mtRun` 免 tick 污染 `runs`；canvas PNG 拼逻辑验全折叠域 5 键色带进 PNG（`_fl5m` 5 键 + `_kn5m` 5 键名缩写 + 循环拼 5 色带 `fillRect`），非真 PNG 像素（headless 不下载 PNG 文件，
 验 toast 出口 + canvas 全折叠域 5 键色带拼逻辑，真 PNG 内容不验）。
 
+---
+
+## 第244轮（前端 R230 · goal round207）：维护守护区全库完成详情 / 跑中详情补全折叠域字段（`#mtlivebadgedonecopy` 全库完成详情文本 + `#mtlivedetail` 跑中详情 hover 浮层 / `data-dtl` 补全折叠域 5 键当前态字段，全库完成详情 / 跑中详情自含全折叠域当前态）
+
+**完善性（全库完成详情 / 跑中详情自含全折叠域当前态）**：R229 双图区 PNG 快照补全折叠域 5 键，但**`#mtlivebadgedonecopy` 全库完成详情文本（R192 区，
+`#music3 全库维护完成 · <ts>` + `共 N 轮 · 耗时 Xs`）/ `#mtlivedetail` 跑中详情 hover 浮层（R167 区，`#mtlivebadge` 悬停显 `data-dtl`（本轮回 + 歌词 / 封面 + 本轮耗 + 累计 + 跑到））没全折叠域
+5 键**（全库完成详情 / 跑中详情要自含全折叠域当前态，`mtLiveBadgeDoneCopy`（R192 区）全库完成详情文本补 `[全折叠域当前态]` 5 键段（`let _txt` 免 `const` 赋值错）+ 跑中详情 `data-dtl`
+（R166 区 `mtLiveBadgeDraw`，`#mtlivedetail` hover 浮层数据源）补全折叠域 5 键当前态段，全库完成详情 / 跑中详情自含全折叠域当前态，与 R222-R229 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设全库完成详情（window._mtLiveDoneInfo={N:100, totalDur:120}）→ 设 #mtlivebadge 完成态显复制钮 → 点 #mtlivebadgedonecopy → toast「已复制全库维护完成详情（共 100 轮 ·
+耗时 120s）」（全库完成详情文本含全折叠域 5 键当前态段）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r230_livedone5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 758→760`，断点 `_QQ音乐\周杰伦 - 晴天.mp3`。
+
+**坑**：① `mtLiveBadgeDoneCopy`（R192 区）全库完成详情文本（`#music3 全库维护完成 · <ts>` + `共 N 轮 · 耗时 Xs`，`navigator.clipboard.writeText` 降级 `_copyFallback`）补 `[全折叠域当前态]` 5
+键段（`_txt`（原 `const` 改 `let` 免 `+=` 常量赋值报错）拼全库完成详情后加 `\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold=... ·
+_mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`，5 键 `localStorage` 各 `||'0'` 降级，全库完成详情文本自含全折叠域 5 键当前态，与 R222-R229 补全折叠域字段同域，
+`#mtlivebadgedonecopy` 全库完成详情复制补全折叠域段）② 跑中详情 `data-dtl`（R166 区 `mtLiveBadgeDraw`，`#mtlivebadge` 属性 `data-dtl`（`#mtlivedetail` hover 浮层数据源，R167 区 `#mtlivebadge`
+悬停读 `data-dtl` 显 `#mtlivedetail`））补全折叠域 5 键当前态段（`_dtl`（`let`）拼跑中详情（本轮回 + 歌词 / 封面 + 本轮耗 + 累计 + 跑到 + 自动刷 5s）后加 ` · [全折叠域当前态] _mtMetFold=... ·
+_mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`，`el.setAttribute('data-dtl',_dtl)`，`#mtlivedetail` hover 浮层自含全折叠域 5 键当前态，与 R222-R229
+补全折叠域字段同域，跑中详情 hover 浮层（R167）补全折叠域段）③ `mtLiveBadgeDoneCopy` 原 `const _txt='#music3 全库维护完成...'`（R192 区 3911 行 `const` 声明），补全折叠域段 `_txt+=`（常量
+赋值报错 `Assignment to constant variable`）——修 `const _txt` → `let _txt`（免 `+=` 常量赋值报错，`console 0`），同 R228 `mtStateBarCopy` `const` → `let` 修正纪律（补 `+=` 段前查 `const` 声明改
+`let`）④ 与 R192 `#mtlivebadgedonecopy` 全库完成详情复制 / R167 `#mtlivedetail` 跑中详情 hover 浮层**分工**（R192/R167 全库完成详情复制 / 跑中详情 hover（全库完成 `共 N 轮 · 耗时 Xs` / 跑中本轮回 +
+歌词 / 封面 + 本轮耗 + 累计 + 跑到），R230 补全折叠域 5 键当前态段——全库完成详情 / 跑中详情自含全折叠域当前态，`#mtlivebadgedonecopy` 全库完成详情复制 + `#mtlivedetail` 跑中详情 hover 双路同 5 键段）
+⑤ 与 R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总控 / R226 双图区明细 / R227 键盘流触发记录 / R228 状态详情 / R229 双图区 PNG 快照补全折叠域字段**语言同**（各全库
+完成详情 / 跑中详情 / 全折叠域 / 三域 / 全链路 / 双图区 / 键盘流 / 状态详情 / 双图区 PNG 读 5 键 `localStorage` 拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设
+5 键全 `'1'` + 设全库完成详情 `window._mtLiveDoneInfo` + 设 `#mtlivebadge` 完成态显复制钮 + 点 `#mtlivebadgedonecopy` 验 toast「已复制全库维护完成详情（共 100 轮 · 耗时 120s）」（全库完成详情文本含全
+折叠域 5 键当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；全库完成详情复制拼逻辑验 5 键段进文本（`let _txt` + `_txt+=` 全折叠域段），跑中详情 hover 浮层验 `data-dtl` 属性含全折叠域 5 键段（`_dtl+=`
+全折叠域段 + `el.setAttribute('data-dtl',_dtl)`），非真剪贴板 / 渲染像素。
+
