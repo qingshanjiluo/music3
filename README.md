@@ -4755,3 +4755,38 @@ NONE、CSS 320/320、node 0、console 0、截图 r176_ctxcancel.png。
 `#mtrun` 视觉同步 + toast 出口证明取消已发，`_mtAborted` 真取消跑中下一轮生效是 `mtRun` 内部行为不真跑 `mtRun` 免 tick 污染
 `runs`）。
 
+---
+
+## 第191轮（前端 R177 · goal round154）：`#mtmetfold` 折叠钮双击快捷（展开 `#mtmetfoldwrap`（若折叠）+ 双图区在视口内 `mtFocusLatest` 聚焦最新轮，快速折叠态 + 聚焦连击）
+
+**流畅性（展开 + 聚焦一次到位免两连击）**：R163 `#mtmetfold` 单击折叠 / 展开双图区（`mtMetFold`），但**展开 + 聚焦最新轮要
+连点两次**（单击展开 → 再点 `#mtmetsum`/`#mtlivebadge` 跳双图聚焦，两连击）。`#mtmetfold` 加**`dblclick`**（`mtMetFoldDbl`：
+`#mtmetfoldwrap` 折叠时展开 + `_mtMetFold=0` + `#mtmetfold` 钮复位 `▾ 折趋势`，双图区在视口内（`getBoundingClientRect` 与视口交
+`bottom>0 && top<innerHeight`）时 `mtFocusLatest` 聚焦最新轮）——双击 = 展开 + 聚焦连击一次到位（免展开后再点跳双图），与 R171
+单点跳双图**同「趋势条可管」但连击快捷**（双击比单点更省一次点，快速看双图趋势 + 最新轮配对）。
+
+**E2E**：`折叠态（#mtmetfoldwrap display:none）+ 写 _mtRunHist(4)+_mtRunDelta(4 末=0) → #mtmetfold 双击 → 展开（block）+
+_mtMetFold=0 + mtFocusLatest 聚焦最新轮 #mtpairlbl「第 4 次 · 耗时 1.5s · 补入 +0」（双图区 getBoundingClientRect 与视口交时）`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r177_dbfold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 650→652`，断点 `_整理后分类\华语经典\张学友\醒着做梦.mp3`。
+
+**坑**：① `mtMetFoldDbl`（`#mtmetfold` `dblclick`，载入 IIFE 绑 `addEventListener('dblclick')`，不内联 `ondblclick=`——`#mtmetfold`
+`textContent` 每 `mtMetFold` 刷新，内联会被覆盖丢事件，`addEventListener` 挂元素不随 `textContent` 变，与 R171 `#mtlivebadge`
+`click` / R174 `#mtmetsum` `click` 同 `addEventListener` 纪律）② `dblclick` 展开逻辑复用 R171/R174 展开（`#mtmetfoldwrap`
+`display:none` → `display='block'` + `_mtMetFold='0'` + `#mtmetfold` 钮 `▾ 折趋势`，三处展开同写法：R163 `mtMetFold` 单击 / R171
+`mtLiveBadgeJump` / R174 `mtMetSumJump` / R177 `mtMetFoldDbl`）③ **视口内才聚焦**（`#mtmetfoldwrap` `getBoundingClientRect().bottom>0
+&& top<window.innerHeight` 与视口交才 `mtFocusLatest`——折叠刚展开双图区可能在视口外（双图区在维护区下方，`#mtmsg` 顶栏折叠钮
+展开后双图区滚出视口，聚焦 `#mtpairlbl` 视口外无意义，`getBoundingClientRect` 判定在视口交才聚焦，不在不聚，省无效刷）④ 双击
+**不触单击**（`dblclick` 在两次 `click` 后触发，`btn.onclick=mtMetFold` 单击也触两次——双击 = 两次 `mtMetFold`（折叠→展开→折叠）
++ 一次 `mtMetFoldDbl`，`mtMetFold` 折叠态判断 `folded=display!=='none'`，双击时 `#mtmetfoldwrap` 初 `none`：第 1 单击 `mtMetFold`
+折→展（`display=block`），第 2 单击展→折（`display=none`），`mtMetFoldDbl` 再展（`display=block`）+ 聚焦——净效果展开 + 聚焦，
+但多两次 `mtMetFold` 闪烁（`block`→`none`→`block`），`_mtMetFold` 最终 `0`（`mtMetFoldDbl` 写），可接受；若嫌闪烁可 `dblclick`
+`preventDefault` 但 `click` 已先发——双击净展开 + 聚焦，闪烁 2 次可接受不优化）⑤ 与 R171 单点跳双图（`#mtlivebadge` 跑中入口
++ `scrollIntoView`）**分工**（R177 `#mtmetfold` 双击 = 折叠钮连击快捷展开 + 聚焦，不 `scrollIntoView`（`#mtmetfold` 在顶栏
+`#mtmsg` 后，双图区紧接其下，展开后本就近，不滚——区别于 R171/R174 跳双图 `scrollIntoView` 滚到 `#mthistspark`，`#mtmetfold`
+双图区就在折叠钮下无需滚）⑥ `mtFocusLatest` 复用（R172/R173/R174 聚焦函数，R177 双击展开后调，末柱 `#mtdelthover` + `#mtpairlbl`
+配对，同函数不重复实现）⑦ 验收**函数级**（折叠态 `#mtmetfoldwrap` `display:none` + 写 `_mtRunHist`/`_mtRunDelta` 4 条末 `_mtRunDelta=0`
++ `#mtmetfold` `dispatchEvent` `dblclick` 验展开 `block` + `_mtMetFold=0` + `#mtpairlbl` 末位配对「第 4 次·耗时 1.5s·补入 +0」，不真跑
+`mtRun` 免 tick 污染 `runs`；`dblclick` 触发前两次 `click` 闪烁验净展开 + 聚焦，不验闪烁过程）。
+

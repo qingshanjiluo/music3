@@ -3786,8 +3786,19 @@ function mtMetFold(){
   btn.textContent = folded ? '▸ 展趋势' : '▾ 折趋势';
   try{ localStorage.setItem('_mtMetFold', folded ? '1' : '0'); }catch(e){}
 }
+/* 折叠钮双击快捷(R177): #mtmetfold dblclick -> 展开 #mtmetfoldwrap(若折叠)+ 双图区在视口内 mtFocusLatest 聚焦最新轮, 双击=展开+聚焦连击一次到位(免展开后再点跳双图), 与 R171 单点跳双图同「趋势条可管」但连击快捷 */
+function mtMetFoldDbl(){
+  const wrap=$('#mtmetfoldwrap'), btn=$('#mtmetfold');
+  if(wrap && wrap.style.display==='none'){ wrap.style.display='block'; try{ localStorage.setItem('_mtMetFold','0'); }catch(e){} if(btn){ btn.textContent='▾ 折趋势'; } }
+  /* 双图区在视口内才聚焦(折叠刚展开可能在视口外, getBoundingClientRect 与视口交才聚焦) */
+  try{
+    if(!wrap) return;
+    const r=wrap.getBoundingClientRect();
+    if(r.bottom>0 && r.top<window.innerHeight){ if(typeof mtFocusLatest==='function'){ mtFocusLatest(); } }
+  }catch(e){}
+}
 (function(){
-  const btn=$('#mtmetfold'); if(btn){ btn.onclick=mtMetFold; }
+  const btn=$('#mtmetfold'); if(btn){ btn.onclick=mtMetFold; btn.addEventListener('dblclick', mtMetFoldDbl); }
   /* 载入恢复折叠态 */
   try{
     const f=localStorage.getItem('_mtMetFold');
