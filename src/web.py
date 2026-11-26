@@ -4247,9 +4247,15 @@ function mtGuardPanel(){
   if(!window._mtGuardPanelFold){ clearTimeout(window._mtGuardPanelT); window._mtGuardPanelT=setTimeout(function(){ d.style.display='none'; }, 8000); }
 }
 (function(){ const c=$('#mtguardpanelfold'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); /* R202 折叠/展开总览面板 */
-  if(window._mtGuardPanelFold===undefined){ window._mtGuardPanelFold=false; }
+  /* R205: 惰性初始化读 localStorage._mtGuardPanelFold, 总览面板折叠态跨会话留存(刷新恢复, 与R159双图区/R204全浮层折叠记忆语言同) */
+  if(window._mtGuardPanelFold===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
+    window._mtGuardPanelFold=_init;
+  }
   window._mtGuardPanelFold=!window._mtGuardPanelFold;
   c.textContent=window._mtGuardPanelFold?'▸ 展开总览':'▾ 折叠总览';
+  /* R205: 折叠态存 localStorage, 刷新恢复 */
+  try{ localStorage.setItem('_mtGuardPanelFold', window._mtGuardPanelFold?'1':'0'); }catch(_){}
   const d=$('#mtguardpaneld');
   if(window._mtGuardPanelFold){ /* 折叠: 隐总览面板 */
     if(d){ d.style.display='none'; } clearTimeout(window._mtGuardPanelT);
@@ -4258,6 +4264,17 @@ function mtGuardPanel(){
   }
   if(typeof _toast==='function'){ _toast(window._mtGuardPanelFold?'已折叠维护守护区总览面板':'已展开维护守护区总览面板', 'ok'); }
 }); } })();
+/* R205: 总览面板折叠态初始同步(读 localStorage._mtGuardPanelFold 惰性初始化 window._mtGuardPanelFold + 文案/总览面板display随初始折叠态, 刷新恢复总览面板折叠/展开态) */
+(function(){
+  if(window._mtGuardPanelFold===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
+    window._mtGuardPanelFold=_init;
+  }
+  const c=$('#mtguardpanelfold');
+  if(c){ c.textContent=window._mtGuardPanelFold?'▸ 展开总览':'▾ 折叠总览'; }
+  const d=$('#mtguardpaneld');
+  if(d && window._mtGuardPanelFold){ d.style.display='none'; } /* 刷新恢复折叠态隐总览面板 */
+})();
 /* 维护守护区全浮层折叠(R203): #mtguardfoldall 点 -> 切 window._mtGuardFoldAll 折叠标志, 折叠/展开维护守护区全浮层(#mtstatebardtl状态详情/#mtmetsumdetail逐轮明细/_mtkeyhintdetail三键提示/_mtguardsnapd四段快照/_mtguardpaneld总览面板display切), 一键折叠/展开维护守护区全浮层省高, 与R159折叠双图区/R202折叠总览面板语言同; R204 折叠态存 localStorage._mtGuardFoldAll 刷新恢复 */
 (function(){ const c=$('#mtguardfoldall'); if(!c) return;
   /* R204: 惰性初始化读 localStorage._mtGuardFoldAll, 折叠态跨会话留存(刷新恢复折叠/展开态, 与R159双图区折叠localStorage._mtMetFold记忆语言同) */

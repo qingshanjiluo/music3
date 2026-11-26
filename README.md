@@ -5705,3 +5705,44 @@ window._mtGuardFoldAll?'1':'0'); }catch(_){}`——折叠态 `true` 存 `'1'` / 
 值，刷新恢复验 `localStorage` 值非真刷新 headless）⑦ 验收**函数级**（`localStorage._mtGuardFoldAll` 存 `'1'` / `'0'` 验折叠 / 展开切 `localStorage`
 值，刷新恢复验 `localStorage` 读值非真刷新）。
 
+---
+
+## 第219轮（前端 R205 · goal round182）：维护守护区总览面板折叠记忆（`_mtGuardPanelFold` 总览面板折叠标志存 `localStorage._mtGuardPanelFold`，刷新后恢复折叠态，总览面板折叠态跨会话留存）
+
+**完善性（总览面板折叠态跨会话留存免刷新复位）**：R202 `#mtguardpanelfold` 总览面板折叠 `window._mtGuardPanelFold` 标志，但**刷新后
+丢**（`window` 标志跨会话不持久，刷新后 `window._mtGuardPanelFold` 复位 `false` 展开态，总览面板折叠态不跨会话留存，`_mtGuardPanelFold`
+存 `localStorage._mtGuardPanelFold`，刷新后恢复总览面板折叠 / 展开态，总览面板折叠态跨会话留存，与 R159 双图区折叠 / R204 全浮层折叠
+记忆语言同，三折叠域双图区 / 总览面板 / 全浮层全 `localStorage` 记忆）。`#mtguardpanelfold` IIFE（R202 区）改：`window._mtGuardPanelFold`
+惰性初始化读 `localStorage._mtGuardPanelFold`（`'1'` 折叠态 / `'0'` 展开态 / 无默认展开态），切后存 `localStorage._mtGuardPanelFold`，
+`#mtguardpanelfold` 文案 + `#mtguardpaneld` `display` 随初始折叠态（初始同步 IIFE）——总览面板折叠态跨会话留存，与 R159 / R204 折叠
+记忆语言同。
+
+**E2E**：`清 localStorage._mtGuardPanelFold → 点 #mtguardpanelfold（折叠）→ localStorage._mtGuardPanelFold='1'（折叠态存 localStorage
+刷新恢复）；再点（展开）→ localStorage._mtGuardPanelFold='0'`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r205_panelfoldmem.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 706→708`，断点 `_整理后分类\洛天依\凉凉.mp3`。
+
+**坑**：① `window._mtGuardPanelFold` 惰性初始化读 `localStorage._mtGuardPanelFold`（`#mtguardpanelfold` IIFE 顶，`if(window._mtGuardPanelFold===
+undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){} window._mtGuardPanelFold=_init; }`
+——刷新后 `window._mtGuardPanelFold` 未设（`undefined`）则读 `localStorage._mtGuardPanelFold` 恢复折叠 / 展开态，`'1'` 折叠 / `'0'` / 无
+展开，`try/catch` `localStorage` 不可用（隐私模式 / 沙箱）降级 `false` 展开态，同 R204 `_mtGuardFoldAll` / R159 `_mtMetFold` `localStorage`
+惰性读降级纪律）② 切后存 `localStorage`（`#mtguardpanelfold` 点切 `window._mtGuardPanelFold` 后 `try{ localStorage.setItem('_mtGuardPanelFold',
+window._mtGuardPanelFold?'1':'0'); }catch(_){}`——折叠态 `true` 存 `'1'` / 展开态 `false` 存 `'0'`，`localStorage` 不可用降级不记（跨会话不
+留存，当前会话 `window` 标志仍生效），`localStorage` 键族加 `_mtGuardPanelFold`（同 `_mtRunHist`/`_mtRunDelta`/`_mtMetFold`/`_mtAuto`/
+`_mtGuardFoldAll` 维护守护区折叠记忆）③ 初始折叠态同步（`#mtguardpanelfold` IIFE 后另 IIFE：`if(window._mtGuardPanelFold===undefined)` 惰性
+初始化读 `localStorage._mtGuardPanelFold` + `c.textContent=window._mtGuardPanelFold?'▸ 展开总览':'▾ 折叠总览'`（文案随初始折叠态）+
+`if(d && window._mtGuardPanelFold){ d.style.display='none'; }`（刷新恢复折叠态隐 `#mtguardpaneld`，展开态刷新不隐 `#mtguardpaneld`）——
+刷新后恢复初始折叠态（文案 + `#mtguardpaneld` `display` 随 `localStorage._mtGuardPanelFold`，折叠态刷新隐总览面板省高，展开态刷新不隐）④
+与 R202 `#mtguardpanelfold` 总览面板折叠**分工**（R202 总览面板折叠 `window._mtGuardPanelFold` 当前会话切显 / 隐，R205 折叠记忆
+`localStorage._mtGuardPanelFold` 跨会话留存——当前会话折叠 + 跨会话记忆，`#mtguardpanelfold` 折叠态存 `localStorage` 刷新恢复，免刷新
+复位展开态重折叠）⑤ 与 R159 `#mtmetfold` 双图区折叠记忆 / R204 `#mtguardfoldall` 全浮层折叠记忆**语言同**（R159 `_mtMetFold` 存
+`localStorage._mtMetFold` 双图区折叠记忆，R204 `_mtGuardFoldAll` 存 `localStorage._mtGuardFoldAll` 全浮层折叠记忆，R205 `_mtGuardPanelFold`
+存 `localStorage._mtGuardPanelFold` 总览面板折叠记忆，三折叠域双图区 / 总览面板 / 全浮层全 `localStorage` 记忆，各域折叠 / 记忆各管各）⑥
+`mtGuardPanel` 8s 自动隐跟折叠态（R202 已改 `if(!window._mtGuardPanelFold)` 才 8s 自动隐，R205 折叠态不 8s 自动隐跨会话留存，`localStorage.
+_mtGuardPanelFold` 折叠态刷新 `mtGuardPanel` 不触发 8s 定时——`window._mtGuardPanelFold` 刷新惰性读 `localStorage` 恢复折叠态，`mtGuardPanel`
+不 `mtGuardPanelT` 定时，总览面板折叠态跨会话省高不自动弹回）⑦ 验收**函数级**（清 `localStorage._mtGuardPanelFold` + 点 `#mtguardpanelfold`
+验 `window._mtGuardPanelFold` 切 `true`（折叠）+ `localStorage._mtGuardPanelFold` 存 `'1'`，再点验 `window._mtGuardPanelFold` 切 `false`（展开）
++ `localStorage._mtGuardPanelFold` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验
+`localStorage` 读值非真刷新 headless，初始同步 IIFE 验 `#mtguardpanelfold` 文案 + `#mtguardpaneld` `display` 随初始折叠态）。
+
