@@ -1072,6 +1072,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardfoldctscopy" title="折叠全链路文本复制(五块分块+各折叠出口标位文本到剪贴板, 折叠全链路可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全链路复制</button>
     <button type="button" id="mtguardfoldreset" title="重置维护守护区全折叠记忆(localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll/_mtGuardFoldCtl全清0+全折叠出口#mtmetfold/_mtguardpanelfold/_mtguardfoldall/_mtguardfoldctl文案/display恢复展开态, 维护守护区全折叠记忆一键复位)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">↺ 重置折叠</button>
     <button type="button" id="mtguardfoldresetcopy" title="全折叠记忆重置详情复制(4键localStorage复位值+4window标志复位值+4折叠钮文案复位+6浮层display复位+重置时间戳到剪贴板, 全折叠记忆重置详情可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 重置复制</button>
+    <button type="button" id="mtguardfoldresetpng" title="全折叠记忆重置详情PNG导出(4键+4标志+4折叠钮+6浮层复位状态SVG转canvas下载music3_全折叠记忆重置详情_ts.png, 全折叠记忆重置详情PNG存档/贴工单, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 重置PNG</button>
     <div id="mtguardfoldctld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardfoldstatd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardpaneld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
@@ -4594,6 +4595,55 @@ function mtGuardFoldResetCopy(){
   } else { _copyFallback(_lines); }
 }
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardfoldresetcopy'){ e.stopPropagation(); mtGuardFoldResetCopy(); } }); })();
+/* R215 全折叠记忆重置详情PNG导出: #mtguardfoldresetpng 点->拼全折叠记忆重置详情内联SVG(4键+4标志+4折叠钮+6浮层复位状态色带+时间戳)canvas转PNG下载「music3_全折叠记忆重置详情_<ts>.png」, toBlob不可用降级复制SVG源码, 与R158/R198/R200/R208PNG导出同语言 */
+function mtGuardFoldResetPng(){
+  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl')];
+  const _w=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl];
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  const _ts=new Date().toLocaleString();
+  const _OK='rgb(47,125,85)', _BAD='rgb(163,38,26)', _DIM='rgb(119,112,106)', _ACC='#c4381f';
+  const _W=440; let _y=8; const _rows=[];
+  _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠记忆重置详情 · '+_ts+'</text>'); _y+=18;
+  _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[localStorage 4键复位值]</text>'); _y+=14;
+  for(let _i=0;_i<4;_i++){ const _c=(_ls[_i]==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">_mtMetFold等['+_i+']='+_ls[_i]+'</text>'); _y+=13; }
+  _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[window 4标志复位值]</text>'); _y+=14;
+  for(let _i=0;_i<4;_i++){ const _c=(_w[_i]===false)?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">标志['+_i+']='+_w[_i]+'</text>'); _y+=13; }
+  _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[4折叠钮文案复位]</text>'); _y+=14;
+  for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); const _v=_b?_b.textContent:'无'; _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns[_i]+'='+_v+'</text>'); _y+=12; }
+  _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[6浮层display复位]</text>'); _y+=14;
+  for(let _i=0;_i<6;_i++){ const _f=document.getElementById(_floors[_i]); const _v=_f?_f.style.display:'无'; const _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors[_i]+'='+_v+'</text>'); _y+=12; }
+  const _H=_y+8;
+  const _svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+_W+'" height="'+_H+'">'+_rows.join('')+'</svg>';
+  const _svgStr=_svg;
+  const _b64=btoa(unescape(encodeURIComponent(_svgStr)));
+  const _img=new Image();
+  _img.onload=function(){
+    const _cv=document.createElement('canvas'); _cv.width=_W; _cv.height=_H;
+    const _cx=_cv.getContext('2d');
+    _cx.fillStyle='#f7f5f0'; _cx.fillRect(0,0,_cv.width,_cv.height);
+    _cx.drawImage(_img,0,0);
+    try{
+      _cv.toBlob(function(blob){
+        if(!blob){ _fallbackCopy(); return; }
+        const _url=URL.createObjectURL(blob);
+        const _a=document.createElement('a');
+        _a.href=_url; _a.download='music3_全折叠记忆重置详情_'+new Date().toISOString().replace(/[:.]/g,'-')+'.png';
+        document.body.appendChild(_a); _a.click(); document.body.removeChild(_a);
+        setTimeout(function(){ URL.revokeObjectURL(_url); }, 4000);
+        if(typeof _toast==='function'){ _toast('已下载全折叠记忆重置详情 PNG', 'ok'); }
+      },'image/png');
+    }catch(_){ _fallbackCopy(); }
+    function _fallbackCopy(){
+      const _txt='#music3 全折叠记忆重置详情 SVG\n'+_svgStr;
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠记忆重置详情 SVG（PNG 导出不可用降级）', 'ok'); } }).catch(function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败且复制降级失败', 'bad'); } }); }
+      else { if(typeof _toast==='function'){ _toast('PNG 导出失败（canvas 不可用）', 'bad'); } }
+    }
+  };
+  _img.onerror=function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败（SVG 渲染不可用）', 'bad'); } };
+  _img.src='data:image/svg+xml;base64,'+_b64;
+}
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardfoldresetpng'){ e.stopPropagation(); mtGuardFoldResetPng(); } }); })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){
