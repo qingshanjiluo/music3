@@ -6234,3 +6234,34 @@ _mtGuardAllDomain` 清 `'0'`（全折叠域总控面板折叠记忆键族加 `_m
 `window._mtGuardAllDomain`）+ `#mtguardalldomain` 文案复位「▣ 全折叠域」+ `#mtguardalldomains` `display` 复位 `'none'` + toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun`
 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，全折叠域总控面板折叠记忆复位验 5 键 / 5 标志 / 文案 / `display` 全复位）。
 
+---
+
+## 第234轮（前端 R220 · goal round197）：维护守护区全折叠记忆重置详情补全折叠域总控面板折叠记忆字段（`#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 重置详情补 `localStorage._mtGuardAllDomain` 全折叠域总控面板折叠记忆复位值 + `window._mtGuardAllDomain` 标志 + `#mtguardalldomain` 文案 + `#mtguardalldomains` `display` 字段，重置详情自含全折叠域总控面板折叠记忆复位状态）
+
+**完善性（重置详情自含全折叠域总控面板折叠记忆复位状态）**：R214/R215 `#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 重置详情（4 键 + 4 标志 + 4 折叠钮 + 6 浮层 + 时间戳），但**全折叠域总控面板
+折叠记忆（R218 `localStorage._mtGuardAllDomain` + `window._mtGuardAllDomain` + `#mtguardalldomain` 文案 + `#mtguardalldomains` `display`）字段没进重置详情**，`mtGuardFoldResetCopy`
+（R214）/ `mtGuardFoldResetPng`（R215）重置详情补全折叠域总控面板折叠记忆字段（5 键 + 5 标志 + 5 折叠钮 + 7 浮层 + 时间戳），重置详情自含全折叠域总控面板折叠记忆复位状态，与 R214/R215
+重置详情文本 / PNG 同域。`mtGuardFoldResetCopy`（R214 区）/ `mtGuardFoldResetPng`（R215 区）改：`_ls`/`_w` 加 `localStorage._mtGuardAllDomain` / `window._mtGuardAllDomain`（5 键 / 5
+标志），`_btns` 加 `#mtguardalldomain`（5 折叠钮），`_floors` 加 `#mtguardalldomains`（7 浮层），`_lines` 各分块拼 5 键 / 5 标志 / 5 折叠钮 / 7 浮层，色带循环 4→5 / 6→7。
+
+**E2E**：`设 5 键全 '1' → 点 #mtguardfoldreset（全折叠记忆重置）→ 点 #mtguardfoldresetcopy → toast「已复制全折叠记忆重置详情」+ 5 键全清 '0'（含 localStorage._mtGuardAllDomain）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r220_resetcopy5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 738→740`，断点 `_英文歌\Yesterday Once More.mp3`。
+
+**坑**：① `mtGuardFoldResetCopy`（R214 区）/ `mtGuardFoldResetPng`（R215 区）重置详情补全折叠域总控面板折叠记忆字段（`_ls` 加 `localStorage.getItem('_mtGuardAllDomain')`（5 键
+`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`），`_w` 加 `window._mtGuardAllDomain`（5 标志），`_btns` 加 `mtguardalldomain`（5 折叠钮
+`mtmetfold`/`mtguardpanelfold`/`mtguardfoldall`/`mtguardfoldctl`/`mtguardalldomain`），`_floors` 加 `mtguardalldomains`（7 浮层 `mtguardpaneld`/`mtguardfoldctld`/`mtguardfoldstatd`/
+`mtstatebardtl`/`mtmetsumdetail`/`mtkeyhintdetail`/`mtguardalldomains`），`_lines` 各分块拼 5 键 / 5 标志 / 5 折叠钮 / 7 浮层，色带循环 4→5 / 6→7，重置详情自含全折叠域总控面板折叠
+记忆复位状态，与 R214/R215 重置详情文本 / PNG 同域）② `mtGuardFoldResetCopy` / `mtGuardFoldResetPng` 实际 `const _ls`（非 `let _ls`，R214/R215 各函数体 `const` 声明，按 `const _ls`
+精确改，`replace_all` 全匹配行——4610 `mtGuardFoldResetPng` / 4660 `mtGuardFoldAllDomain` / 4735 `mtGuardAllDomainCopy` 各 `const _ls` 区，`mtGuardFoldResetCopy` 在 4610 区
+`const _ls` + `const _w` + `const _btns` + `const _floors` 各补 1 字段，循环 `_i<4`→`_i<5` / `_i<6`→`_i<7`，色带 5 键 / 5 标志 / 5 折叠钮 / 7 浮层全拼）③ 与 R214 `#mtguardfoldresetcopy` /
+R215 `#mtguardfoldresetpng` 重置详情**分工**（R214/R215 重置详情 4 键 + 4 标志 + 4 折叠钮 + 6 浮层，R220 补全折叠域总控面板折叠记忆字段——5 键 + 5 标志 + 5 折叠钮 + 7 浮层，重置详情
+自含全折叠域总控面板折叠记忆复位状态，`#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 重置详情补全全折叠域总控面板字段）④ 与 R219 全折叠记忆重置联动全折叠域总控面板折叠记忆复位**分工**
+（R219 全折叠记忆重置联动全折叠域总控面板折叠记忆复位（`#mtguardfoldreset` 一键复位后全折叠域总控面板折叠记忆全复位），R220 重置详情补全折叠域总控面板折叠记忆字段（重置详情自含全
+折叠域总控面板复位状态），全折叠域总控面板复位 + 重置详情自含全折叠域字段双路）⑤ 与 R158/R198/R200/R208/R215 PNG 导出 + R196/R201/R208/R214 复制出口**语言同**（各重置详情 / PNG /
+文本复制读各数据源拼文本 / 色带，`navigator.clipboard.writeText` 降级 / `canvas` 转 PNG 下载，重置详情补全折叠域总控面板字段同语言，重置详情自含全折叠域出口标位）⑥ 验收**函数级**（设
+5 键全 `'1'` + 点 `#mtguardfoldreset` 全折叠记忆重置 + 点 `#mtguardfoldresetcopy` 验 toast「已复制全折叠记忆重置详情」+ 5 键全清 `'0'`（含 `localStorage._mtGuardAllDomain`），不真跑
+`mtRun` 免 tick 污染 `runs`；重置详情 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼逻辑验 toast 出口，`_mtGuardAllDomain` 字段进重置详情文本 / PNG，复制 / 下载 headless 验 toast 出口，真剪贴板 /
+PNG 内容不验）。
+

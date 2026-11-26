@@ -4587,19 +4587,19 @@ function mtGuardFoldReset(){
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardfoldreset'){ e.stopPropagation(); mtGuardFoldReset(); } }); })();
 /* R214 全折叠记忆重置详情复制: #mtguardfoldresetcopy 点->读全折叠记忆重置后各数据源(localStorage4键复位值+window4标志复位值+4折叠钮文案复位+6浮层display复位+重置时间戳)拼重置详情到剪贴板, 全折叠记忆重置详情可文本留存/贴工单, 与R196/R201/R208复制出口同语言 */
 function mtGuardFoldResetCopy(){
-  let _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl')];
-  let _w=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl];
-  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
-  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  let _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl'),localStorage.getItem('_mtGuardAllDomain')];
+  let _w=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
   let _lines='#music3 全折叠记忆重置详情 · '+new Date().toLocaleString()+'\n';
   _lines+='[localStorage 4键复位值]\n';
-  _lines+=('_mtMetFold='+_ls[0]+' · _mtGuardPanelFold='+_ls[1]+' · _mtGuardFoldAll='+_ls[2]+' · _mtGuardFoldCtl='+_ls[3])+'\n';
+  _lines+=('_mtMetFold='+_ls[0]+' · _mtGuardPanelFold='+_ls[1]+' · _mtGuardFoldAll='+_ls[2]+' · _mtGuardFoldCtl='+_ls[3]+' · _mtGuardAllDomain='+_ls[4])+'\n';
   _lines+='\n[window 4标志复位值]\n';
-  _lines+=('_mtMetFold='+_w[0]+' · _mtGuardPanelFold='+_w[1]+' · _mtGuardFoldAll='+_w[2]+' · _mtGuardFoldCtl='+_w[3])+'\n';
+  _lines+=('_mtMetFold='+_w[0]+' · _mtGuardPanelFold='+_w[1]+' · _mtGuardFoldAll='+_w[2]+' · _mtGuardFoldCtl='+_w[3]+' · _mtGuardAllDomain='+_w[4])+'\n';
   _lines+='\n[4折叠钮文案复位]\n';
-  for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); _lines+=_btns[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
+  for(let _i=0;_i<5;_i++){ const _b=document.getElementById(_btns[_i]); _lines+=_btns[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
   _lines+='\n[6浮层display复位]\n';
-  for(let _i=0;_i<6;_i++){ const _f=document.getElementById(_floors[_i]); _lines+=_floors[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
+  for(let _i=0;_i<7;_i++){ const _f=document.getElementById(_floors[_i]); _lines+=_floors[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠记忆重置详情', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
@@ -4607,22 +4607,22 @@ function mtGuardFoldResetCopy(){
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardfoldresetcopy'){ e.stopPropagation(); mtGuardFoldResetCopy(); } }); })();
 /* R215 全折叠记忆重置详情PNG导出: #mtguardfoldresetpng 点->拼全折叠记忆重置详情内联SVG(4键+4标志+4折叠钮+6浮层复位状态色带+时间戳)canvas转PNG下载「music3_全折叠记忆重置详情_<ts>.png」, toBlob不可用降级复制SVG源码, 与R158/R198/R200/R208PNG导出同语言 */
 function mtGuardFoldResetPng(){
-  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl')];
-  const _w=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl];
-  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
-  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl'),localStorage.getItem('_mtGuardAllDomain')];
+  const _w=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
   const _ts=new Date().toLocaleString();
   const _OK='rgb(47,125,85)', _BAD='rgb(163,38,26)', _DIM='rgb(119,112,106)', _ACC='#c4381f';
   const _W=440; let _y=8; const _rows=[];
   _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠记忆重置详情 · '+_ts+'</text>'); _y+=18;
   _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[localStorage 4键复位值]</text>'); _y+=14;
-  for(let _i=0;_i<4;_i++){ const _c=(_ls[_i]==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">_mtMetFold等['+_i+']='+_ls[_i]+'</text>'); _y+=13; }
+  for(let _i=0;_i<5;_i++){ const _c=(_ls[_i]==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">_mtMetFold等['+_i+']='+_ls[_i]+'</text>'); _y+=13; }
   _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[window 4标志复位值]</text>'); _y+=14;
-  for(let _i=0;_i<4;_i++){ const _c=(_w[_i]===false)?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">标志['+_i+']='+_w[_i]+'</text>'); _y+=13; }
+  for(let _i=0;_i<5;_i++){ const _c=(_w[_i]===false)?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">标志['+_i+']='+_w[_i]+'</text>'); _y+=13; }
   _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[4折叠钮文案复位]</text>'); _y+=14;
-  for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); const _v=_b?_b.textContent:'无'; _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns[_i]+'='+_v+'</text>'); _y+=12; }
+  for(let _i=0;_i<5;_i++){ const _b=document.getElementById(_btns[_i]); const _v=_b?_b.textContent:'无'; _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns[_i]+'='+_v+'</text>'); _y+=12; }
   _rows.push('<text x="8" y="'+_y+'" font-size="10" fill="'+_DIM+'">[6浮层display复位]</text>'); _y+=14;
-  for(let _i=0;_i<6;_i++){ const _f=document.getElementById(_floors[_i]); const _v=_f?_f.style.display:'无'; const _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors[_i]+'='+_v+'</text>'); _y+=12; }
+  for(let _i=0;_i<7;_i++){ const _f=document.getElementById(_floors[_i]); const _v=_f?_f.style.display:'无'; const _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors[_i]+'='+_v+'</text>'); _y+=12; }
   const _H=_y+8;
   const _svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+_W+'" height="'+_H+'">'+_rows.join('')+'</svg>';
   const _svgStr=_svg;
@@ -4657,9 +4657,9 @@ function mtGuardFoldResetPng(){
 /* R216 全折叠域总控面板: #mtguardalldomain 点->拼内联SVG全折叠域总控面板六块(四折叠记忆localStorage键+四折叠出口+全折叠重置+重置详情复制/PNG+全浮层复位+三域折叠态总览), 全折叠域能力/出口全景图免分散找, 与R209折叠全链路总控同语言 */
 function mtGuardAllDomain(){
   const _d=document.getElementById('mtguardalldomains'); if(!_d) return;
-  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl')];
-  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
-  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl'),localStorage.getItem('_mtGuardAllDomain')];
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
   const _OK='rgb(47,125,85)', _BAD='rgb(163,38,26)', _DIM='rgb(119,112,106)', _ACC='#c4381f', _LN='rgb(226,221,211)';
   const _W=460; let _y=8; const _rows=[];
   _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠域总控面板 · '+new Date().toLocaleString()+'</text>'); _y+=18;
@@ -4733,7 +4733,7 @@ function mtGuardAllDomainCopy(){
   let _lines='#music3 全折叠域总控 · '+new Date().toLocaleString()+'\n';
   _lines+='[四折叠记忆 localStorage 键]\n';
   const _ls=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0'];
-  _lines+=('_mtMetFold='+_ls[0]+' · _mtGuardPanelFold='+_ls[1]+' · _mtGuardFoldAll='+_ls[2]+' · _mtGuardFoldCtl='+_ls[3])+'\n';
+  _lines+=('_mtMetFold='+_ls[0]+' · _mtGuardPanelFold='+_ls[1]+' · _mtGuardFoldAll='+_ls[2]+' · _mtGuardFoldCtl='+_ls[3]+' · _mtGuardAllDomain='+_ls[4])+'\n';
   _lines+='\n[四折叠出口]\n';
   const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
   for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); _lines+=_btns[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
