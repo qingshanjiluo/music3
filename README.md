@@ -5520,3 +5520,40 @@ R198 PNG 导出存档 / R199 总览面板看能力 / 出口全景——复制 + 
 总览」/「三键状态灯 + 触发记录」/「四段数据源」/「复制出口」/「快照 / PNG 出口」/「键盘三操作 + 状态同态」/「全库 ∞ + 完成态」），
 不真跑 `mtRun` 免 tick 污染 `runs`；`mtGuardPanel` 内联 SVG 六块 headless 验 `innerHTML` 含 `<svg` + 各块标题，非真渲染 SVG 像素）。
 
+---
+
+## 第214轮（前端 R200 · goal round177）：维护守护区能力 / 出口总览面板补导出（`#mtguardpanelpng` 小钮，点 `#mtguardpanel` 总览面板后 `#mtguardpanelpng` 把总览面板内联 SVG `canvas` 转 PNG 下载「music3_维护守护总览_<ts>.png」，维护守护区能力 / 出口全景图 PNG 存档 / 分享）
+
+**完善性（能力 / 出口全景图 PNG 留存 / 分享免手截）**：R199 `#mtguardpanel` 总览面板内联 SVG 只看，**没 PNG 导出**（能力 / 出口
+全景图要存档 / 分享得手动截屏，`#mtguardpanelpng` 把 `#mtguardpaneld` 内联 SVG `canvas` 转 PNG 下载，维护守护区能力 / 出口全景图
+PNG 存档 / 分享，与 R158/R198 PNG 导出语言同）。`#mtguardpanel` 旁加**`#mtguardpanelpng`** 小钮（`⬇ 总览PNG`，`#mtguardpanel` 后
+常驻位），点 `#mtguardpanelpng` → **`mtGuardPanelPng`**（读 `#mtguardpaneld` 内联 SVG（`#mtguardpaneld` 无 SVG 则先 `mtGuardPanel()`
+生成），`XMLSerializer` 序列化 SVG → `btoa` base64 → `Image` `onload` → `canvas`（`#f7f5f0` 浅色底，透明底贴工单看不清，同 R158）
+`drawImage` → `toBlob` → `a[download]` 触发下载「music3_维护守护总览_<ts>.png」，`toBlob` 不可用降级复制 SVG 源码到剪贴板 + toast
+「已复制维护守护区总览 SVG（PNG 导出不可用降级）」）——能力 / 出口全景图 PNG 存档 / 分享，维护守护区总览可留存，与 R158/R198
+PNG 导出同语言。
+
+**E2E**：`点 #mtguardpanel（生成 #mtguardpaneld 内联 SVG）→ 点 #mtguardpanelpng → mtGuardPanelPng 读 SVG canvas 转 PNG →
+toast「已下载维护守护区总览 PNG」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r200_panelpng.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 696→698`，断点 `_整理后分类\朴树\生如夏花.mp3`。
+
+**坑**：① `#mtguardpanelpng` 小钮挂 `#mtguardpanel` 旁常驻位（`#mtguardpanel` 后 `inline-block`，维护守护区总览 PNG 导出常驻入口，
+非 hover 态控——`#mtguardpanel` 总览面板看全貌 + `#mtguardpanelpng` 总览 PNG 导出双入口并排，点 `#mtguardpanelpng` 即把
+`#mtguardpaneld` 内联 SVG 转 PNG 下载，免手截能力 / 出口全景图）② `mtGuardPanelPng` 读 `#mtguardpaneld` 内联 SVG（`#mtguardpaneld`
+无 SVG（未点过 `#mtguardpanel`）则先 `mtGuardPanel()` 生成，`d.querySelector('svg')` 取 SVG，无 `svg` toast「无维护守护区总览可导出
+（总览面板空）」`bad`，同 R198 `mtGuardSnapPng` 读 `#mtguardsnapd` 无 SVG 先 `mtGuardSnap()` 生成纪律）③ SVG 转 PNG（`new
+XMLSerializer().serializeToString(svg)` → `btoa(unescape(encodeURIComponent(svgStr)))` base64 → `Image` `src='data:image/svg+xml;
+base64,'` → `onload` `canvas`（`#f7f5f0` 浅色底 fillRect，透明底贴工单看不清同 R158）`drawImage` → `toBlob('image/png')` →
+`a[download]='music3_维护守护总览_<ts>.png'`（`ts` `new Date().toISOString().replace(/[:.]/g,'-')` 文件名安全，与 R198 `music3_维护
+守护全记录_快照_<ts>.png` 区分——总览面板 PNG 命名「维护守护总览」，四段数据快照 PNG 命名「维护守护全记录_快照」）④ `toBlob` 不可用
+降级（`_fallbackCopy` 复制 SVG 源码到剪贴板：`navigator.clipboard.writeText('#music3 维护守护区总览 SVG\n'+svgStr)` + toast「已复
+制维护守护区总览 SVG（PNG 导出不可用降级）」，`canvas` / `toBlob` 沙箱不可用时 SVG 源码降级留存，同 R158/R198 PNG 降级复制 SVG 源
+码纪律）⑤ 与 R199 `#mtguardpanel` 总览面板**分工**（R199 内联 SVG 总览面板看能力 / 出口全景（`#mtguardpaneld` 8s 自动隐），R200
+总览 PNG 导出存档 / 分享（`#mtguardpanelpng` 下载 PNG），看全景 + 全景 PNG 留存双出口，维护守护区总览可看可存）⑥ 与 R198
+`#mtguardsnappng` 四段快照 PNG**区分**（R198 `#mtguardsnappng` 导四段数据快照 PNG「维护守护全记录_快照」，R200 `#mtguardpanelpng`
+导能力 / 出口总览面板 PNG「维护守护总览」，两个 PNG 命名区分——数据快照（四段当前值）+ 能力总览（能力 / 出口分块）两类 PNG 全貌）⑦
+验收**函数级**（点 `#mtguardpanel` 生成 `#mtguardpaneld` 内联 SVG + 点 `#mtguardpanelpng` 验 toast「已下载维护守护区总览 PNG」/
+降级「已复制维护守护区总览 SVG」，`canvas` / `toBlob` 下载 headless 验 toast 出口，真 PNG 文件下载不验，不真跑 `mtRun` 免 tick 污染
+`runs`）。
+
