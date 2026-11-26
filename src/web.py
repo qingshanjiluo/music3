@@ -3813,10 +3813,20 @@ function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display
   b.addEventListener('mouseenter', function(){
     const dtl=b.getAttribute('data-dtl'); if(!dtl){ return; }
     d.textContent=dtl; d.style.display='block';
+    /* 视口跟随定位(R168): getBoundingClientRect 视口坐标 + 边缘 flip(右溢出贴左翻_底溢出翻上), 徽标靠右/靠底时浮层不溢出视口 */
     const r=b.getBoundingClientRect();
-    d.style.position='absolute';
-    d.style.left=(b.offsetLeft)+'px';
-    d.style.top=(b.offsetTop+b.offsetHeight+2)+'px';
+    d.style.position='fixed';
+    /* 先放下方, 量浮层宽 */
+    d.style.left='0px'; d.style.top='0px';
+    const dw=d.offsetWidth, dh=d.offsetHeight;
+    /* 水平: 徽标左对齐, 右溢出(左+宽>视口宽-8)则右贴左翻(右对齐到徽标右沿) */
+    let lx=r.left, rx=window.innerWidth-8;
+    if(r.left+dw>rx){ lx=Math.max(8, r.right-dw); }
+    d.style.left=lx+'px';
+    /* 垂直: 默认下方(r.bottom+2), 底溢出(下+高>视口高-8)则翻上方(r.top-高-2) */
+    let ty=r.bottom+2;
+    if(ty+dh>window.innerHeight-8){ ty=Math.max(8, r.top-dh-2); }
+    d.style.top=ty+'px';
   });
   b.addEventListener('mouseleave', function(){ d.style.display='none'; d.textContent=''; });
 })();

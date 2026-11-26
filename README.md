@@ -4483,3 +4483,31 @@ _t1)/100)/10`（本轮 tick 耗时，1dp），读 `_mtRunHist` 推 `_rdur` 末 1
 `box-shadow` + `pointer-events:none`（不挡下层交互），`display:none` 默认，`mouseenter` 显）② `mtLiveBadge(i, N, back, dur,
 lyr, cov, totalDur, totalN)`（R166 签名加 4 详情参数）：`lyr!==undefined` 时 `el.setAttribute('data-dtl', '本轮回 +back（歌词 +lyr / 封面 +cov）· 本轮耗 dur+s · 累计 totalDur+s · 跑到 i/totalN')`（`totalN>100000` 全库显 `∞`）+ `cursor:help`（可 hover 提示）③ hover 委托（`#mtlivebadge` `mouseenter`/`mouseleave` 直挂）：`mouseenter` 读 `data-dtl` → `#mtlivedetail` 显 + `textContent=dtl` + `left=b.offsetLeft`/`top=b.offsetTop+b.offsetHeight+2`（徽标下方浮层），`mouseleave` 隐 + 清空 ④ `mtLiveBadgeHide`（跑完/取消）连同 `#mtlivedetail` 一起隐 + 清（详情随徽标收，不留残）⑤ **累计耗时** `_mtTotalDur`（`let _mtTotalDur=0` `t0` 区声明，每轮 tick 后 `_mtTotalDur=Math.round((_mtTotalDur+(Date.now()-_t1))/100)/10` 累加本轮耗，`mtLiveBadge` 第 7 参传）——累计看整次跑到现在花了多久（区别于本轮耗）⑥ `mtRun` 每轮调 `mtLiveBadge(i, N, r.lyric_ok+r.cover_ok, 本轮耗, r.lyric_ok, r.cover_ok, _mtTotalDur, N)`（传补入拆分 + 累计 + 总轮 N，全库 N=999999 → `∞`）⑦ 验收**函数级**（`mtLiveBadge` 直调传详情验 `data-dtl` 拼接 + `mouseenter`/`mouseleave` 触 `#mtlivedetail` 显隐，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtlivedetail` `offsetLeft` 定位 headless 为 0，验 `display`/`textContent` 出口）。
 
+---
+
+## 第182轮（前端 R168 · goal round145）：`#mtlivedetail` 详情浮层自动跟随视口（`getBoundingClientRect` 视口坐标 + 边缘 flip，徽标靠右/靠底不溢出）
+
+**连贯性（跑中 hover 看细不滚出屏）**：R167 `#mtlivedetail` 用 `b.offsetLeft`/`b.offsetTop+b.offsetHeight+2` 定位（徽标
+下方），**徽标靠右 / 靠底时浮层溢出视口**（`offsetLeft+浮层宽>视口宽` 或 `offsetTop+...>视口高`，hover 看细滚出屏没数）。
+`#mtlivedetail` hover 委托改：`getBoundingClientRect`（视口坐标）定位 + **边缘 flip**（水平：`r.left+dw>视口宽-8` 右溢出 →
+`lx=max(8, r.right-dw)` 右贴左翻；垂直：默认下方 `r.bottom+2`，`ty+dh>视口高-8` 底溢出 → `ty=max(8, r.top-dh-2)` 翻上）
++ `position:fixed`（视口坐标，随 hover 定位）——徽标靠右 / 靠底时浮层自动 flip 贴视口内，跑中 hover 看细不滚出屏。
+
+**E2E**：`#mtlivebadge 设详情 → hover → #mtlivedetail position:fixed（视口坐标）+ left=138.5 / top=791.2（getBoundingClientRect
+定位）+ 浮层不溢出视口（left+width=484.5 <= 视口宽 1440，右缘徽标 flip 后仍视口内）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r168_flip.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 632→634`，断点 `_整理后分类\thisistruemusic\英文歌\Nothing Else Matters.mp3`。
+
+**坑**：① `#mtlivedetail` hover 委托（`#mtlivebadge` `mouseenter`）改 `getBoundingClientRect`（视口坐标 `r`，比 `offsetLeft`
+相对定位准——`offsetLeft` 相对最近定位祖先，`getBoundingClientRect` 视口坐标，`fixed` 定位配合视口坐标）② 先 `left/top=0`
+量 `dw=d.offsetWidth`/`dh=d.offsetHeight`（浮层实际尺寸，`display:block` 后量）③ **水平 flip**：`lx=r.left`（默认徽标左对齐
+下方），`rx=视口宽-8`，`if(r.left+dw>rx) lx=max(8, r.right-dw)`（右溢出 → 右贴左翻，`r.right-dw` 浮层右沿对徽标右沿，`max(8,…)`
+防左越界）④ **垂直 flip**：`ty=r.bottom+2`（默认下方 2px），`if(ty+dh>视口高-8) ty=max(8, r.top-dh-2)`（底溢出 → 翻上方，
+`r.top-dh-2` 浮层下沿对徽标上沿）⑤ `position:fixed`（视口坐标，`left/top` 视口相对，随 hover 定位，滚动不影响——跑中 hover
+徽标浮层固定视口位置，不随页面滚动漂）⑥ `mouseenter`/`mouseleave` 直挂 `#mtlivebadge`（浮层 `pointer-events:none` 不挡，
+hover 徽标本体触，`mouseleave` 离即隐），与 R145/R154 委托捕获不同（`#mtlivebadge` 单元素直挂，不 `document` 捕获——徽标
+固定位置，直挂简单，hover 本体）⑦ 验收**函数级**（`mtLiveBadge` 设详情 + `mouseenter` 触 `#mtlivedetail` 显 + 验
+`position:fixed` + `left+width<=视口宽` 不溢出，不真跑 `mtRun` 免 tick 污染；`#mtlivebadge` 默认视口左中，`left+width` 本
+就视口内，验 `fixed` 定位 + 不溢出基线，flip 逻辑靠右缘/底缘徽标时自动触）。
+
