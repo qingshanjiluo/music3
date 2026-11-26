@@ -4869,3 +4869,32 @@ NONE、CSS 320/320、node 0、console 0、截图 r179_enter.png。
 
 **坑**：① `document` `keydown`（R178/R179 同 IIFE 补 `Space` 分支，三键盘操作同一监听不重复挂）：`e.key===' '` → `e.preventDefault()`（挡全局 `Space`——滚动等，维护区 `Space` 只做暂停 / 续跑）② **`window._mtRunning` 跑维护中判**（`#mtrun` 点「跑一轮」`mtRun` 内 `_mtRunning=true; window._mtRunning=true` 置，跑完 / 取消 / 出错置 `false; window._mtRunning=false`，挂 `window` 全局 `document` 监听可访问；块级 `let` 挂 `window` 同步初值，`mtRun` 内改 `window._mtRunning` 才生效——`document` 监听 IIFE 作用域外读块级 `let` 是 `undefined`，`window._mtRunning` 全局可读写）③ **`window._mtPaused` 暂停态挂全局**（`mtRun` 内 `let _mtPaused` 声明 + `window._mtPaused=_mtPaused` 同步初值，`Space` 写 `window._mtPaused=true/false`，循环顶 `if(window._mtPaused)` 检查挂起 + `while(window._mtPaused)` 轮询 `await setTimeout 300ms` 不跑 tick——`_mtPaused` 块级 `let` 作用域外读坑（`document` 监听 `IIFE` 外 `typeof _mtPaused` 是 `'undefined'`，`if(typeof _mtPaused!=='undefined')` 挡掉暂停 / 续跑逻辑不执行）→ 挂 `window` 全局，`Space` 分支 `window._mtPaused===false` 判暂停 / `else` 续跑，循环顶 `window._mtPaused` 读挂起，全走 `window`）④ `#mtrun` 黄 `--warn` 态（暂停 `textContent='暂停中 · 按 Space 续跑'` + `background/borderColor var(--warn)`，续跑 `_mtUnpausedBtn` 恢复跑中「取消」红态，`_mtUnpausedBtn` 读 `window._mtRunning` 判跑中 / 非跑中）⑤ **跑完 / 取消复位**（`mtRun` 跑完 / 取消区 `window._mtRunning=false; window._mtPaused=false`，跑维护结束暂停态复位，下次跑不继承暂停）⑥ 与 R178 `Esc` 取消 / R179 `Enter` 跳双图**分工**（`Space` 暂停 / 续跑挂起循环不取消不跳双图，跑中全库跑到一半挂起看别的再 `Space` 续跑，三键盘流 `Enter` 跳双图 / `Esc` 取消 / `Space` 暂停续跑，`Space` 挂起是「不等跑完不取消」中间态）⑦ 验收**函数级**（`window._mtRunning=true` 模拟跑维护中 + `document` `dispatchEvent` `keydown` `key=' '` 验 `window._mtPaused=true` 暂停 `#mtrun` 黄态 + toast「已暂停」，再 `Space` 验 `window._mtPaused=false` 续跑 `#mtrun` 回「取消」+ toast「已续跑」，`window._mtRunning=false` 验 toast「Space 暂停需跑维护中」，不真跑 `mtRun` 免 tick 污染 `runs`；`_mtPaused` 块级 `let` 作用外读不验——`window._mtPaused` 全局读写验暂停 / 续跑切换，循环顶挂起 `await` 是 `mtRun` 内部行为不真跑）。
 
+---
+
+## 第195轮（前端 R181 · goal round158）：键盘 `Space`/`Esc`/`Enter` 三键提示浮层（`#mtkeyhint` 小钮，hover 显「Space 暂停 / 续跑 · Esc 取消 · Enter 跳双图 + 聚焦最新轮」，跑中 / 非跑中都能看，键盘流三操作可发现性）
+
+**完善性（键盘流三操作可发现性）**：R178 `Esc` 取消 / R179 `Enter` 跳双图 / R180 `Space` 暂停续跑三键盘操作落地，但**三键分工
+没提示入口**（用户不知道维护 tab 有 `Space`/`Esc`/`Enter` 三键，要试错才知道，键盘流三操作可发现性差）。维护 tab 顶栏（`#mtautoref`
+自动刷钮旁）加**`#mtkeyhint`** 小钮（`⌨ 键`，`cursor:help` + `title` 提示）+ hover 浮层**`#mtkeyhintdetail`**（`mouseenter` 显「Space
+暂停 / 续跑（需跑维护中）· Esc 取消（已跑的轮不回滚）· Enter 跳双图区 + 聚焦最新轮 —— 维护 tab 激活 + 焦点不在输入框时生效」，
+`mouseleave` 隐）——跑中 / 非跑中都能看三键分工，键盘流三操作可发现性（免记 / 免试错），与 R178/R179/R180 三键盘操作**对称**。
+
+**E2E**：`#mtkeyhint hover（mouseenter）→ #mtkeyhintdetail 显三键分工（Space 暂停/续跑 + Esc 取消 + Enter 跳双图 + 聚焦最新轮 +
+维护 tab 激活+焦点非输入框生效）+ mouseleave → 隐`（绿，三键 `Space`/`Esc`/`Enter` + 生效条件文案）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r181_keyhint.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 658→660`，断点 `_整理后分类\华语经典\薛之谦\丑八怪.mp3`。
+
+**坑**：① `#mtkeyhint` 挂维护 tab 顶栏（`#mtautoref` 自动刷 5s 钮后，`--bg2` 底 + `--line` 描边 + `--dim` 色 10px，`cursor:help`
+可 hover 提示，`title` 内联提示三键分工，常驻可见不占位——跑中 / 非跑中都显，键盘流提示）② hover 委托（`#mtkeyhint`
+`mouseenter`/`mouseleave` 直挂，`#mtkeyhintdetail` 浮层 `pointer-events:none` 不挡下层，hover 钮本体触，`mouseleave` 离即隐）③
+`#mtkeyhintdetail` 文案（`_hint` 三键分工 + 生效条件：`Space 暂停 / 续跑（需跑维护中）· Esc 取消（已跑的轮不回滚）· Enter 跳双图
+区 + 聚焦最新轮 —— 维护 tab 激活 + 焦点不在输入框时生效`，三键各一句分工 + 末尾生效条件（维护 tab 激活 + 焦点非输入框，
+`document` `keydown` 监听 `R178/R179/R180` 同判），hover 看全三键 + 生效条件免试错）④ 浮层定位（R168 `#mtlivedetail` 同
+`getBoundingClientRect` 视口坐标 + 边缘 flip：`r.left+dw>视口宽-8` 右贴左翻 / `ty+dh>视口高-8` 翻上，`#mtkeyhint` 在维护 tab 顶栏
+`#mtautoref` 旁靠右，hover 浮层视口内不溢出）⑤ 与 R178 `Esc` / R179 `Enter` / R180 `Space` 三键盘操作**对称**（三键盘操作落地，
+`#mtkeyhint` 补三键分工提示入口——键盘流三操作可发现性，免记 / 免试错，hover `#mtkeyhint` 看全三键分工 + 生效条件）⑥ 验收**函数级**
+（`#mtkeyhint` `dispatchEvent` `mouseenter` 验 `#mtkeyhintdetail` 显 + 三键 `Space`/`Esc`/`Enter` 文案 + `mouseleave` 隐，不真跑
+`mtRun` 免 tick 污染 `runs`；`#mtkeyhint` 常驻钮 hover 浮层，headless `mouseenter` 触 `#mtkeyhintdetail` 显，`getBoundingClientRect`
+定位 headless 为 0，验 `display`/`textContent` 出口）。
+
