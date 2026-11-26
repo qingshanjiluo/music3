@@ -4463,3 +4463,23 @@ _t1)/100)/10`（本轮 tick 耗时，1dp），读 `_mtRunHist` 推 `_rdur` 末 1
 双指标）/ R158 `#mtmetsum`（常驻看 N 次汇总）**分工**：`#mtlivebadge` 看**跑中当前轮**（实时刷新，跑完隐），三视图（跑中实时
 / hover 单次 / 常驻汇总）。
 
+---
+
+## 第181轮（前端 R167 · goal round144）：`#mtlivebadge` 双指标实时徽标 hover 展开详情（`#mtlivedetail` 悬停显「本轮回 +X（歌词 a / 封面 b）· 本轮耗 Ys · 累计 Zs · 跑到 W/总轮」）
+
+**连贯性（跑中看细当前轮双指标）**：R166 `#mtlivebadge` 跑中每轮显「跑中 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」（一行
+扫一眼），但**补入量没拆歌词/封面**（+X 合数）、**累计耗时没数**、**总进度没显**。`#mtlivebadge` 旁加**`#mtlivedetail`**
+浮层（`mouseenter` 悬停显「本轮回 +X（歌词 a / 封面 b）· 本轮耗 Ys · 累计 Zs · 跑到 W/总轮」——当前轮补入拆**歌词 / 封面**
+双补入源 + 累计耗时（`_mtTotalDur` 逐轮累加）+ 总轮进度，`mouseleave` 隐）——跑中看细当前轮双指标（合数 + 拆分 + 累计 +
+进度），与 R166 一行徽标**分工**（一行扫一眼 / hover 看细）。
+
+**E2E**：`mtLiveBadge(3,5,4,1.2,3,1,3.5,5) → #mtlivebadge 有 data-dtl「本轮回 +4（歌词 +3 / 封面 +1）· 本轮耗 1.2s · 累计
+3.5s · 跑到 3/5」（补入拆歌词/封面 + 累计 + 总进度）+ mouseenter → #mtlivedetail 显（block，详情浮层）+ mouseleave → 隐
+（none）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r167_badgehov.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 630→632`，断点 `_整理后分类\thisistruemusic\英文歌\In the End.mp3`。
+
+**坑**：① `#mtlivedetail` 浮层（`#mtlivebadge` 后，`position:absolute` `z-index:60` + `--bg2` 底 + `--line` 描边 +
+`box-shadow` + `pointer-events:none`（不挡下层交互），`display:none` 默认，`mouseenter` 显）② `mtLiveBadge(i, N, back, dur,
+lyr, cov, totalDur, totalN)`（R166 签名加 4 详情参数）：`lyr!==undefined` 时 `el.setAttribute('data-dtl', '本轮回 +back（歌词 +lyr / 封面 +cov）· 本轮耗 dur+s · 累计 totalDur+s · 跑到 i/totalN')`（`totalN>100000` 全库显 `∞`）+ `cursor:help`（可 hover 提示）③ hover 委托（`#mtlivebadge` `mouseenter`/`mouseleave` 直挂）：`mouseenter` 读 `data-dtl` → `#mtlivedetail` 显 + `textContent=dtl` + `left=b.offsetLeft`/`top=b.offsetTop+b.offsetHeight+2`（徽标下方浮层），`mouseleave` 隐 + 清空 ④ `mtLiveBadgeHide`（跑完/取消）连同 `#mtlivedetail` 一起隐 + 清（详情随徽标收，不留残）⑤ **累计耗时** `_mtTotalDur`（`let _mtTotalDur=0` `t0` 区声明，每轮 tick 后 `_mtTotalDur=Math.round((_mtTotalDur+(Date.now()-_t1))/100)/10` 累加本轮耗，`mtLiveBadge` 第 7 参传）——累计看整次跑到现在花了多久（区别于本轮耗）⑥ `mtRun` 每轮调 `mtLiveBadge(i, N, r.lyric_ok+r.cover_ok, 本轮耗, r.lyric_ok, r.cover_ok, _mtTotalDur, N)`（传补入拆分 + 累计 + 总轮 N，全库 N=999999 → `∞`）⑦ 验收**函数级**（`mtLiveBadge` 直调传详情验 `data-dtl` 拼接 + `mouseenter`/`mouseleave` 触 `#mtlivedetail` 显隐，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtlivedetail` `offsetLeft` 定位 headless 为 0，验 `display`/`textContent` 出口）。
+
