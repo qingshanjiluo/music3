@@ -6584,3 +6584,34 @@ DOM 未渲染 `c=null` 不绑（同 R212/R214/R215/R216/R217 `document` click �
 （复制含全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldcopy` 复制拼逻辑验全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层字段进文本（`_lines+=`
 全折叠域 5 域各折叠 / 展开 + `localStorage` 值 + 5 键 + 5 标志 + 5 折叠钮 + 7 浮层），非真剪贴板 / 渲染像素）。
 
+---
+
+## 第247轮（前端 R233 · goal round210）：维护守护区全折叠域 5 域折叠态 PNG 快照（`#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照（R233），拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG 转 PNG 下载「music3_全折叠域5域折叠态_<ts>.png」，全折叠域 5 域折叠态 PNG 存档 / 可分享）
+
+**完善性（全折叠域 5 域折叠态 PNG 存档 / 可分享）**：R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制出口，但**全折叠域 5 域折叠态 PNG 快照没加**（全折叠域 5 域折叠态要 PNG 存档 / 可分享，
+`#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照（R233）拼全折叠域 5 域（双图区 / 总览面板 / 全浮层 / 折叠全链路 / 全折叠域总控面板）+ 5 键 `localStorage` + 5 标志 `window` + 5 折叠钮文案 + 7 浮层
+`display` 当前态内联 SVG（分块色带：全折叠域 5 域色带 + 5 标志色带 + 5 折叠钮文案 + 7 浮层色带），canvas 转 PNG 下载「music3_全折叠域5域折叠态_<ts>.png」，全折叠域 5 域折叠态 PNG 存档 /
+可分享，与 R232 全折叠域 5 域折叠态一键复制同域，`#mtallfoldpng` PNG 快照读全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼内联 SVG 色带转 PNG，免逐点各面板 / 出口）。
+
+**E2E**：`设 5 键全 '1' + 5 标志全 true → 点 #mtallfoldpng → PNG 快照下载（全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG 转 PNG，headless 下载无 toast 属正常）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r233_allfold5png.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 764→766`，断点 `_周杰伦\我是如此相信.mp3`。
+
+**坑**：① `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照小钮（R233，维护守护区小钮区 `#mtallfoldcopy` 后）+ `mtAllFoldPng` 函数（拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG
+→ canvas 转 PNG 下载「music3_全折叠域5域折叠态_<ts>.png」，`var` 声明免 `const` 崩溃，`_rows` 数组拼 SVG：标题 + `[全折叠域5域]` 5 域色带（`_doms` 数组 5 元素，各域 `localStorage` 折叠态
+（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 域名 + 键名 + 值 + `[5标志 window]` 5 标志色带（`_w5` 各 `window` 标志，`false` 展开 `--ok` 绿 / `true` 折叠 `--bad` 红）+ 标志名 + 值 +
+`[5折叠钮文案]` 5 折叠钮 `textContent` + `[7浮层 display]` 7 浮层 `style.display` 色带（`none` 隐 `--ok` 绿 / 显 `--dim` 灰）+ `canvas` `toBlob` 转 PNG 下载（`toBlob` 不可用降级 toast「PNG 导出
+不可用（toBlob 不支持）」+ `canvas` 不可用降级 toast「PNG 导出失败（canvas 不可用）」+ SVG 渲染失败降级 toast「PNG 导出失败（SVG 渲染不可用）」），全折叠域 5 域折叠态 PNG 存档 / 可分享，
+与 R232 全折叠域 5 域折叠态一键复制同域，`#mtallfoldpng` PNG 快照读全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼内联 SVG 色带转 PNG，免逐点各面板 / 出口）② `mtAllFoldPng` `var` 声明免
+`const` 崩溃（`_OK`/`_BAD`/`_DIM`/`_LN`/`_ACC` 颜色常量 + `_W`/`_y`/`_rows` 画布变量 + `_doms`/`_w5`/`_wk`/`_btns5`/`_floors7` 数据数组 + `_host`/`_imgv`/`_b64`/`_cv`/`_g`/`_u`/`_a`/`_blob` 各变量全
+`var`，免 `const`/`let` 在 `try/catch` 内声明作用域问题 + `for` 循环 `var _i` 免循环变量提升崩溃），同 R221 `mtGuardAllDomain` `var` 声明免 `const` 崩溃纪律③ `#mtallfoldpng` 维护 tab 懒
+加载坑 → `document` click 委托（`document.addEventListener('click', function(e){ if(e.target.id==='mtallfoldpng'){ e.stopPropagation(); mtAllFoldPng(); } });`），免维护 tab 未激活小钮 DOM 未
+渲染 `c=null` 不绑（同 R212/R214/R215/R216/R217/R232 `document` click 委托纪律）④ 与 R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制**分工**（R232 全折叠域 5 域折叠态一键复制到剪贴板（文本
+留存 / 贴工单），R233 全折叠域 5 域折叠态 PNG 快照到 PNG（图像存档 / 可分享），`#mtallfoldcopy` 文本 + `#mtallfoldpng` PNG 双出口自含全折叠域 5 域全当前态，与 R158/R198/R200/R208/R215/R217 PNG
+导出 + R196/R201/R208/R214/R217/R232 复制出口双路语言同）⑤ 与 R224 `#mtguardfoldstat` 全折叠域 5 域折叠态总览 / R225 `#mtguardfoldctl` 折叠全链路总控 / R222-R231 各面板 / 出口补全折叠域
+5 键段**语言同**（各全折叠域 5 域折叠态总览 / PNG 快照 / 各面板 / 出口读 5 键 `localStorage` + 各域 `textContent` / `display` 拼色带 / 文本 / SVG，全折叠域 5 域当前态同语言，各出口自含全折叠
+域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 5 标志全 `true` + 点 `#mtallfoldpng` 验 PNG 快照下载（全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG 转 PNG），不真跑 `mtRun`
+免 tick 污染 `runs`；`#mtallfoldpng` PNG 拼逻辑验全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层字段进内联 SVG（`_rows.push` 全折叠域 5 域色带 + 5 标志色带 + 5 折叠钮文案 + 7 浮层色带），
+headless 下载 PNG 无 toast 属正常（`canvas` `toBlob` 转 PNG 下载不显 toast，降级才 toast「PNG 导出不可用」/「PNG 导出失败」，验 `console 0` + 下载成功，真 PNG 内容不验）。
+
