@@ -3801,7 +3801,10 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
   /* 详情(R167): hover #mtlivebadge 展开 #mtlivedetail(补入拆歌词/封面 + 累计耗时 + 总进度), data-dtl 存详情 */
   if(lyr!==undefined){
     const _Ndisp=(totalN&&totalN>100000?'∞':(totalN||N));
-    el.setAttribute('data-dtl','本轮回 +'+back+'（歌词 +'+(lyr||0)+' / 封面 +'+(cov||0)+'）· 本轮耗 '+dur+'s · 累计 '+(totalDur!==undefined?totalDur:'-')+'s · 跑到 '+i+'/'+_Ndisp);
+    let _dtl='本轮回 +'+back+'（歌词 +'+(lyr||0)+' / 封面 +'+(cov||0)+'）· 本轮耗 '+dur+'s · 累计 '+(totalDur!==undefined?totalDur:'-')+'s · 跑到 '+i+'/'+_Ndisp;
+    /* 双轨联动(R170): 自动刷 5s 开(_mtAutoRefTimer 非空)时, 详情补「· 自动刷 5s 中(下次 ≤5s)」-- 跑维护+自动刷 9 卡双轨看细, 扫一眼下轮自动刷何时到 */
+    try{ if(typeof _mtAutoRefTimer!=='undefined' && _mtAutoRefTimer){ _dtl+=' · 自动刷 5s 中（下次 ≤5s）'; } }catch(e){}
+    el.setAttribute('data-dtl',_dtl);
     el.style.cursor='help';
   }
 }

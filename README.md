@@ -4541,3 +4541,31 @@ CSS 320/320、node 0、console 0、截图 r169_copy.png。
 贴记录）⑥ 验收**函数级**（`mtLiveBadge` 设 `data-dtl` + 点 `#mtlivedetailcopy` 验 toast 出口，headless `clipboard` 无权限自动走
 `_copyFallback` `execCommand`，不真验剪贴板内容——headless 无剪贴板读，toast「已复制」为出口证明）。
 
+---
+
+## 第184轮（前端 R170 · goal round147）：`#mtlivebadge` 详情浮层与自动刷 9 卡双轨联动（自动刷开时 hover 详情同显「· 自动刷 5s 中（下次 ≤5s）」）
+
+**连贯性（跑维护 + 自动刷双轨看细）**：R115 自动刷 9 卡（`#mtautoref` 每 5s 拉 `mtStat`）与 R167 `#mtlivedetail` 详情浮层
+独立：自动刷开时 hover `#mtlivebadge` 看当前轮双指标详情，**看不到自动刷同步状态**（双轨——维护跑中 + 自动刷 9 卡同步
+看，扫一眼自动刷何时触发下轮 9 卡刷新）。`mtLiveBadge` 存 `data-dtl` 区补：自动刷开（`_mtAutoRefTimer` 非空）时 `data-dtl`
+末补「· 自动刷 5s 中（下次 ≤5s）」——hover 详情浮层同显自动刷双轨状态（维护跑中 + 自动刷 9 卡 5s 间隔下次到），自动刷关时
+不补（联动开关）。
+
+**E2E**：`自动刷开（mtAutoRef）+ mtLiveBadge 设详情 → data-dtl 补「· 自动刷 5s 中（下次 ≤5s）」（双轨看细）+ 自动刷关 →
+data-dtl 不补（联动开关）`（绿，`dtlOn` 含「自动刷 5s 中」/ `dtlOff` 不含）；端点 **30/0**、JS undefined NONE、CSS 320/320、
+node 0、console 0、截图 r170_dualtrail.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 636→638`，断点 `_整理后分类\thisistruemusic\英文歌\Under the Bridge.mp3`。
+
+**坑**：① 自动刷是 5s **固定间隔**（`mtAutoRef` 开 `_mtAutoRefTimer=setInterval(mtStat,5000)`，无「下次 <ts>」精确时间戳）
+→「下次自动刷 <ts> 后」改「**自动刷 5s 中（下次 ≤5s）**」（间隔固定 5s，下次最多 5s 内到，`≤5s` 给上界不报精确——自动刷
+`setInterval` 5s 到即刷新 9 卡，`≤5s` 直觉准确，不用 `Date.now()+5000` 算下次时刻）② `mtLiveBadge` 存 `data-dtl` 区（R167
+`lyr!==undefined` 时拼详情）：`_dtl` 变量攒详情文本，`try{ if(typeof _mtAutoRefTimer!=='undefined' && _mtAutoRefTimer){ _dtl+=
+' · 自动刷 5s 中（下次 ≤5s）'; } }catch(e){}`（自动刷开才补，`_mtAutoRefTimer` 是 `mtAutoRef` 全局计时器句柄，非空 = 开），
+`el.setAttribute('data-dtl',_dtl)` ③ **联动开关**（自动刷关时 `_mtAutoRefTimer` 空，`data-dtl` 不补——双轨只在**自动刷开**
+时联动，关时纯双指标详情，不混自动刷文案，`data-dtl` 随自动刷状态动态）④ `_mtAutoRefTimer` `try/catch`（未定义 / 访问失败
+不阻 `data-dtl` 主详情，自动刷文案补不上主详情照存，降级）⑤ 与 R167 详情**同 `data-dtl` 追加**（不新键，`data-dtl` 末补一行
+自动刷状态，hover 浮层一次看全：双指标详情 + 自动刷双轨，R167 复制 `#mtlivedetailcopy` 自动带上自动刷行——复制留档含双轨
+状态）⑥ 验收**函数级**（`mtAutoRef` 开 + `mtLiveBadge` 设详情验 `data-dtl` 含「自动刷 5s 中」，`mtAutoRef` 关 + 再设详情验
+不含，双轨开关验；自动刷 5s 间隔真实 `setInterval` 不触，只验 `_mtAutoRefTimer` 句柄非空/空的开关联动）。
+
