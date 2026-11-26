@@ -4329,3 +4329,32 @@ a.download 触发）+ 都空 → toast「无维护趋势可导出（先跑一次
 导出保留，可反复导）⑥ 验收坑：Python 三引号串里 `\u2014` 被 Python 转义成实际 `—` 字符（JS 位置变 `'<—>'` `SyntaxError`）
 → 缺列拼接不验（只验 toast「6 行」+ `a.download` 出口 + 空提示），双列缺列显 `—` 是源码 `mtMetCsv` 逻辑。
 
+---
+
+## 第176轮（前端 R162 · goal round139）：双指标区趋势条 CSV 导入还原（`#mtmetimport`，R161 导的双列 CSV 回读重填 `_mtRunHist`/`_mtRunDelta` 双键）
+
+**完善性（双指标数据还原）**：R161 `#mtmetcsv` 导双列 CSV（数据走），**换设备 / 全清（R159）后把双指标 CSV 导回来**没入口。
+`#mtmetcsv` 旁加**`#mtmetimport`** 小钮（`↑ 双表`，文件选择框选 R161 导的 CSV → 解析 `序号,耗时(s),补入量` 双列（跳 BOM / `#`
+头注释 / 表头，取 `c[1]` 耗时 + `c[2]` 补入量，缺列 / 空值 `parseFloat=NaN` 自动跳）→ 重填 `localStorage._mtRunHist`（耗时末 10）
++ `_mtRunDelta`（补入末 10）+ 双图重画 + toast「已导入双指标趋势 N 耗时 / M 补入（CSV）」；无有效行 → toast「CSV 无有效双指标行」）
+——换设备 / 全清后把双指标带回来，与 R161 导出**对称**（导出走双列数据 / 导入还原），R149 耗时单列**扩展成双列**。
+
+**E2E**（函数级验解析，不真选文件）：`R161 双列 CSV（耗时前 4 行有值 / 第 5-6 行耗时缺空跳）→ 解析 hv=4（1.2/0.8/0.9/1.5）
++ dv=6（8/5/12/0/3/2）→ 重填 _mtRunHist（4 条）+ _mtRunDelta（6 条）+ 双图显 flex`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r162_metimport.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 620→622`，断点 `_整理后分类\thisistruemusic\纯音乐\Experience.mp3`。
+
+**坑**：① `#mtmetimport` 挂 `#mtdeltabar` 内（`#mtmetcsv` 后，`↑ 双表` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色 10px，
+随 `#mtdeltabar` 显隐——无补入量时隐，导入是「带回来」场景）② `mtMetImport`（`#mtmetimport` onclick，载入 IIFE 绑）：动态
+`input[type=file]`（`accept=.csv,text/csv`，`inp.click()` 触发文件选择）+ `FileReader.readAsText`（utf-8）读 → 解析双列 ③
+解析：`txt.replace(/^\ufeff/,'')`（剥 BOM）+ `split(/\r?\n/)` 分行 + `filter(x.indexOf('#')!==0)`（跳 `#` 头注释）+ 每行
+`split(',')` 取 `c[1]`（耗时，`parseFloat`，`t1>0` 有效）+ `c[2]`（补入量，`parseFloat`，`t2>=0` 有效，**补入量可为 0**），
+`表头 序号,耗时(s),补入量` 的 `parseFloat('耗时(s)')=NaN` 自动跳；**缺列 / 空值**（第 5/6 行耗时空 `c[1]=''`）`parseFloat('')=NaN`
+跳（耗时只 4 条，补入全 6 条，两指标不同长也能并读）④ 重填：`_mtRunHist` 存耗时 `hv.slice(-10)`（末 10，对齐 R144 存储粒度）
++ `_mtRunDelta` 存补入 `dv.slice(-10)`，`mtRunHistDraw()`/`mtRunDeltaDraw()`/`mtMetSumDraw()` 双图 + 汇总重画（导入即双指标
+恢复）⑤ 与 R161 CSV **格式对称**（R161 导 `序号,耗时(s),补入量` 双列 + 头注释 `#`，R162 导回解析同格式双列，导出→导入
+往返无损；缺列 `—` 导出空值，导入 `parseFloat` NaN 跳，双指标不同长也并读）⑥ 验收坑：Python 三引号串 `JS_IM` 笔误写成函数
+调用（漏 `=`）+ `\u2014` 被 Python 转义成实际 `—`（JS `SyntaxError`）→ 重跑改 `JS_IM=` 赋值 + 缺列用**空值**（`5,,3` 非
+`5,—,3`，`parseFloat('')=NaN` 跳，避开 `—` 字符），纯函数级验（不真选文件）。
+

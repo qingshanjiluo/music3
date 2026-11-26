@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button><button type="button" id="mtmetpng" title="双指标趋势区快照存 PNG(耗时折线+补入柱状+汇总一张, 整区趋势图存档/贴issue)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mtmetcsv" title="双指标趋势数据导出 CSV(序号,耗时(s),补入量 双列, Excel横评哪次耗时高+补入少, 与R160 PNG互补:PNG走图CSV走数据)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 双表</button></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button><button type="button" id="mtmetpng" title="双指标趋势区快照存 PNG(耗时折线+补入柱状+汇总一张, 整区趋势图存档/贴issue)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mtmetcsv" title="双指标趋势数据导出 CSV(序号,耗时(s),补入量 双列, Excel横评哪次耗时高+补入少, 与R160 PNG互补:PNG走图CSV走数据)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 双表</button><button type="button" id="mtmetimport" title="导入双指标趋势 CSV(R161 导的回填, 双列 耗时+补入量, 换设备/全清后把双指标带回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 双表</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3729,6 +3729,38 @@ function mtMetCsv(){
   _toast('已导出双指标趋势数据 '+n+' 行（CSV）', 'ok');
 }
 (function(){ const c=$('#mtmetcsv'); if(c){ c.onclick=mtMetCsv; } })();
+/* 导入双指标趋势 CSV(R162): 文件选择框选 R161 导的双列 CSV(序号,耗时(s),补入量) -> 解析双列 -> 重填 _mtRunHist(耗时末10)+_mtRunDelta(补入末10) + 双图重画 + toast; 换设备/全清后把双指标带回来(与 R161 导出对称 R149 耗时单列扩展成双列) */
+function mtMetImport(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.csv,text/csv';
+  inp.onchange=function(ev){
+    const f=ev.target.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=function(){
+      try{
+        const txt=String(rd.result||'').replace(/^\ufeff/,'');
+        const rows=txt.split(/\r?\n/).filter(x=>x && x.indexOf('#')!==0);
+        const hv=[], dv=[];
+        rows.forEach(r=>{
+          const c=r.split(',');
+          const t1=parseFloat(c[1]), t2=parseFloat(c[2]);
+          if(c.length>=2 && !isNaN(t1) && t1>0){ hv.push(t1); }
+          if(c.length>=3 && !isNaN(t2) && t2>=0){ dv.push(t2); }
+          /* 表头 序号,耗时(s),补入量: parseFloat('耗时(s)')=NaN 自动跳, 数据行 t1/t2 数值 */
+        });
+        if(!hv.length && !dv.length){ _toast('CSV 无有效双指标行（需 序号,耗时(s),补入量）', 'bad'); return; }
+        localStorage.setItem('_mtRunHist', JSON.stringify(hv.slice(-10)));
+        localStorage.setItem('_mtRunDelta', JSON.stringify(dv.slice(-10)));
+        mtRunHistDraw(); mtRunDeltaDraw();
+        if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
+        _toast('已导入双指标趋势 '+hv.length+' 耗时 / '+dv.length+' 补入（CSV）', 'ok');
+      }catch(e){ _toast('导入失败: '+e, 'bad'); }
+    };
+    rd.readAsText(f, 'utf-8');
+  };
+  inp.click();
+}
+(function(){ const im=$('#mtmetimport'); if(im){ im.onclick=mtMetImport; } })();
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
