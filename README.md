@@ -5235,3 +5235,34 @@ hover 详情**分工**（R185 hover 显状态详情看（`#mtstatebardtl` 浮层
 `window._mtRunning=false` + `#mtstatebar` `mouseenter` 验 `#mtstatebardtl`「维护完成 / 未跑（灰）」+ copy 隐，不真跑 `mtRun` 免 tick
 污染 `runs`；copy 复制只验 toast 出口，真剪贴板内容 headless 不验）。
 
+---
+
+## 第206轮（前端 R192 · goal round169）：`#mtlivebadge` 完成态（`mtLiveBadgeDone`，R187）补复制出口（`#mtlivebadgedonecopy` 小钮，全库 `FULL_DONE` 完成态徽标 hover 时显复制小钮，复制「#music3 全库维护完成 · <ts> · 共 N 轮 · 耗时 Xs」到剪贴板，贴工单 / 记录维护日志，完成态可留存）
+
+**完善性（完成态留存 / 分享免手抄）**：R187 `#mtlivebadge` 全库完成态徽标「已跑完 · 共 N 轮 · 耗时 Xs」绿，但**没复制出口**
+（完成态文本要留存 / 贴工单得手动抄，`#mtlivebadgedonecopy` hover 完成态时顺手复制免手抄，完成态可留存 / 可分享）。`#mtlivebadge`
+旁加**`#mtlivebadgedonecopy`** 小钮（`⧉ 复制完成`，`#mtlivebadge` 后 `margin-left:6px`），`mtLiveBadgeDone`（R187）改：显完成态
+时 `#mtlivebadgedonecopy` 显 + `window._mtLiveDoneInfo={N, totalDur}` 存完成态信息，`mtLiveBadgeHide` 改隐 copy + 清
+`window._mtLiveDoneInfo`，点 `#mtlivebadgedonecopy` → **`mtLiveBadgeDoneCopy`**（读 `window._mtLiveDoneInfo` 拼「#music3 全库
+维护完成 · <ts> · 共 N 轮 · 耗时 Xs」，`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制全库维护完成详情
+（共 N 轮 · 耗时 Xs）」）——完成态复制贴工单 / 记录维护日志，全库维护完成可留存 / 可分享，与 R169/R189/R191 复制出口同语言。
+
+**E2E**：`mtLiveBadgeDone(5, 12.3) → #mtlivebadge 完成态 + #mtlivebadgedonecopy 显 + 点 copy → toast「已复制全库维护完成详情
+（共 5 轮 · 耗时 12.3s）」；mtLiveBadgeHide() → copy 隐 + window._mtLiveDoneInfo=null + 点 copy → toast「无全库维护完成详情可
+复制（先跑全库维护）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r192_donecopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 680→682`，断点 `_整理后分类\摇滚民谣\赵雷\三里屯.mp3`。
+
+**坑**：① `#mtlivebadgedonecopy` 挂 `#mtlivebadge` 旁独立位（`#mtlivebadge` 后 `margin-left:6px`，非 `#mtlivedetail` 内——`#mtlivedetail`
+`textContent` 重写不冲 copy，copy 独立挂 `#mtlivebadge` 旁）② copy 跟**完成态**（`mtLiveBadgeDone` 显完成态时 `#mtlivebadgedonecopy`
+`display='inline-block'` 显 + `window._mtLiveDoneInfo={N, totalDur}` 存完成态信息；`mtLiveBadgeHide` 隐 copy `display='none'` + 清
+`window._mtLiveDoneInfo=null`——copy 只在完成态显，跑中每轮 `mtLiveBadge` 刷跑中态不显 copy，全库 `FULL_DONE` 跑完 `mtLiveBadgeDone`
+才显，非完成态不显）③ `mtLiveBadgeDoneCopy`（读 `window._mtLiveDoneInfo` 拼完成态详情，`#music3 全库维护完成 · <new Date().toLocaleString()>
+· 共 N 轮 · 耗时 Xs`，`navigator.clipboard.writeText`（`_copyFallback` `textarea` `execCommand` 降级）+ toast「已复制全库维护完成详情
+（共 N 轮 · 耗时 Xs）」，`window._mtLiveDoneInfo` 空（`mtLiveBadgeHide` 清 / 未跑全库）toast「无全库维护完成详情可复制（先跑全库维护）」
+`bad`，同 R169/R189/R191 复制函数空详情 toast 纪律）④ 与 R187 `#mtlivebadge` 完成态**分工**（R187 完成态徽标看，R192 copy 复制完成态
+文本留存 / 分享，看 + 复制双出口，全库维护完成可看可留存）⑤ 验收**函数级**（`mtLiveBadgeDone(5, 12.3)` 直调验 `#mtlivebadge` 完成态
++ `#mtlivebadgedonecopy` 显 + 点 copy 验 toast「已复制全库维护完成详情（共 5 轮 · 耗时 12.3s）」，`mtLiveBadgeHide()` 验 copy 隐 +
+`window._mtLiveDoneInfo` 空 + 点 copy 验 toast「无全库维护完成详情可复制」，不真跑 `mtRun` 全库免 tick 污染 `runs`；copy 复制只验
+toast 出口，真剪贴板内容 headless 不验）。
+

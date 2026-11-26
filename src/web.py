@@ -1070,6 +1070,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <span id="mtlivebadge" style="display:none;margin-top:4px;font-size:11px;color:var(--ok);font-weight:600;position:relative;cursor:default"></span>
+  <button type="button" id="mtlivebadgedonecopy" title="复制全库维护完成详情(贴工单/记录维护日志, 与R169/R189/R191复制出口同语言)" style="display:none;margin-left:6px;padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制完成</button>
   <div id="mtlivedetail" style="display:none;position:absolute;z-index:60;margin-top:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--ink);line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap"><button type="button" id="mtlivedetailcopy" title="复制当前轮双指标详情(贴工单/记录维护日志)" style="pointer-events:auto;padding:0 6px;margin-left:8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制</button></div>
   <div id="mtstatebar" style="height:3px;width:100%;background:var(--line);border-radius:2px;overflow:hidden;position:relative" title="维护状态色带: 绿跑中 / 黄暂停 / 红取消 / 灰完成"></div>
   <div id="mtstatebardtl" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:10px;color:var(--ink);line-height:1.5;box-shadow:0 1px 5px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none;top:6px;left:0"></div><button type="button" id="mtstatebardtlcopy" title="复制维护状态详情(贴工单/记录维护日志, 与R169详情复制/R189逐轮明细复制同「复制出口」)" style="display:none;padding:0 6px;margin-top:2px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⧉ 复制状态</button>
@@ -3853,7 +3854,7 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
     el.style.cursor='help';
   }
 }
-function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } const d=$('#mtlivedetail'); if(d){ d.style.display='none'; d.textContent=''; } }
+function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } const d=$('#mtlivedetail'); if(d){ d.style.display='none'; d.textContent=''; } const _c=$('#mtlivebadgedonecopy'); if(_c){ _c.style.display='none'; } window._mtLiveDoneInfo=null; /* R192 隐完成态复制钮+清完成态信息 */ }
 /* 全库跑完完成态徽标(R187): #mtlivebadge 显「已跑完 · 共 N 轮 · 耗时 Xs」绿--ok, 全库 FULL_DONE 跑完看徽标完成态(区别于跑中每轮刷跑中态, 全库收尾固定显完成), 与 #mtstatebar 完成灰双路知全库收尾 */
 function mtLiveBadgeDone(N, totalDur){
   const el=$('#mtlivebadge'); if(!el) return;
@@ -3861,7 +3862,19 @@ function mtLiveBadgeDone(N, totalDur){
   el.style.color='var(--ok)';
   el.style.display='inline-block';
   const d=$('#mtlivedetail'); if(d){ d.textContent='全库维护完成 · 共 '+N+' 轮 · 累计耗时 '+totalDur+'s · 点双图区汇总跳双图看趋势'; d.style.display='none'; }
+  window._mtLiveDoneInfo={N:N, totalDur:totalDur}; /* R192 完成态信息存 window, 复制读 */
+  const _c=$('#mtlivebadgedonecopy'); if(_c){ _c.style.display='inline-block'; } /* R192 完成态显复制钮 */
 }
+/* 全库维护完成详情复制(R192): #mtlivebadgedonecopy 点 -> 复制「#music3 全库维护完成·<ts>·共N轮·耗时Xs」到剪贴板(navigator.clipboard,_copyFallback降级), 贴工单/记录维护日志完成态可留存, 与R169/R189/R191复制出口同语言 */
+function mtLiveBadgeDoneCopy(){
+  const li=window._mtLiveDoneInfo;
+  if(!li){ if(typeof _toast==='function'){ _toast('无全库维护完成详情可复制（先跑全库维护）', 'bad'); } return; }
+  const _txt='#music3 全库维护完成 · '+new Date().toLocaleString()+'\n共 '+li.N+' 轮 · 耗时 '+li.totalDur+'s';
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制全库维护完成详情（共 '+li.N+' 轮 · 耗时 '+li.totalDur+'s）', 'ok'); } }).catch(function(){ _copyFallback(_txt); });
+  } else { _copyFallback(_txt); }
+}
+(function(){ const c=$('#mtlivebadgedonecopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtLiveBadgeDoneCopy(); }); } })();
 /* 聚焦最新轮双指标(R172/R173 共用): #mtdeltabar 末柱点亮 #mtdelthover + #mtpairlbl 显配对(第N次·耗时Xs·补入+Y), 读 _mtRunHist 末位耗时+_mtRunDelta 末位补入; 跳双图(R172)/跑中每轮 tick 在视口内(R173) 都调 */
 function mtFocusLatest(){
   try{
