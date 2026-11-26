@@ -3844,3 +3844,27 @@ console 0、截图 r142_donut.png。
 顶栏执行反馈统一色），完成度直觉环（全库 `#mtdonut` 完成才绿，跑中是 accent）⑤ 验收用 `_mtProg` 直接驱动（不真跑
 `mtRun` 免 tick 卡 + 污染游标），验 `i=1..4` 的 `dashoffset`/中心文字递增 + 跑完 `hidden`。
 
+---
+
+## 第157轮（前端 R143 · goal round120）：跑维护完成复盘 toast 增强（含本轮补入 delta + ETA 实际 vs 估算偏差）
+
+**连贯性（这轮补了多少/估得准不准）**：`#mtrun` 跑完基础 toast 只有 `跑完 N 轮 · 第 N 轮：扫描 X 首…`，**这轮
+实际补了多少**（delta）+ **ETA 估得准不准**（实际 vs 估算偏差）没复盘。跑完拉 `maintain status`（`cum_trend` 相邻差
+算本轮 delta、`_actualS` vs R141 `estTxt` 同算法估算偏差），复盘 toast `复盘: 本轮 +X（歌词 A 封面 B）· 实测 Ys（估剩 Zs）`
+——扫一眼跑完这轮补了多少/估得准不准，与 R124 delta 徽标（`#mtdigest` 上轮补入 delta）+ R141 ETA（跑中估算）同「结果
+复盘」直觉。
+
+**E2E**（函数级验拼接，不真跑 tick）：`toast='复盘: 本轮 +7（歌词 5 封面 2）· 实测 9s（估剩 9s）'（cum_trend 相邻差
+delta=5+2=7 + 实测 9s vs 估剩 9s）+ hasReview`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r143_review.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 578→580`，断点 `_归档_封存\SD卡版\摇滚民谣\朴树\白桦林.mp3`。
+
+**坑**：① 复盘 toast 在 `mtRun` 跑完 `st2`（拉 maintain status）后发（2983 基础 toast 先发，复盘 toast 覆盖——`_toast`
+单例容器 `#__toast__`，新覆盖旧 + `clearTimeout` 重置 4s）② delta 用 `st2.cum_trend` 相邻差（`_ct[末]-_ct[末-1]`，`lyric+cover`
+= 本轮补入总，`_ct.length<2` 不算）③ ETA 偏差用 `_actualS`（`Date.now()-t0`）vs R141 同算法 `perTick×(N-ticks)`（`ticks`
+实际跑完轮数，`N-ticks`= 剩未跑，`Math.max(0.5,·)` 钳底防 0）④ 全库补完态 delta=0（`cum_trend` 常数），复盘 toast 仍发
+（`本轮 +0`，补完非异常）⑤ 真跑 `N=2` 采样抓不到复盘 toast（全库补完 delta=0 + `st2` 拉回慢 + toast 4s 清时序），验
+改**函数级**（mock `st2.cum_trend`+`t0/N/ticks` 直接算拼接，不碰后端 tick，避免卡 + 污染游标）⑥ 复盘 toast 只在
+`!FULL_DONE && doneMsg`（非全库普通跑完）+（`_delta||_etaTxt` 非空）才发，全库完成走专属「跑到全库完成」toast（不叠复盘）。
+

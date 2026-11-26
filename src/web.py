@@ -2992,6 +2992,24 @@ async function mtRun(){
         el.innerHTML = '本批补: ' + rc.map(x=>(x.what==='lyric'?'歌词':'封面')+' <a href="javascript:void(0)" data-jn="'+esc(x.name)+'" style="color:var(--acc);text-decoration:underline">'+esc(x.name)+'</a><span style="color:var(--dim)">（'+ago(x.at)+'）</span>').join(' · ');
         el.querySelectorAll('a[data-jn]').forEach(a=>{ a.onclick=()=>{ location.hash='#/lib'; const q=(window._findInput||document.querySelector('#findq')); if(q){ q.value=a.dataset.jn; } history.replaceState(null,'','#lib'); if(window._libLoad) window._libLoad(); }; });
       }
+      /* 跑完结果复盘: 本轮补入 delta(cum_trend 相邻差) + ETA 实际 vs 估算偏差, 扫一眼这轮补了多少/估得准不准(与 R124 delta 徽标 + R141 ETA 同「结果复盘」直觉) */
+      if(!FULL_DONE && doneMsg){
+        const _ct=st2.cum_trend||[]; let _delta='';
+        if(_ct.length>=2){
+          const _prev=_ct[_ct.length-2], _cur=_ct[_ct.length-1];
+          const _dLy=(_cur.lyric||0)-(_prev.lyric||0), _dCv=(_cur.cover||0)-(_prev.cover||0), _dT=_dLy+_dCv;
+          _delta=` 本轮 +${_dT}（歌词 ${_dLy} 封面 ${_dCv}）`;
+        }
+        /* ETA 偏差: 实际总耗时 vs 跑中估的「约 Xs/轮×N 轮」(R141 estTxt 同算法, 复盘估得准不准) */
+        const _actualS=Math.round((Date.now()-t0)/100)/10;
+        let _etaTxt='';
+        if(N>1 && !FULL && ticks>=1){
+          const _perTick=Math.max(0.5,_actualS/Math.max(1,ticks-1||1));
+          const _est=Math.round(_perTick*Math.max(1,N-ticks));
+          _etaTxt=` · 实测 ${_actualS}s${ticks<N?`（估剩 ${_est}s）`:''}`;
+        }
+        if(_delta || _etaTxt){ _toast('复盘: '+(_delta||'')+_etaTxt, 'ok'); }
+      }
     }catch(e){}
     await mtStat();
   }catch(e){ setMsg($('#mtmsg'), '失败: '+e, 'bad'); }
