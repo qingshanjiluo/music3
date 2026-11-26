@@ -4898,3 +4898,35 @@ NONE、CSS 320/320、node 0、console 0、截图 r181_keyhint.png。
 `mtRun` 免 tick 污染 `runs`；`#mtkeyhint` 常驻钮 hover 浮层，headless `mouseenter` 触 `#mtkeyhintdetail` 显，`getBoundingClientRect`
 定位 headless 为 0，验 `display`/`textContent` 出口）。
 
+---
+
+## 第196轮（前端 R182 · goal round159）：`#mtlivebadge` 双指标实时徽标暂停 / 续跑同态（`Space` 暂停时 `#mtlivebadge` 变「已暂停 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」黄 `--warn` 态 / 续跑回跑中绿 `--ok` 态，`mtLiveBadge` 读 `window._mtPaused` 同态）
+
+**连贯性（暂停 / 续跑时看徽标知道挂起 / 恢复）**：R180 `Space` 暂停时 `#mtrun` 黄「暂停中 · 按 Space 续跑」，但**`#mtlivebadge`
+跑中每轮 tick 刷新时没跟暂停态**（`mtLiveBadge` 每轮 tick 刷绿跑中态，暂停时 `#mtrun` 黄「暂停中」但 `#mtlivebadge` 还显绿跑中，
+看徽标不知道挂起）。`mtLiveBadge` 读 `window._mtPaused`（R180 `Space` 暂停 / 续跑全局标志）：暂停时 `#mtlivebadge` 黄 `--warn`
++ 文案前缀「已暂停 ·」（`已暂停 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys`）/ 续跑回绿 `--ok`（`跑中 · 第 i/N 轮 …`）——跑中看徽标
+知道挂起 / 恢复，与 `#mtrun` 黄「暂停中」**同态**（暂停 `#mtrun` 黄 + `#mtlivebadge` 黄，续跑 `#mtrun` 红「取消」 + `#mtlivebadge`
+绿，双处同步知道跑维护状态）。
+
+**E2E**：`window._mtPaused=true 模拟暂停 + mtLiveBadge 刷新 → #mtlivebadge 黄 --warn rgb(150,101,10) + 文案「已暂停 · 第 2/5 轮 ·
+本轮回 +6 · 本轮耗 0.9s」；window._mtPaused=false 续跑 + mtLiveBadge 刷新 → #mtlivebadge 回绿 --ok rgb(47,125,85) + 文案「跑中 ·
+第 2/5 轮 …」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r182_pausestate.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 660→662`，断点 `_整理后分类\华语经典\邓紫棋\泡沫.mp3`。
+
+**坑**：① `mtLiveBadge`（R166 跑中双指标徽标函数）函数体顶加 `_paused` 判（`typeof window._mtPaused!=='undefined' && window._mtPaused`，
+R180 `window._mtPaused` 挂全局，`mtLiveBadge` 作用域内读 `window` 安全）② 文案前缀同态：`el.textContent=(_paused?'已暂停 · ':'跑中 · ')+
+'第 i/N 轮 · 本轮回 +X · 本轮耗 Ys'`（暂停前缀「已暂停 ·」/ 跑中前缀「跑中 ·」，`#mtrun` 黄「暂停中」对应 `#mtlivebadge`「已暂停 ·」，
+双处同步知道挂起）③ 色同态：`el.style.color=_paused?'var(--warn)':'var(--ok)'`（暂停黄 `--warn` rgb(150,101,10) / 跑中绿 `--ok`
+rgb(47,125,85)，与 `#mtrun` 黄「暂停中」/ 红「取消」跑中色同步，看 `#mtlivebadge` 色知道挂起 / 跑中）④ **`mtLiveBadge` 跑中每轮 tick
+刷新时**（R164/R165 `mtRun` 循环每轮调）自然带 `window._mtPaused` 判——暂停后 `#mtrun` 挂起循环不跑 tick，`mtLiveBadge` 不刷新（循环
+挂起 `await`），`#mtlivebadge` 保持暂停那轮黄「已暂停 ·」态（不刷绿）；续跑后循环恢复 tick，`mtLiveBadge` 刷新 `window._mtPaused=false`
+回绿「跑中 ·」——暂停挂起时徽标定黄「已暂停」，续跑 tick 徽标回绿「跑中」，同态自然 ⑤ 与 `#mtrun` 状态**双处同步**（暂停 `#mtrun` 黄
+「暂停中 · 按 Space 续跑」+ `#mtlivebadge` 黄「已暂停 · 第 i/N 轮」，续跑 `#mtrun` 红「取消」 + `#mtlivebadge` 绿「跑中 · 第 i/N 轮」，
+看维护区任一处（`#mtrun` 顶栏钮 / `#mtlivebadge` 徽标）都知道跑维护暂停 / 续跑态，双处同步）⑥ `window._mtPaused` `typeof` 判（R180 挂
+`window` 全局，`mtLiveBadge` 内 `window._mtPaused` 直读安全，`typeof` 双保险防 `window._mtPaused` 未初始化 `undefined` 时 `undefined` 判
+false 跑中态）⑦ 验收**函数级**（`window._mtPaused=true` 模拟暂停 + `mtLiveBadge` 直调刷新验 `#mtlivebadge` 黄「已暂停 ·」，`window.
+_mtPaused=false` 续跑 + `mtLiveBadge` 刷新验回绿「跑中 ·」，不真跑 `mtRun` 免 tick 污染 `runs`；`getComputedStyle` 色 `--warn`/`--ok`
+验暂停 / 续跑色同态，文案前缀「已暂停 ·」/「跑中 ·」验同态）。
+

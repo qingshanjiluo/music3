@@ -3826,7 +3826,10 @@ function mtMetFoldDbl(){
 /* 跑中双指标实时徽标(R166): #mtlivebadge 显「跑中·第i/N轮·本轮回+X·本轮耗Ys」, 跑中每轮 tick 后刷新, 跑完/取消隐; 扫一眼当前跑双指标实况, 与 R155 双图 hover 配对同「双指标配对」语言但跑中实时 */
 function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
   const el=$('#mtlivebadge'); if(!el) return;
-  el.textContent='跑中 · 第 '+i+'/'+(N>100000?'∞':N)+' 轮 · 本轮回 +'+back+' · 本轮耗 '+dur+'s';
+  /* 暂停/续跑同态(R182): 读 window._mtPaused(Space 暂停/续跑), 暂停时 #mtlivebadge 黄 --warn + 文案前缀「已暂停 ·」, 续跑回绿 --ok 跑中态; 跑中看徽标知道挂起/恢复, 与 #mtrun 黄「暂停中」同态 */
+  const _paused=(typeof window._mtPaused!=='undefined' && window._mtPaused);
+  el.textContent=(_paused?'已暂停 · ':'跑中 · ')+'第 '+i+'/'+(N>100000?'∞':N)+' 轮 · 本轮回 +'+back+' · 本轮耗 '+dur+'s';
+  el.style.color=_paused?'var(--warn)':'var(--ok)';
   el.style.display='inline-block';
   /* 详情(R167): hover #mtlivebadge 展开 #mtlivedetail(补入拆歌词/封面 + 累计耗时 + 总进度), data-dtl 存详情 */
   if(lyr!==undefined){
