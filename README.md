@@ -6201,3 +6201,36 @@ _mtGuardAllDomain){ d.style.display='none'; }`（刷新恢复折叠态隐 `#mtgu
 切 `false`（展开）+ 文案「▣ 全折叠域」+ `localStorage._mtGuardAllDomain` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验
 `localStorage` 读值非真刷新 headless，初始同步 IIFE 验 `#mtguardalldomain` 文案 + `#mtguardalldomains` `display` 随初始折叠态）。
 
+---
+
+## 第233轮（前端 R219 · goal round196）：维护守护区全折叠记忆一键重置补全折叠域总控面板折叠记忆联动（`#mtguardfoldreset` 全折叠记忆重置后联动 `#mtguardalldomain` 全折叠域总控面板折叠记忆（`localStorage._mtGuardAllDomain` 清 `'0'` + `window._mtGuardAllDomain` 复位 `false` + `#mtguardalldomain` 文案 / `#mtguardalldomains` `display` 复位展开态），全折叠记忆一键复位后全折叠域总控面板折叠记忆全复位）
+
+**完善性（全折叠记忆复位后全折叠域总控面板折叠记忆全复位免残留）**：R212 `#mtguardfoldreset` 全折叠记忆一键重置清 4 键 `localStorage` + 4 `window` 标志 + 4 折叠钮 +
+全浮层复位（R213），但**全折叠域总控面板折叠记忆（R218 `localStorage._mtGuardAllDomain` + `window._mtGuardAllDomain` + `#mtguardalldomain` 文案 + `#mtguardalldomains`
+`display`）没联动复位**，`#mtguardfoldreset` 全折叠记忆重置后联动全折叠域总控面板折叠记忆复位——`mtGuardFoldReset`（R212 区）清 4 键 + 4 标志 + 4 折叠钮 + 全浮层复位后补
+`localStorage._mtGuardAllDomain` 清 `'0'` + `window._mtGuardAllDomain` 复位 `false` + `#mtguardalldomain` 文案复位「▣ 全折叠域」+ `#mtguardalldomains` `display:none` 复位 +
+`clearTimeout(window._mtGuardAllDomainT)`，全折叠记忆一键复位后全折叠域总控面板折叠记忆全复位，与 R212/R213 全折叠记忆重置 / 全浮层复位同域。
+
+**E2E**：`设全折叠态 + 全折叠域总控面板折叠态（5 键全 '1' + 5 标志全 true）→ 点 #mtguardfoldreset → 5 键全清 '0' + 5 标志全 false + #mtguardalldomain 文案复位「▣ 全折叠域」+
+#mtguardalldomains display 复位 'none' + toast「已重置维护守护区全折叠记忆」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r219_foldresetalldomain.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 736→738`，断点 `_英文歌\Sunshine Girl.mp3`。
+
+**坑**：① `mtGuardFoldReset`（R212 区）清 4 键 `localStorage` + 4 `window` 标志 + 4 折叠钮文案 / `display` 复位 + 全浮层复位（R213）后补全折叠域总控面板折叠记忆复位
+（R219：`try{ localStorage.setItem('_mtGuardAllDomain','0'); }catch(_){}` 清 `localStorage._mtGuardAllDomain` 折叠记忆 + `window._mtGuardAllDomain=false` 复位全折叠域总控
+面板折叠标志 + `const _ad=document.getElementById('mtguardalldomain'); if(_ad){ _ad.textContent='▣ 全折叠域'; }` 复位全折叠域总控钮文案展开态 + `const _adD=document.
+getElementById('mtguardalldomains'); if(_adD){ _adD.style.display='none'; }` 复位全折叠域总控面板 `display` 隐态 + `clearTimeout(window._mtGuardAllDomainT)` 清 8s 自动隐
+定时，全折叠记忆一键复位后全折叠域总控面板折叠记忆全复位，免残留折叠态，与 R212/R213 全折叠记忆重置 + 全浮层复位同域，`mtGuardFoldReset` 全折叠域复位总控）② `localStorage.
+_mtGuardAllDomain` 清 `'0'`（全折叠域总控面板折叠记忆键族加 `_mtGuardAllDomain`，同 `_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 维护守护区
+折叠记忆，`try/catch` `localStorage` 不可用降级不记——当前会话 `window._mtGuardAllDomain` 标志仍复位，跨会话不留存，同 R204/R205/R211/R218 `localStorage` 惰性读降级纪律）
+③ `#mtguardalldomain` 文案复位「▣ 全折叠域」展开态（`_ad.textContent='▣ 全折叠域'` 全折叠域总控钮展开态默认文案，同 R212 各折叠钮文案复位展开态纪律）
+④ `#mtguardalldomains` `display:none` 复位（全折叠域总控面板折叠态隐，展开态由各触发点显，重置不强制显，同 R212/R213 全浮层 `display:none` 复位默认态纪律）⑤ 与 R212
+`#mtguardfoldreset` 全折叠记忆重置 / R213 全浮层复位**分工**（R212 清 4 键 `localStorage` + 4 `window` 标志 + 4 折叠钮 + 全浮层复位，R213 补全浮层 `display` 复位，R219 补全
+折叠域总控面板折叠记忆复位——全折叠记忆复位 + 全浮层复位 + 全折叠域总控面板折叠记忆复位全复位，`#mtguardfoldreset` 一键复位全折叠域 + 全浮层 + 全折叠域总控面板）⑥ 与 R218
+`#mtguardalldomain` 全折叠域总控面板折叠记忆**分工**（R218 全折叠域总控面板折叠记忆 `localStorage._mtGuardAllDomain` 跨会话留存，R219 全折叠记忆重置联动全折叠域总控面板
+折叠记忆复位——当前会话全折叠域复位 + 跨会话全折叠域总控面板折叠记忆复位，`#mtguardfoldreset` 全折叠记忆一键复位后全折叠域总控面板折叠记忆全复位）⑦ 验收**函数级**（设全
+折叠态 + 全折叠域总控面板折叠态（5 键 `'1'` + 5 标志 `true`）+ 点 `#mtguardfoldreset` 验 5 键全清 `'0'`（含 `localStorage._mtGuardAllDomain`）+ 5 标志全 `false`（含
+`window._mtGuardAllDomain`）+ `#mtguardalldomain` 文案复位「▣ 全折叠域」+ `#mtguardalldomains` `display` 复位 `'none'` + toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun`
+免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，全折叠域总控面板折叠记忆复位验 5 键 / 5 标志 / 文案 / `display` 全复位）。
+

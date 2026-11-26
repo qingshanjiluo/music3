@@ -4575,6 +4575,12 @@ function mtGuardFoldReset(){
   const _sbD=document.getElementById('mtstatebardtl'); if(_sbD){ _sbD.style.display='none'; }
   const _msD=document.getElementById('mtmetsumdetail'); if(_msD){ _msD.style.display='none'; }
   const _khD=document.getElementById('mtkeyhintdetail'); if(_khD){ _khD.style.display='none'; }
+  /* R219: 全折叠记忆重置联动全折叠域总控面板折叠记忆复位(localStorage._mtGuardAllDomain清'0'+window._mtGuardAllDomain复位false+#mtguardalldomain文案/#mtguardalldomains display复位展开态, 全折叠记忆一键复位后全折叠域总控面板折叠记忆全复位) */
+  try{ localStorage.setItem('_mtGuardAllDomain','0'); }catch(_){}
+  window._mtGuardAllDomain=false;
+  const _ad=document.getElementById('mtguardalldomain'); if(_ad){ _ad.textContent='▣ 全折叠域'; }
+  const _adD=document.getElementById('mtguardalldomains'); if(_adD){ _adD.style.display='none'; }
+  clearTimeout(window._mtGuardAllDomainT);
   clearTimeout(window._mtGuardPanelT); clearTimeout(window._mtGuardFoldCtlT);
   if(typeof _toast==='function'){ _toast('已重置维护守护区全折叠记忆', 'ok'); }
 }
