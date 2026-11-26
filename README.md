@@ -4696,3 +4696,32 @@ NONE、CSS 320/320、node 0、console 0、截图 r174_sumjump.png。
 末 `_mtRunDelta=0` + 折叠双图区 + 点 `#mtmetsum` 验展开 `block` + 400ms 后 `#mtpairlbl` 末位配对，不真跑 `mtRun` 免 tick 污染
 `runs`；`scrollIntoView` headless 不验实际滚动只验双图区展开 + 聚焦落定，`#mtmetsum` `msOn` 验 `mtMetSumDraw` 有数据显）。
 
+---
+
+## 第189轮（前端 R175 · goal round152）：`#mtrun` 跑维护完成 toast 补「点双图区汇总（`#mtmetsum`）跳双图看趋势 + 聚焦最新轮」引导（跑完顺带看双图趋势免找入口）
+
+**完善性（跑完引导看双图趋势）**：R174 `#mtmetsum` 点击跳双图（非跑中入口），`#mtrun` 跑完 toast（R143「跑完 N 轮 · <本轮
+结果> · 复盘」+ 全库「跑到全库完成 · 共 i 轮 · 已挂自动刷看 9 卡」）**只报结果不引导看双图趋势**（跑完想看双图趋势 / 聚焦
+最新轮要自己找 `#mtmetsum` 点，跑完 toast 后引导没做）。`#mtrun` 跑完 toast（非全库 3012 区 `_tm`）末接**「· 点双图区汇总
+（#mtmetsum）跳双图看趋势 + 聚焦最新轮」** + 全库完成 toast（2997 区）接「· 点双图区汇总跳双图看趋势」——跑完 toast 后引导
+用户看双图趋势（免找入口，`#mtmetsum` 点击跳双图链路：toast 提示 → 点 `#mtmetsum` → 展开 + `scrollIntoView` + `mtFocusLatest`
+聚焦最新轮），跑维护顺带看双图趋势（耗时折线 + 补入柱状 + 最新轮配对）。
+
+**E2E**：`源码 grep 跑完 toast 含「点双图区汇总」（引导跳双图）+ 全库 toast 引导 + mtMetSumJump（R174 跳双图函数）在 +
+#mtmetsum 元素在（链路通：跑完 toast 引导 → 用户点 #mtmetsum 跳双图）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、
+node 0、console 0、截图 r175_toastjump.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 646→648`，断点 `_整理后分类\华语经典\周杰伦\最后的战役.mp3`。
+
+**坑**：① 非全库跑完 toast（3012 区，`!FULL_DONE && doneMsg`）：`_tm='跑完 N 轮 · '+doneMsg+' · 点双图区汇总（#mtmetsum）跳双图看
+趋势 + 聚焦最新轮'`（`_tm` 末接引导，`doneMsg` 本轮结果照带，toast 文案长不截——`#__toast__` 单行 `white-space` 自然换行，
+右上角停留 6s 不遮挡卡片，跑完结果 + 引导一行看完）② 全库完成 toast（2997 区，`FULL && r.done`）：`_toast('跑到全库完成 · 共 i
+轮 · 已挂自动刷看 9 卡 · 点双图区汇总跳双图看趋势', 'ok')`（全库 toast 末接跳双图引导，全库跑完看双图趋势——全库跑完双图区
+最新一轮补入量 / 耗时趋势最有用）③ **引导不替用户点**（toast 只提示「点双图区汇总」，不自动跳——跑完 toast 自动跳双图会打断
+跑完结果回显，用户看完 toast 自己点 `#mtmetsum` 跳，`cursor:pointer` 已暗示可点（R174），toast 文案补引导免找入口，两不
+冲突）④ 与 R171 `#mtlivebadge` 跳双图（跑中入口）/ R174 `#mtmetsum` 跳双图（非跑中入口）**分工**（R175 是**跑完 toast 引导**
+——跑完提示用户「点双图区汇总跳双图」，入口仍 R174 `#mtmetsum`，R175 只补 toast 文案引导不新入口，跑完 → 看双图趋势连贯
+不找入口）⑤ 验收**源码 grep**（不真跑 `mtRun` 免 tick 污染 `runs`——跑完 toast 是 `mtRun` 循环后 `_toast` 调用，真跑要全库
+`r.done` 才到，headless 验 `outerHTML` 含「点双图区汇总」引导文案 + `mtMetSumJump` 函数在 + `#mtmetsum` 元素在，链路通即
+证；全库 toast 引导同 grep 区（`_toast('跑到全库完成…点双图区汇总跳双图看趋势')` 源码在））。
+

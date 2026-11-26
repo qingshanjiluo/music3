@@ -2994,7 +2994,7 @@ async function mtRun(){
       try{ if(typeof mtLiveBadge==='function'){ mtLiveBadge(i, N, (r.lyric_ok||0)+(r.cover_ok||0), Math.round((Date.now()-_t1)/100)/10, r.lyric_ok||0, r.cover_ok||0, _mtTotalDur, N); } }catch(e){}
       /* 跑中每轮 tick 自动跟最新轮(R173): 双图区在视口内时 #mtdelthover/#mtpairlbl 自动跟到本轮, 跑中滚动看双图趋势最新柱逐轮推进免手 hover */
       try{ if(typeof mtFocusLatest==='function' && $('#mtdeltabar') && $('#mtdeltabar').style.display!=='none'){ const _db=$('#mtdeltabar').getBoundingClientRect(); if(_db.bottom>0 && _db.top<window.innerHeight){ mtFocusLatest(); } } }catch(e){}
-      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
+      if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡 · 点双图区汇总跳双图看趋势', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
     _mtUnaborted(); /* 跑完恢复「跑一轮」按钮态(跑中是「取消」红) */
@@ -3009,7 +3009,7 @@ async function mtRun(){
     }catch(e){}
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
-    if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg; _toast(_tm, 'ok'); }
+    if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg+' · 点双图区汇总（#mtmetsum）跳双图看趋势 + 聚焦最新轮'; _toast(_tm, 'ok'); }
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();
