@@ -4914,18 +4914,18 @@ function mtAllFoldStat(){
   var _W=420, _y=8, _rows=[];
   _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠域5域折叠态 · '+new Date().toLocaleString()+'</text>'); _y+=18;
   _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[全折叠域5域]</text>'); _y+=14;
-  var _doms=[['双图区','_mtMetFold'],['总览面板','_mtGuardPanelFold'],['全浮层','_mtGuardFoldAll'],['折叠全链路','_mtGuardFoldCtl'],['全折叠域总控','_mtGuardAllDomain']];
-  for(var _i=0;_i<5;_i++){ var _fv='0'; try{ _fv=(localStorage.getItem(_doms[_i][1])||'0'); }catch(_){} var _c=(_fv==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_doms[_i][0]+' '+_doms[_i][1]+'='+_fv+'</text>'); _y+=13; }
-  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[5标志 window]</text>'); _y+=14;
-  var _w5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
-  var _wk=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain'];
-  for(var _i=0;_i<5;_i++){ var _c=(_w5[_i]===false)?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_wk[_i]+'='+_w5[_i]+'</text>'); _y+=13; }
-  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[5折叠钮文案]</text>'); _y+=14;
-  var _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
-  for(var _i=0;_i<5;_i++){ var _b=document.getElementById(_btns5[_i]); _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns5[_i]+'='+(_b?_b.textContent:'无')+'</text>'); _y+=12; }
-  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[7浮层 display]</text>'); _y+=14;
-  var _floors7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
-  for(var _i=0;_i<7;_i++){ var _f=document.getElementById(_floors7[_i]); var _v=_f?_f.style.display:'无'; var _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors7[_i]+'='+_v+'</text>'); _y+=12; }
+  var _doms=[['双图区','_mtMetFold'],['总览面板','_mtGuardPanelFold'],['全浮层','_mtGuardFoldAll'],['折叠全链路','_mtGuardFoldCtl'],['全折叠域总控','_mtGuardAllDomain'],['全折叠域5域折叠态总控浮层','_mtGuardAllFoldStat']];
+  for(var _i=0;_i<6;_i++){ var _fv='0'; try{ _fv=(localStorage.getItem(_doms[_i][1])||'0'); }catch(_){} var _c=(_fv==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_doms[_i][0]+' '+_doms[_i][1]+'='+_fv+'</text>'); _y+=13; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[6标志 window]</text>'); _y+=14;
+  var _w5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain,window._mtGuardAllFoldStat];
+  var _wk=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain','_mtGuardAllFoldStat'];
+  for(var _i=0;_i<6;_i++){ var _c=(_w5[_i]===false)?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_wk[_i]+'='+_w5[_i]+'</text>'); _y+=13; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[6折叠钮文案]</text>'); _y+=14;
+  var _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain','mtallfoldstat'];
+  for(var _i=0;_i<6;_i++){ var _b=document.getElementById(_btns5[_i]); _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns5[_i]+'='+(_b?_b.textContent:'无')+'</text>'); _y+=12; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[8浮层 display]</text>'); _y+=14;
+  var _floors7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains','mtallfoldstatd'];
+  for(var _i=0;_i<8;_i++){ var _f=document.getElementById(_floors7[_i]); var _v=_f?_f.style.display:'无'; var _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors7[_i]+'='+_v+'</text>'); _y+=12; }
   var _H=_y+8;
   var _svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+_W+'" height="'+_H+'">'+_rows.join('')+'</svg>';
   _d.innerHTML=_svg; _d.style.display='block';

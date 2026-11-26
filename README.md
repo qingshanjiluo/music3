@@ -6717,3 +6717,39 @@ PNG」（PNG 含 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态内联 SVG �
 重置详情复制拼逻辑验 6 键 / 6 标志 / 6 折叠钮 / 8 浮层字段进文本（`_ls`/`_w` 加第 6 元素 + `_btns` 加 `mtallfoldstat` + `_floors` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），`#mtguardfoldresetpng` 重置详情 PNG
 拼逻辑验 6 键 / 6 标志 / 6 折叠钮 / 8 浮层字段进 SVG（`_ls`/`_w` 加第 6 元素 + `_btns` 加 `mtallfoldstat` + `_floors` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），非真剪贴板 / 渲染像素）。
 
+---
+
+## 第251轮（前端 R237 · goal round214）：维护守护区全折叠域 5 域折叠态总控浮层补全折叠域 6 键（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（R234）内联 SVG 补第 6 键 `localStorage._mtGuardAllFoldStat` 当前态字段（`[全折叠域5域]` 5 域色带补第 6 域 + `[6标志 window]` + `[6折叠钮文案]` + `[8浮层 display]`，全折叠域 5 域折叠态总控浮层自含全折叠域 6 键当前态）
+
+**完善性（全折叠域 5 域折叠态总控浮层自含全折叠域 6 键当前态）**：R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（内联 SVG 读 5 键 `localStorage` + 5 标志 `window` + 5 折叠钮 + 7 浮层）+
+R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` + R236 重置详情补第 6 键，但**`mtAllFoldStat`（R234 区）内联 SVG `[全折叠域5域]` 5 域色带（`_doms` 数组 5 元素：`['双图区','_mtMetFold']` / `['总览面板',
+'_mtGuardPanelFold']` / `['全浮层','_mtGuardFoldAll']` / `['折叠全链路','_mtGuardFoldCtl']` / `['全折叠域总控','_mtGuardAllDomain']`）没第 6 键 `_mtGuardAllFoldStat`**（全折叠域 5 域折叠态总控浮层要
+自含全折叠域 6 键当前态，`mtAllFoldStat`（R234 区）内联 SVG 补第 6 键 `localStorage._mtGuardAllFoldStat` 当前态段（`[全折叠域5域]` 5 域色带补第 6 域 `['全折叠域5域折叠态总控浮层','_mtGuardAllFoldStat']` +
+`[6标志 window]` 补第 6 标志 `window._mtGuardAllFoldStat` + `[6折叠钮文案]` 补第 6 折叠钮 `mtallfoldstat` + `[8浮层 display]` 补第 8 浮层 `mtallfoldstatd`，循环 5→6 / 7→8），全折叠域 5 域折叠态总控浮层
+自含全折叠域 6 键当前态，与 R235/R236 全折叠记忆重置补全折叠域 6 键同域）。
+
+**E2E**：`设 6 键全 '1' + 6 标志全 true → 直接调 mtAllFoldStat() 拼面板 → #mtallfoldstatd SVG 含 [全折叠域5域] 6 域（含 _mtGuardAllFoldStat 第 6 键）+ [6标志 window] + [6折叠钮文案] + [8浮层 display]
+分块`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r237_allfoldstat6key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 772→774`，断点 `_洛天依\讨厌摇滚乐.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（R234 区，`mtAllFoldStat` 拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG：`_rows` 数组拼标题 + `[全折叠域5域]` 5 域色带（`_doms`
+数组 5 元素，各域 `localStorage` 折叠态（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 域名 + 键名 + 值 + `[5标志 window]` 5 标志色带（`_w5` 各 `window` 标志，`false` 展开 `--ok` 绿 / `true` 折叠 `--bad`
+红）+ 标志名 + 值 + `[5折叠钮文案]` 5 折叠钮 `textContent` + `[7浮层 display]` 7 浮层 `style.display` 色带（`none` 隐 `--ok` 绿 / 显 `--dim` 灰），`#mtallfoldstatd` `innerHTML` 拼 SVG + `getBoundingClientRect`
+下沿定位 + `z-index:70` + 8s 自动隐））补第 6 键全折叠域 5 域折叠态总控浮层折叠记忆（R237，`_doms` 数组加第 6 元素 `['全折叠域5域折叠态总控浮层','_mtGuardAllFoldStat']`（`_doms` 5 元素 → 6 元素，循环 5→6），
+`_w5`/`_wk` 加第 6 元素 `window._mtGuardAllFoldStat` / `_mtGuardAllFoldStat`（`_w5` 5 元素 → 6 元素，`[5标志 window]` → `[6标志 window]`，循环 5→6），`_btns5` 加 `mtallfoldstat`（`_btns5` 5 元素 → 6 元素，`[5折叠钮文案]`
+→ `[6折叠钮文案]`，循环 5→6），`_floors7` 加 `mtallfoldstatd`（`_floors7` 7 元素 → 8 元素，`[7浮层 display]` → `[8浮层 display]`，循环 7→8），全折叠域 5 域折叠态总控浮层自含全折叠域 6 键当前态（`[全折叠域5域]` 6
+域色带含 `_mtGuardAllFoldStat` 第 6 键 + `[6标志 window]` 含 `window._mtGuardAllFoldStat` + `[6折叠钮文案]` 含 `mtallfoldstat` + `[8浮层 display]` 含 `mtallfoldstatd`），与 R235/R236 全折叠记忆重置补全折叠域 6 键
+同域，`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层补第 6 键）② 与 R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位 / R236
+`#mtguardfoldresetcopy` 全折叠记忆重置详情复制 / R236 `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG**分工**（R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（内联 SVG 读 5 键 `localStorage` + 5 标志 `window` + 5
+折叠钮 + 7 浮层），R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`#mtguardfoldreset` 全折叠域 6 键全复位），R236 全折叠记忆重置详情复制 / PNG 补第 6 键 `_mtGuardAllFoldStat` 当前态段（`#mtguardfoldresetcopy`
+重置详情复制 + `#mtguardfoldresetpng` 重置详情 PNG 双路自含全折叠域 6 键当前态），R237 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层内联 SVG 补第 6 键 `_mtGuardAllFoldStat` 当前态段（`[全折叠域5域]` 5 域色带补第 6 域 +
+`[6标志 window]` + `[6折叠钮文案]` + `[8浮层 display]`，全折叠域 5 域折叠态总控浮层自含全折叠域 6 键当前态），R234/R235/R236/R237 全折叠域 6 键全自含当前态）③ `mtAllFoldPng`（R233）与 `mtAllFoldStat`（R234）同结构
+（`_rows` 数组拼 `[全折叠域5域]` 5 域色带 + `[5标志 window]` + `[5折叠钮文案]` + `[7浮层 display]`），`edit` `old_string` 匹配 2 次——加 `[全折叠域5域]` 标签（`_rows.push` 行）作锚定位 `mtAllFoldStat`（`mtAllFoldPng`
+`_rows.push` 标签行 `全折叠域5域` 文本不同），免 `mtAllFoldPng` 误改（`mtAllFoldStat` 补第 6 键，`mtAllFoldPng` 待 R238 补第 6 键），同 R225 `#mtguardfoldctld` 无 SVG（`svg=False`）验收直接调函数拼面板纪律④ 与
+R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R236 `#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 全折叠记忆重置详情复制 / PNG 补第 6 键**语言同**（各全
+折叠域 5 域折叠态总控浮层 / 全折叠记忆重置 / 重置详情读 6 键 `localStorage` 当前态 / 复位值 + 6 标志 `window` + 6 折叠钮文案 + 8 浮层 `display` 拼文本 / 色带 / SVG，全折叠域 6 键当前态同语言，各出口自含全折叠域
+出口标位）⑤ 验收**函数级**（设 6 键全 `'1'` + 6 标志全 `true` + 直接调 `mtAllFoldStat()` 拼内联 SVG（绕 R234 折叠记忆切态——设 `_mtGuardAllFoldStat` 无后点 `#mtallfoldstat` 走 R234 折叠记忆切（当前展开态 → 切折叠才
+隐面板），验收直接调 `mtAllFoldStat()` 免切态干扰）+ 验 `#mtallfoldstatd` `innerHTML` 含 `<svg` + `[全折叠域5域]` 6 域（含 `_mtGuardAllFoldStat` 第 6 键）+ `[6标志 window]` + `[6折叠钮文案]` + `[8浮层 display]` 分块，
+不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验全折叠域 6 域 / 6 标志 / 6 折叠钮 / 8 浮层字段进 SVG，非真渲染像素）。
+
