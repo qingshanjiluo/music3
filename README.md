@@ -5630,3 +5630,40 @@ toast「已折叠 / 已展开维护守护区总览面板」，同 R159 `#mtmetfo
 文案「▾ 折叠总览」，不真跑 `mtRun` 免 tick 污染 `runs`；`_mtGuardPanelFold` 折叠态不 8s 自动隐验折叠态 `#mtguardpaneld` 常驻显 10s 不隐
 （`setTimeout` 不触），展开态 8s 自动隐不验（`setTimeout` 时序），验折叠 / 展开切标志 + 显隐 + 文案切换）。
 
+---
+
+## 第217轮（前端 R203 · goal round180）：维护 tab「维护守护」区加维护守护区折叠全浮层（`#mtguardfoldall` 小钮，点 `#mtguardfoldall` 折叠 / 展开维护守护区全部浮层（`#mtstatebardtl` 状态详情 / `#mtmetsumdetail` 逐轮明细 / `#mtkeyhintdetail` 三键提示 / `#mtguardsnapd` 四段快照 / `#mtguardpaneld` 总览面板，`_mtGuardFoldAll` 折叠标志，一键折叠 / 展开维护守护区全浮层省高，与 R159 折叠双图区 / R202 折叠总览面板语言同）
+
+**简洁性（维护守护区全浮层一键折叠省高免逐个找）**：R202 `#mtguardpanelfold` 折叠总览面板，但**维护守护区各浮层要全折叠省高得逐
+个找**（`#mtstatebardtl` 状态详情 / `#mtmetsumdetail` 逐轮明细 / `#mtkeyhintdetail` 三键提示 / `#mtguardsnapd` 四段快照 / `#mtguardpaneld`
+总览面板，各浮层 hover / 点触发各自显隐，全折叠省高没总控钮，`#mtguardfoldall` 一键折叠 / 展开维护守护区全浮层（`_mtGuardFoldAll` 标志，
+全浮层 `display` 切，窄屏 / 移动端省维护守护区高），与 R159 折叠双图区 / R202 折叠总览面板语言同）。`#mtguardpanelfold` 旁加**`#mtguardfoldall`**
+小钮（`⊘ 折叠全浮层`，`#mtguardpanelfold` 后常驻位），点 `#mtguardfoldall` 切 **`window._mtGuardFoldAll`** 折叠标志（折叠态 `true` 隐维护
+守护区全浮层（`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`/`#mtguardsnapd`/`#mtguardpaneld` 全 `display:none`）+ 清 `#mtguardpaneld`
+8s 定时 + `#mtguardsnapd` 6s 定时（不残留自动显）+ 文案「◎ 展开全浮层」，展开态 `false` 恢复（不强制显，各浮层自身 hover / 点触发才显）+
+文案「⊘ 折叠全浮层」）——维护守护区全浮层一键折叠 / 展开省高，与 R159 / R202 折叠语言同。
+
+**E2E**：`点 #mtguardfoldall（折叠，window._mtGuardFoldAll=true + 全浮层 #mtstatebardtl/#mtmetsumdetail/_mtkeyhintdetail/_mtguardsnapd/
+_mtguardpaneld 隐 + 文案「◎ 展开全浮层」）→ 再点（展开，window._mtGuardFoldAll=false + 文案「⊘ 折叠全浮层」）`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r203_foldall.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 702→704`，断点 `_整理后分类\毛不易\城市傍晚.mp3`。
+
+**坑**：① `#mtguardfoldall` 小钮挂 `#mtguardpanelfold` 旁常驻位（`#mtguardpanelfold` 后 `inline-block`，维护守护区全浮层折叠总控常驻入口，
+非 hover 态控——`#mtguardpanel` 总览 + `#mtguardpanelpng` 总览 PNG + `#mtguardpanelcopy` 总览复制 + `#mtguardpanelfold` 总览折叠 +
+`#mtguardfoldall` 全浮层折叠五入口并排，总览全链路 + 全浮层折叠省高总控，维护守护区能力 / 出口 / 折叠全链路）② `window._mtGuardFoldAll`
+挂 `window`（`#mtguardfoldall` 点切 `true`/`false` + 跨 IIFE 读，同 R180 `window._mtPaused` / R202 `window._mtGuardPanelFold` 块级作用外
+读坑）③ 全浮层 `display` 切（`_allFolds=['mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardsnapd','mtguardpaneld']`，折叠态全
+`display:none` 隐省高，展开态**不强制显**（各浮层自身 hover / 点触发才显，仅清被折叠隐的残留，`if(_el.style.display==='none')` 不主动改
+`display`，避免展开时强显所有浮层挡下层）④ 清自动隐定时（折叠态 `clearTimeout(window._mtGuardPanelT)` 清总览面板 8s 定时 + `clearTimeout(
+window._mtGuardSnapT)` 清四段快照 6s 定时，不残留自动显——折叠省高时不触发 `#mtguardpaneld` 8s 自动显 / `#mtguardsnapd` 6s 自动显，
+展开态各浮层自身触发才显，定时清了不残留）⑤ 与 R202 `#mtguardpanelfold` 折叠总览面板**分工**（R202 折叠单个总览面板 `#mtguardpaneld`
+（`_mtGuardPanelFold`），R203 折叠维护守护区全浮层（`_mtGuardFoldAll`，含 `#mtguardpaneld` 总览 + `#mtstatebardtl` 状态详情 + `#mtmetsumdetail`
+逐轮明细 + `#mtkeyhintdetail` 三键提示 + `#mtguardsnapd` 四段快照五浮层），折叠单面板 + 折叠全浮层总控双路，`#mtguardpanelfold` 折叠总览
+面板 + `#mtguardfoldall` 折叠全浮层并排）⑥ 与 R159 `#mtmetfold` 折叠双图区 / R202 折叠总览面板**语言同**（`#mtmetfold` 折叠双图区
+（`_mtMetFold`），R202 折叠总览面板（`_mtGuardPanelFold`），R203 折叠全浮层（`_mtGuardFoldAll`），三折叠各管各域——双图区 / 总览面板 /
+全浮层总控，维护守护区 + 双图区全可折叠省高）⑦ 验收**函数级**（点 `#mtguardfoldall` 验 `window._mtGuardFoldAll` 切 `true`（折叠）+ 全
+浮层（`_allFolds` 五浮层）`display:none` 隐 + 文案「◎ 展开全浮层」，再点验 `window._mtGuardFoldAll` 切 `false`（展开）+ 文案「⊘ 折叠全浮
+层」，不真跑 `mtRun` 免 tick 污染 `runs`；全浮层折叠态 `display:none` 验五浮层全隐，展开态不验强显（各浮层自身触发，不验展开态各浮层
+`display`））。
+
