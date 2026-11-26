@@ -4844,7 +4844,15 @@ function mtGuardAllDomainCopy(){
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomaincopy'){ e.stopPropagation(); mtGuardAllDomainCopy(); } }); })();
 /* 全折叠域5域折叠态一键复制(R232): #mtallfoldcopy 点 -> 拼全折叠域5域/5键/5标志/5折叠钮/7浮层当前态到剪贴板(#music3 全折叠域5域折叠态一键复制·<ts>+全折叠域5域+5键localStorage+5标志window+5折叠钮文案+7浮层display), 全折叠域5域折叠态一键留存/贴工单, 免逐点各面板/出口, 与R222-R231补全折叠域字段同域 */
 function mtAllFoldCopy(){
-  let _lines='#music3 全折叠域5域折叠态一键复制 · '+new Date().toLocaleString()+'\n';
+  /* R246 全复位检测: 读localStorage6键全'0'+window6标志全false, 全复位时复制文本标题加「· 全复位态」(_mtallfoldcopy全复位后一键复制自含6键复位态总览, 与R244/R245全复位后SVG标题加_·全复位态同域) */
+  var _allReset6=true;
+  try{ var _k6=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain','_mtGuardAllFoldStat'];
+    for(var _k=0;_k<6;_k++){ if((localStorage.getItem(_k6[_k])||'0')!=='0'){ _allReset6=false; break; } }
+    var _w6=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain,window._mtGuardAllFoldStat];
+    for(var _w=0;_w<6;_w++){ if(_w6[_w]!==false){ _allReset6=false; break; } }
+  }catch(_){ _allReset6=false; }
+  var _rTag=_allReset6?' · 全复位态':'';
+  let _lines='#music3 全折叠域5域折叠态一键复制'+_rTag+' · '+new Date().toLocaleString()+'\n';
   /* 全折叠域5域(双图区/总览面板/全浮层/折叠全链路/全折叠域总控面板) */
   _lines+='[全折叠域5域]\n';
   const _doms=[['双图区','#mtmetfold','_mtMetFold'],['总览面板','#mtguardpanelfold','_mtGuardPanelFold'],['全浮层','#mtguardfoldall','_mtGuardFoldAll'],['折叠全链路','#mtguardfoldctl','_mtGuardFoldCtl'],['全折叠域总控','#mtguardalldomain','_mtGuardAllDomain'],['全折叠域5域折叠态总控浮层','#mtallfoldstat','_mtGuardAllFoldStat']];
