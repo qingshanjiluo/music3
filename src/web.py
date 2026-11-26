@@ -5048,6 +5048,8 @@ function mtStateBarDraw(){
     } else {
       _txt='维护完成 / 未跑（灰）';
     }
+    /* R228 状态详情补全折叠域5键当前态(自含全折叠域当前态, 与R222/R223/R224/R225/R226/R227补全折叠域字段同域) */
+    _txt+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0');
     d.textContent=_txt; d.style.display='block';
     if(cp){ cp.style.display=(typeof window._mtRunning!=='undefined'&&window._mtRunning)||(typeof window._mtPaused!=='undefined'&&window._mtPaused)||(typeof window._mtAborted!=='undefined'&&window._mtAborted)?'inline-block':'none'; } /* R191 copy 跟 hover 态: 跑中/暂停/取消显, 完成/未跑隐 */
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtstatebar 下方浮层 */
@@ -5064,7 +5066,9 @@ function mtStateBarCopy(){
   if(typeof window._mtAborted!=='undefined' && window._mtAborted){ _st='已取消 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):'跑到断点'); }
   else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ _st='已暂停 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):''); }
   else if(typeof window._mtRunning!=='undefined' && window._mtRunning){ _st='跑中 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):''); }
-  const _txt='#music3 维护状态 · '+new Date().toLocaleString()+'\n'+_st;
+  let _txt='#music3 维护状态 · '+new Date().toLocaleString()+'\n'+_st;
+  /* R228 状态详情复制补全折叠域5键当前态(自含全折叠域当前态, 与hover浮层同步) */
+  _txt+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0');
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护状态详情', 'ok'); } }).catch(function(){ _copyFallback(_txt); });
   } else { _copyFallback(_txt); }

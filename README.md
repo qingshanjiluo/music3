@@ -6443,3 +6443,32 @@ _mtGuardAllDomain=...</span>`，5 键 `localStorage` 各 `||'0'` 降级，键盘
 5 键段）+ 点 `#mtkeyhintcopy` 验 toast「已复制键盘流触发记录」（键盘流触发记录文本含全折叠域 5 键当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；键盘流触发记录 hover / 复制拼逻辑验 5 键段进
 `innerHTML` / 文本，非真剪贴板 / 渲染像素）。
 
+---
+
+## 第242轮（前端 R228 · goal round205）：维护守护区状态详情 hover 浮层补全折叠域字段（`#mtstatebardtl` 状态详情 hover 浮层 + `#mtstatebardtlcopy` 状态详情文本补全折叠域 5 键当前态字段，状态详情自含全折叠域当前态）
+
+**完善性（状态详情自含全折叠域当前态）**：R227 键盘流触发记录补全折叠域 5 键，但**`#mtstatebardtl` 状态详情 hover 浮层 / `#mtstatebardtlcopy` 状态详情文本（R185/R191 区，
+`跑中 / 已暂停 / 已取消 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys`）没全折叠域 5 键**（状态详情要自含全折叠域当前态，`#mtstatebardtl` hover 浮层（R185 区，指示条 hover 显状态详情）补
+`[全折叠域当前态]` 5 键段（`_txt` 拼状态详情后加 `localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`），
+`mtStateBarCopy`（R191 区）状态详情文本同补 5 键段（`let _txt` 免 `const` 赋值错），状态详情自含全折叠域当前态，与 R222/R223/R224/R225/R226/R227 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设维护状态（window._mtRunning=true + _mtLiveInfo）→ #mtstatebar mouseenter → #mtstatebardtl hover 浮层 textContent 含全折叠域当前态段；点
+#mtstatebardtlcopy → toast「已复制维护状态详情」（状态详情文本含全折叠域 5 键当前态段）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r228_state5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 754→756`，断点 `_陈粒\走马.mp3`。
+
+**坑**：① `#mtstatebardtl` hover 浮层（R185 区，`#mtstatebar` `mouseenter` 显 `#mtstatebardtl` 状态详情（`维护状态：` 前缀 + 已取消 / 已暂停 / 跑中 / 维护完成 · 第 i/N 轮 · 本轮回 +X · 本轮耗
+Ys），`mouseleave` 隐）补 `[全折叠域当前态]` 5 键段（`_txt`（`let`，IIFE 内局部）拼状态详情后加 `\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' ·
+_mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`，5 键 `localStorage` 各 `||'0'` 降级，`d.textContent=_txt`（多行文本，`white-space:nowrap` 浮层换行），
+状态详情 hover 浮层自含全折叠域 5 键当前态，与 R222/R223/R224/R225/R226/R227 补全折叠域字段同域）② `mtStateBarCopy`（R191 区，`#mtstatebardtlcopy` 点复制「#music3 维护状态 · <ts>」+ 状态详情
+文本（跑中 / 暂停 / 取消 + 第 i/N 轮 + 本轮回 +X + 本轮耗 Ys）到剪贴板，`navigator.clipboard.writeText` 降级 `_copyFallback`）同补 5 键段（`_txt` 拼状态详情后加「[全折叠域当前态] localStorage
+5键: ...」，状态详情文本自含全折叠域 5 键当前态，与 `#mtstatebardtl` hover 浮层同数据源同步）③ `mtStateBarCopy` 原 `const _txt='#music3 维护状态...'`（R191 区 5067 行 `const` 声明），补全折叠域段
+`_txt+=`（常量赋值报错 `Assignment to constant variable`，`console 1`）——修 `const _txt` → `let _txt`（免 `+=` 常量赋值报错，`console 0`），同 R212/R214/R215 IIFE 多 `)` 语法修正 + R228 `const` →
+`let` 修正纪律（补 `+=` 段前查 `const` 声明改 `let`）④ 与 R185 `#mtstatebardtl` 状态详情 hover 浮层 / R191 `#mtstatebardtlcopy` 状态详情复制**分工**（R185/R191 状态详情 hover / 复制（跑中 / 暂停 /
+取消 + 第 i/N 轮 + 本轮回 + 本轮耗），R228 补全折叠域 5 键当前态段——状态详情自含全折叠域当前态，`#mtstatebardtl` hover + `#mtstatebardtlcopy` 复制双路同 5 键段）⑤ 与 R222 维护守护全记录 /
+R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总控 / R226 双图区明细 / R227 键盘流触发记录补全折叠域字段**语言同**（各状态详情 / 全折叠域 / 三域 / 全链路 / 双图区 / 键盘流读 5 键
+`localStorage` 拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 设维护状态 `window._mtRunning=true` / `window._mtLiveInfo` + `#mtstatebar`
+`mouseenter` 验 `#mtstatebardtl` `textContent` 含 `全折叠域当前态` 段（hover 浮层自含 5 键段）+ 点 `#mtstatebardtlcopy` 验 toast「已复制维护状态详情」（状态详情文本含全折叠域 5 键当前态段），不真跑
+`mtRun` 免 tick 污染 `runs`；状态详情 hover / 复制拼逻辑验 5 键段进 `textContent` / 文本，非真剪贴板 / 渲染像素）。
+
