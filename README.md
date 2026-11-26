@@ -5002,3 +5002,34 @@ node 0、console 0、截图 r184_statebar.png。
 `getComputedStyle` 色 `--bad`/`--warn`/`--ok`/`--line`，不真跑 `mtRun` 免 tick 污染 `runs`；`window._mtAborted` 挂全局验取消同态
 真生效，`transition` 去除验立即改色）。
 
+---
+
+## 第199轮（前端 R185 · goal round162）：`#mtstatebar` 指示条 hover 显状态文字详情（`#mtstatebardtl` 浮层，hover 显「跑中 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」/「已暂停 · …」/「已取消 · …」，指示条色 + hover 文字双路知状态）
+
+**简洁性（色带 + hover 文字双路知状态免只看色）**：R184 `#mtstatebar` 一条色带全知但**没 hover 文字详情**（色带只知状态绿 /
+黄 / 红 / 灰，不知第几轮 / 本轮回 / 耗时）。`#mtstatebar` hover（`mouseenter`）→ **`#mtstatebardtl`** 浮层显状态详情（读
+`window._mtLiveInfo`（R185 新增，`mtRun` 每轮 tick 存 `{i, N, back, dur}`）+ `window._mtPaused`/`_mtAborted` 同态，显「跑中 ·
+第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」/「已暂停 · 第 i/N 轮 …」/「已取消 · 第 i/N 轮 …」）——指示条色 + hover 文字**双路知状态**
+（扫顶栏色带知跑中 / 暂停 / 取消 / 完成 + hover `#mtstatebar` 看第几轮 / 本轮回 / 耗时详情，色带 + 文字双路，免只看色不知进度）。
+
+**E2E**：`window._mtLiveInfo={i:2,N:5,back:6,dur:0.9} + 跑中 / 暂停 / 取消三态 → #mtstatebar hover → #mtstatebardtl 显「跑中 ·
+第 2/5 轮 · 本轮回 +6 · 本轮耗 0.9s」/「已暂停 · 第 2/5 轮 …」/「已取消 · 第 2/5 轮 …」+ mouseleave → 隐`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r185_statedetail.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 666→668`，断点 `_整理后分类\华语经典\陶喆\爱很简单.mp3`。
+
+**坑**：① `#mtstatebardtl` 挂 `#mtstatebar` 内（`#mtstatebar` 加 `position:relative`，`#mtstatebardtl` `position:absolute top:6px left:0`，
+`#mtstatebar` hover 浮层贴色带下沿 6px，`pointer-events:none` 不挡下层，`white-space:nowrap` 单行不折，`z-index:60` 维护区上层，
+浮层色 `--bg2` 底 + `--line` 描边 + `--ink` 色 10px，`box-shadow` 微浮，贴色带显状态详情不挡维护区）② `#mtstatebar` hover 委托
+（`mouseenter` 显 `#mtstatebardtl` + 文案 / `mouseleave` 隐，直挂 `#mtstatebar`，`#mtstatebardtl` `pointer-events:none` 不挡下层，
+hover 色带本体触，离即隐）③ **`window._mtLiveInfo` 存跑中实时信息**（`mtRun` 每轮 tick 后（R184 `mtStateBarDraw` 调后）存
+`window._mtLiveInfo={i, N, back:(r.lyric_ok+r.cover_ok), dur:(Date.now()-_t1)/100}`，`#mtstatebar` hover 读 `window._mtLiveInfo`
+拼「第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」，`mtRun` 跑完 / 取消区 `window._mtRunning=false` 后 `window._mtLiveInfo` 保留最后轮
+（hover 看最后跑到的轮详情，不丢）④ 状态前缀同态（`_mtAborted` 取消「已取消 ·」/ `_mtPaused` 暂停「已暂停 ·」/ `_mtRunning`
+跑中「跑中 ·」/ 都非「维护完成 / 未跑（灰）」，`#mtstatebardtl` 文案前缀与 `#mtmetsum`（R183）/ `#mtlivebadge`（R182）同态前缀
+语言，三处同态 + 指示条 hover 文案前缀对称）⑤ **`i/N` 全库 `∞`**（`N>100000` 全库显 `∞`（R166 `#mtlivebadge` 同纪律），hover
+详情全库跑中显「第 i/∞ 轮 · 本轮回 +X · 本轮耗 Ys」，与 `#mtlivebadge` 全库 `∞` 对称）⑥ 验收**函数级**（`window._mtLiveInfo`
+置 `{i:2,N:5,back:6,dur:0.9}` + `window._mtRunning`/`_mtPaused`/`_mtAborted` 三态 + `#mtstatebar` `dispatchEvent` `mouseenter`
+验 `#mtstatebardtl` 文案前缀「跑中 ·」/「已暂停 ·」/「已取消 ·」+ 「第 2/5 轮」+ `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染
+`runs`；`window._mtLiveInfo` 直置验 hover 详情拼文案，`mtRun` 每轮 tick 真存 `window._mtLiveInfo` 不验（循环内行为））。
+
