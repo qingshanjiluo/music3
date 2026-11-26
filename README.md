@@ -5405,3 +5405,41 @@ _ko.length`（三键最近时间戳任一或触发顺序串非空）copy 显 `in
 `mtRun` 免 tick 污染 `runs`；`mtGuardCopy` 拼四段验 toast 出口，真剪贴板内容 headless 不验，各段拼逻辑同 R189/R191/R192/R195 单点复制
 函数拼法）。
 
+---
+
+## 第211轮（前端 R197 · goal round174）：维护守护区四段数据快照可视化（`#mtguardsnap` 小钮，点截维护守护区全量四段当前状态成 `#mtguardsnapd` 浮层内联 SVG 快照——双指标逐轮明细柱状 / 状态详情色带 / 全库完成详情徽标 / 键盘流触发顺序条，一眼看维护守护区四段当前全貌）
+
+**完善性（四段数据当前全貌可视化免文本逐段看）**：R196 `#mtguardcopy` 全复制是文本留存 / 贴工单，但**没可视化全貌**（四段数据当前
+状态要文本看逐段，`#mtguardsnap` 截四段当前全貌内联 SVG 快照浮层（双指标逐轮柱 + 状态色带 + 完成徽标 + 键盘流顺序条），一眼看维护守护
+区四段当前全貌，文本全量复制 + 可视化全貌双路）。`#mtguardcopy` 旁加**`#mtguardsnap`** 小钮（`▣ 快照`，`#mtguardcopy` 后常驻位）+
+**`#mtguardsnapd`** SVG 浮层（`#mtguardsnap` 下沿，`position:absolute z-index:70`），点 `#mtguardsnap` → **`mtGuardSnap`**（读四段数据源
+拼内联 SVG 快照：`[双指标逐轮]` 柱状（`localStorage._mtRunHist` 耗时柱绿 `--ok` + `localStorage._mtRunDelta` 补入柱橙 `#c4381f`，近 N 次
+倒序最新在上）+ `[状态]` 色带（`window._mtAborted` 红 / `_mtPaused` 黄 / `_mtRunning` 绿 / 完成灰四态，同 R184 `#mtstatebar` 色带）
++ `[全库完成]` 徽标（`window._mtLiveDoneInfo` 绿徽标「共 N 轮 · 耗时 Xs」/ 无）+ `[键盘流顺序]` 顺序条（`window._mtKeyLogOrder` 最近 10
+次三键色点序列，`Space` 黄 / `Esc` 红 / `Enter` 绿），显 `#mtguardsnapd` 浮层，6s 自动隐）——一眼看维护守护区四段当前全貌，文本全量
+复制（R196）+ 可视化全貌双路，与 R158 双图区快照语言同。
+
+**E2E**：`写各数据源（localStorage._mtRunHist/_mtRunDelta + window._mtRunning + window._mtLiveDoneInfo + window._mtKeyLogOrder）→ 点
+#mtguardsnap → #mtguardsnapd 显内联 SVG（svg 含四段：双指标逐轮柱 rect + 状态色带 rect + 完成徽标 + 键盘流顺序条 rect）`（绿）；端点
+**30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r197_guardsnap.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 690→692`，断点 `_整理后分类\洛天依\洛天依\梦里花 原版.mp3`。
+
+**坑**：① `#mtguardsnap` 小钮挂 `#mtguardcopy` 旁常驻位（`#mtguardcopy` 后 `inline-block`，维护守护区四段快照可视化常驻入口，非 hover
+态控——`#mtguardcopy` 全复制 + `#mtguardsnap` 全量快照双入口并排，点 `#mtguardsnap` 即截四段当前全貌内联 SVG，免文本逐段看）②
+`mtGuardSnap` 拼内联 SVG 四段（`<svg width="360" height="150">`，`[双指标逐轮]` 柱状区（顶 40px，`_h` 耗时柱绿 `--ok` + `_b` 补入柱橙
+`#c4381f` opacity .55 并列，近 N 次倒序，`_max` 归一化柱高 28px，空显「无双指标历史」）+ `[状态]` 色带（40-58px，`_sc` 四态色
+`--bad`/`--warn`/`--ok`/`--line` 同 R184 `#mtstatebar` 色带逻辑，`rect` 横色带）+ `[全库完成]` 徽标（62-80px，`_done` 绿 `--ok` opacity
+.15 徽标底 + 「共 N 轮 · 耗时 Xs」/ 无显「无（未全库跑完 / 已复位）」）+ `[键盘流顺序]` 顺序条（84-130px，`_ko` 最近 10 次三键色点
+`rect` + 键名，`Space` 黄 `--warn` / `Esc` 红 `--bad` / `Enter` 绿 `--ok`，空显「未用过」）+ 时间戳（底 `new Date().toLocaleString()`），
+`d.innerHTML=_svg` 拼，`d.style.display='block'`）③ `#mtguardsnapd` 挂 `#mtguardsnap` 下沿（`#mtguardsnap` `getBoundingClientRect` +
+`position:absolute` 定位，`top:r.bottom+2`，`z-index:70` 高于 `#mtstatebar`/`#mtmetsumdetail` 浮层，`--bg2` 底 + `--line` 描边 + `box-shadow`
+微浮，`white-space:nowrap` 内联 SVG 不折，`pointer-events:none` 不挡下层，6s 自动隐 `clearTimeout(window._mtGuardSnapT)` 重置——快照浮层
+临时看全貌不常驻，`setTimeout` 6s 后隐，再点重计 6s）④ 与 R196 `#mtguardcopy` 全复制**双路**（R196 文本全量复制贴工单 / 记录维护守护
+日志，R197 内联 SVG 四段快照看全貌——文本全量留存 + 可视化全貌双路，`#mtguardcopy` 旁 `#mtguardsnap` 并排，复制 + 快照双入口）⑤ 各段空
+不挡快照（双指标空显「无双指标历史」，状态色带空显灰 `--line`（非跑中默认灰），全库完成空显「无（未全库跑完 / 已复位）」，键盘流空显
+「未用过」——各段空快照仍拼全量结构，一眼看哪段有数据 / 哪段空，维护守护区全貌完整）⑥ 验收**函数级**（写各数据源（`localStorage.
+_mtRunHist`/`_mtRunDelta` + `window._mtRunning`/`_mtLiveDoneInfo`/`_mtKeyLogOrder`）+ 点 `#mtguardsnap` 验 `#mtguardsnapd` 显 +
+`innerHTML` 含 `<svg` + 四段（双指标柱 `var(--ok)` / 状态「状态」/ 完成「全库完成」/ 键盘流「键盘流顺序」），不真跑 `mtRun` 免 tick
+污染 `runs`；`mtGuardSnap` 内联 SVG 四段 headless 验 `innerHTML` 含 `<svg` + 四段 `rect`/`text`，非真渲染 SVG 像素）。
+

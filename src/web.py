@@ -1057,6 +1057,8 @@ body._nosplabel .mtspark-lastval{display:none}
     <div id="mtkeyhintdetail" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--ink);line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button type="button" id="mtkeyhintcopy" title="复制键盘流触发记录(三键最近触发时间戳+触发顺序串, 贴工单/记录使用习惯, 与R169/R189/R191/R192复制出口同语言)" style="display:none;padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制触发记录</button>
     <button type="button" id="mtguardcopy" title="一键全复制维护守护区(双指标逐轮明细+状态详情+全库完成详情+键盘流触发记录四段, 维护守护区数据一键全留存/全贴工单, 与R189/R191/R192/R195单点复制同语言但全量)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全复制</button>
+    <button type="button" id="mtguardsnap" title="维护守护区四段数据快照可视化(双指标逐轮柱状+状态色带+完成徽标+键盘流顺序条内联SVG, 一眼看维护守护区四段当前全貌, 与R158双图区快照语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 快照</button>
+    <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
@@ -4070,6 +4072,62 @@ function mtGuardCopy(){
   } else { _copyFallback(_all); }
 }
 (function(){ const c=$('#mtguardcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardCopy(); }); } })();
+/* 维护守护区四段数据快照可视化(R197): #mtguardsnap 点 -> 拼内联SVG快照(双指标逐轮柱状localStorage._mtRunHist/_mtRunDelta+状态色带window._mtRunning/_mtPaused/_mtAborted四态+完成徽标window._mtLiveDoneInfo+键盘流顺序条window._mtKeyLogOrder)显#mtguardsnapd浮层, 一眼看维护守护区四段当前全貌, 文本全量复制(R196)+可视化全貌双路 */
+function mtGuardSnap(){
+  const d=$('#mtguardsnapd'); if(!d) return;
+  let _h=[]; try{ _h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  let _b=[]; try{ _b=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+  const _n=Math.max(_h.length, _b.length);
+  const _W=360, _H=150, _pads=8;
+  let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
+  /* 段1: 双指标逐轮柱状(顶部 40px, 近N次耗时柱) */
+  _svg+='<text x="'+_pads+'" y="12" font-size="9" fill="var(--dim)">双指标逐轮 · 近'+_n+'次</text>';
+  if(_n){
+    const _max=Math.max.apply(null,_h.concat([1]));
+    const _bw=Math.min(14, Math.floor((_W-_pads*2)/_n)-2), _gap=Math.floor((_W-_pads*2)/_n);
+    for(let _i=0;_i<_n;_i++){
+      const _v=_h.length?_h[_i]:0, _bb=_b.length?_b[_i]:0;
+      const _bh=Math.round(_v/_max*28), _bbh=Math.round(_bb/Math.max(1,_bb)*_bb); /* 耗时柱(绿)+补入柱(橙) 并列 */
+      const _x=_pads+_i*_gap;
+      _svg+='<rect x="'+_x+'" y="'+(38-_bh)+'" width="'+Math.max(2,_bw/2)+'" height="'+_bh+'" fill="var(--ok)" rx="1"/>'; /* 耗时柱 */
+      _svg+='<rect x="'+(_x+_bw/2)+'" y="'+(38-_bb)+'" width="'+Math.max(2,_bw/2)+'" height="'+_bb+'" fill="#c4381f" rx="1" opacity=".55"/>'; /* 补入柱 */
+    }
+  } else { _svg+='<text x="'+(_pads+4)+'" y="30" font-size="9" fill="var(--dim)">无双指标历史</text>'; }
+  /* 段2: 状态色带(40-58px, 四态色带) */
+  const _sc=(typeof window._mtAborted!=='undefined'&&window._mtAborted)?'var(--bad)':(typeof window._mtPaused!=='undefined'&&window._mtPaused)?'var(--warn)':(typeof window._mtRunning!=='undefined'&&window._mtRunning)?'var(--ok)':'var(--line)';
+  _svg+='<text x="'+_pads+'" y="52" font-size="9" fill="var(--dim)">状态</text>';
+  _svg+='<rect x="46" y="46" width="'+(_W-46-_pads)+'" height="6" rx="3" fill="'+_sc+'"/>';
+  /* 段3: 完成徽标(62-80px) */
+  const _done=window._mtLiveDoneInfo;
+  _svg+='<text x="'+_pads+'" y="72" font-size="9" fill="var(--dim)">全库完成</text>';
+  if(_done){ _svg+='<rect x="46" y="64" width="120" height="14" rx="3" fill="var(--ok)" opacity=".15"/><text x="52" y="74" font-size="9" fill="var(--ok)">共'+_done.N+'轮 · '+_done.totalDur+'s</text>'; }
+  else { _svg+='<text x="46" y="74" font-size="9" fill="var(--dim)">无（未全库跑完 / 已复位）</text>'; }
+  /* 段4: 键盘流顺序条(84-130px, 最近10次三键色点序列) */
+  const _ko=window._mtKeyLogOrder||[];
+  _svg+='<text x="'+_pads+'" y="94" font-size="9" fill="var(--dim)">键盘流顺序'+(_ko.length?(' · '+_ko.length+'次'):'')+'</text>';
+  const _kc={'Space':'var(--warn)','Esc':'var(--bad)','Enter':'var(--ok)'};
+  if(_ko.length){
+    const _cw=Math.min(24, Math.floor((_W-_pads*2)/_ko.length)-2);
+    for(let _i=0;_i<_ko.length;_i++){
+      const _x=_pads+_i*(Math.floor((_W-_pads*2)/_ko.length));
+      _svg+='<rect x="'+_x+'" y="100" width="'+_cw+'" height="14" rx="2" fill="var(--bg2)" stroke="var(--line)"/><text x="'+(_x+2)+'" y="110" font-size="8" fill="'+(_kc[_ko[_i]]||'var(--ink)')+'">'+_ko[_i]+'</text>';
+    }
+  } else { _svg+='<text x="'+_pads+'" y="110" font-size="9" fill="var(--dim)">未用过</text>'; }
+  /* 时间戳 */
+  _svg+='<text x="'+_pads+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
+  _svg+='</svg>';
+  d.innerHTML=_svg;
+  d.style.display='block';
+  /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtguardsnap 下方浮层 */
+  const r=document.getElementById('mtguardsnap').getBoundingClientRect();
+  d.style.position='absolute';
+  d.style.left=r.left+'px';
+  d.style.top=(r.bottom+2)+'px';
+  /* 3s 自动隐 */
+  clearTimeout(window._mtGuardSnapT);
+  window._mtGuardSnapT=setTimeout(function(){ d.style.display='none'; }, 6000);
+}
+(function(){ const c=$('#mtguardsnap'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardSnap(); }); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
