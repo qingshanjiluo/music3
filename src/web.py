@@ -4377,20 +4377,24 @@ function mtGuardPanel(){
 /* 维护守护区三域折叠态总览(R207): #mtguardfoldstat 点 -> 读三域折叠标志(window._mtMetFold双图区/R159+window._mtGuardPanelFold总览面板/R202+window._mtGuardFoldAll全浮层/R204)+localStorage记忆(_mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll), 拼内联SVG三域折叠态图(三域折叠/展开色带+localStorage记忆标位), 显#mtguardfoldstatd浮层, 三域折叠态一眼全貌免逐点各折叠钮, 与R197四段快照/R199总览面板语言同 */
 function mtGuardFoldStat(){
   const d=$('#mtguardfoldstatd'); if(!d) return;
-  /* 三域折叠标志惰性读(window标志+localStorage记忆, 跨会话恢复) */
+  /* 全折叠域5域折叠标志惰性读(window标志+localStorage记忆, 跨会话恢复; R224三域->全折叠域5域加折叠全链路/全折叠域总控面板) */
   let _metFold=false; try{ _metFold=(localStorage.getItem('_mtMetFold')==='1'); }catch(_){}
   let _pfFold=false; try{ _pfFold=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
   let _allFold=false; try{ _allFold=(localStorage.getItem('_mtGuardFoldAll')==='1'); }catch(_){}
-  const _W=340, _H=140, _p=10;
+  let _ctlFold=false; try{ _ctlFold=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){}
+  let _domFold=false; try{ _domFold=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){}
+  const _W=340, _H=200, _p=10;
   let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
-  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区三域折叠态总览</text>';
-  /* 三域: 双图区/总览面板/全浮层, 各域折叠色带+localStorage记忆标位 */
+  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区全折叠域5域折叠态总览</text>';
+  /* 全折叠域5域: 双图区/总览面板/全浮层/折叠全链路/全折叠域总控面板, 各域折叠色带+localStorage记忆标位 */
   const _domains=[
     {name:'双图区', btn:'#mtmetfold', fold:_metFold, lsKey:'_mtMetFold'},
     {name:'总览面板', btn:'#mtguardpanelfold', fold:_pfFold, lsKey:'_mtGuardPanelFold'},
-    {name:'全浮层', btn:'#mtguardfoldall', fold:_allFold, lsKey:'_mtGuardFoldAll'}
+    {name:'全浮层', btn:'#mtguardfoldall', fold:_allFold, lsKey:'_mtGuardFoldAll'},
+    {name:'折叠全链路', btn:'#mtguardfoldctl', fold:_ctlFold, lsKey:'_mtGuardFoldCtl'},
+    {name:'全折叠域总控', btn:'#mtguardalldomain', fold:_domFold, lsKey:'_mtGuardAllDomain'}
   ];
-  for(let _i=0;_i<3;_i++){
+  for(let _i=0;_i<5;_i++){
     const _dm=_domains[_i];
     const _y=26+_i*34;
     const _col=_dm.fold?'var(--warn)':'var(--ok)'; /* 折叠黄/展开绿 */
@@ -4450,12 +4454,19 @@ function mtGuardFoldStatCopy(){
   let _metFold=false; try{ _metFold=(localStorage.getItem('_mtMetFold')==='1'); }catch(_){}
   let _pfFold=false; try{ _pfFold=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
   let _allFold=false; try{ _allFold=(localStorage.getItem('_mtGuardFoldAll')==='1'); }catch(_){}
-  let _lines='#music3 三域折叠态总览 · '+new Date().toLocaleString()+'\n';
+  let _ctlFold2=false; try{ _ctlFold2=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){}
+  let _domFold2=false; try{ _domFold2=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){}
+  let _lines='#music3 全折叠域5域折叠态总览 · '+new Date().toLocaleString()+'\n';
   _lines+='[双图区 #mtmetfold] · ' +(_metFold?'折叠':'展开')+' · localStorage _mtMetFold=' +(_metFold?'1':'0')+'\n';
   _lines+='[总览面板 #mtguardpanelfold] · ' +(_pfFold?'折叠':'展开')+' · localStorage _mtGuardPanelFold=' +(_pfFold?'1':'0')+'\n';
   _lines+='[全浮层 #mtguardfoldall] · ' +(_allFold?'折叠':'展开')+' · localStorage _mtGuardFoldAll=' +(_allFold?'1':'0')+'\n';
+  _lines+='[折叠全链路 #mtguardfoldctl] · ' +(_ctlFold2?'折叠':'展开')+' · localStorage _mtGuardFoldCtl=' +(_ctlFold2?'1':'0')+'\n';
+  _lines+='[全折叠域总控 #mtguardalldomain] · ' +(_domFold2?'折叠':'展开')+' · localStorage _mtGuardAllDomain=' +(_domFold2?'1':'0')+'\n';
+  /* R224 全折叠域5域总览自含全折叠域当前态(5键/5标志/5折叠钮/7浮层, 与R222/R223补全折叠域字段同域) */
+  const _flc2=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  _lines+='[全折叠域当前态] localStorage 5键: _mtMetFold='+_flc2[0]+' · _mtGuardPanelFold='+_flc2[1]+' · _mtGuardFoldAll='+_flc2[2]+' · _mtGuardFoldCtl='+_flc2[3]+' · _mtGuardAllDomain='+_flc2[4]+'\n';
   if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制三域折叠态文本', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
+    navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠域5域折叠态文本', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
 }
 (function(){ const c=$('#mtguardfoldstatcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardFoldStatCopy(); }); } })();

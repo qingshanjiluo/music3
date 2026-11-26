@@ -6351,3 +6351,33 @@ JS undefined NONE、CSS 320/320、node 0、console 0、截图 r223_panelallfold.
 当前态块 + 点 `#mtguardpanelcopy` 验 toast「已复制维护守护区总览文本」（总览文本含全折叠域当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验全折叠域块进 SVG + 总览文本含全折叠域段，非真渲染像素 /
 剪贴板内容）。
 
+---
+
+## 第238轮（前端 R224 · goal round201）：维护守护区三域折叠态总览面板补全折叠域字段（`#mtguardfoldstat` 三域折叠态总览内联 SVG + `#mtguardfoldstatcopy` 三域折叠态文本 + `#mtguardfoldstatpng` 三域折叠态 PNG 补全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态字段，三域折叠态总览自含全折叠域当前态）
+
+**完善性（三域折叠态总览自含全折叠域当前态）**：R222/R223 `#mtguardcopy` / `#mtguardpanel` 维护守护全记录 / 能力出口总览补全折叠域字段，但**`#mtguardfoldstat` 三域折叠态总览（R207 区）只 3 域没全折叠域 5 域**
+（三域：`_mtMetFold` 双图区 / `_mtGuardPanelFold` 总览面板 / `_mtGuardFoldAll` 全浮层，缺 `_mtGuardFoldCtl` 折叠全链路 / `_mtGuardAllDomain` 全折叠域总控面板），`mtGuardFoldStat`（R207 区）补全折叠域 5 域（`_domains`
+3→5，加 `{name:'折叠全链路', btn:'#mtguardfoldctl', fold:_ctlFold, lsKey:'_mtGuardFoldCtl'}` + `{name:'全折叠域总控', btn:'#mtguardalldomain', fold:_domFold, lsKey:'_mtGuardAllDomain'}`，循环 3→5，`_H=140`→`200`，
+标题「三域」→「全折叠域 5 域」）+ `mtGuardFoldStatCopy`（R208 区）补 2 域 + 全折叠域 5 键当前态段（`_ctlFold2`/`_domFold2` 惰性读 + 5 域文本 + `[全折叠域当前态]` 5 键段，toast「三域」→「全折叠域 5 域」），
+三域折叠态总览自含全折叠域当前态，与 R222/R223 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' → 点 #mtguardfoldstat 生成折叠态总览（#mtguardfoldstatd SVG 含全折叠域 5 域：双图区 / 总览面板 / 全浮层 / 折叠全链路 / 全折叠域总控）；点 #mtguardfoldstatcopy → toast「已复制全折叠域 5 域
+折叠态文本」（文本含 5 域 + 全折叠域 5 键当前态段）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r224_foldstat5.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 746→748`，断点 `_赵雷\需要人陪.mp3`。
+
+**坑**：① `mtGuardFoldStat`（R207 区）三域折叠态总览内联 SVG（`_domains` 3 元素：双图区 / 总览面板 / 全浮层，`_H=140`）补全折叠域 5 域（`_domains` 3→5，加 `{name:'折叠全链路', btn:'#mtguardfoldctl', fold:_ctlFold,
+lsKey:'_mtGuardFoldCtl'}` + `{name:'全折叠域总控', btn:'#mtguardalldomain', fold:_domFold, lsKey:'_mtGuardAllDomain'}`，惰性读补 `_ctlFold`/`_domFold`（`localStorage.getItem('_mtGuardFoldCtl')==='1'` /
+`localStorage.getItem('_mtGuardAllDomain')==='1'`，`try/catch` 降级 `false`），循环 3→5（`for(let _i=0;_i<5;_i++)` 各域折叠色带 `rect`（折叠 `--warn` 黄 / 展开 `--ok` 绿）+ `localStorage` 记忆标位），`_H=140`→`200`
+加高容 5 域，标题「维护守护区三域折叠态总览」→「维护守护区全折叠域5域折叠态总览」，三域折叠态总览自含全折叠域 5 域当前态，与 R207 三域折叠态总控 + R222/R223 补全折叠域字段同域）② `mtGuardFoldStatCopy`
+（R208 区）三域折叠态文本（`_metFold`/`_pfFold`/`_allFold` 惰性读 + 3 域文本）补 2 域（`_ctlFold2`/`_domFold2` 惰性读 `localStorage.getItem('_mtGuardFoldCtl')==='1'` / `localStorage.getItem('_mtGuardAllDomain')==='1'`
+`try/catch` 降级）+ 全折叠域 5 键当前态段（`_flc2` 5 键 `localStorage`（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`，`||'0'` 降级），`_lines+=` 拼「[折叠全链路 #mtguardfoldctl] ·
+折叠/展开 · localStorage _mtGuardFoldCtl=1/0」+「[全折叠域总控 #mtguardalldomain] · 折叠/展开 · localStorage _mtGuardAllDomain=1/0」+「[全折叠域当前态] localStorage 5键: ...」，标题「#music3 三域折叠态总览」→「#music3
+全折叠域5域折叠态总览」，toast「已复制三域折叠态文本」→「已复制全折叠域5域折叠态文本」，三域折叠态文本自含全折叠域 5 域 + 5 键当前态，与 R208 三域折叠态复制 + R222/R223 补全折叠域字段同域）③ `mtGuardFoldStatPng`
+（R208 区）读 `#mtguardfoldstatd` 内联 SVG（`mtGuardFoldStat` 拼），`mtGuardFoldStat` 补全折叠域 5 域后，三域折叠态 PNG 自动含 5 域，无需 `mtGuardFoldStatPng` 改（PNG 读 SVG 当前态自动完整，同 R221 `mtGuardAllDomainPng` /
+R222 `mtGuardSnapPng` / R223 `mtGuardPanelPng` 读各内联 SVG 自动含全折叠域字段纪律）④ 与 R207 `#mtguardfoldstat` 三域折叠态总览 / R208 `#mtguardfoldstatcopy` 三域折叠态文本**分工**（R207/R208 三域折叠态总览 / 文本
+（双图区 / 总览面板 / 全浮层），R224 补全折叠域 5 域（加折叠全链路 / 全折叠域总控面板）——三域折叠态总览 → 全折叠域 5 域折叠态总览，自含全折叠域当前态）⑤ 与 R222 维护守护全记录 / R223 能力出口总览补全折叠域字段**语言同**
+（各全折叠域 / 三域折叠态总览读 5 键 `localStorage` + 各域 `textContent` / `display` 拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 点 `#mtguardfoldstat` 生成
+折叠态总览验 `#mtguardfoldstatd` `innerHTML` 含 `<svg` + 全折叠域 5 域（`全折叠域5域` + `折叠全链路` + `全折叠域总控`）+ 点 `#mtguardfoldstatcopy` 验 toast「已复制全折叠域5域折叠态文本」（文本含 5 域 + 全折叠域 5 键
+当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验 5 域进 SVG + 文本含 5 域 / 5 键段，非真渲染像素 / 剪贴板内容）。
+
