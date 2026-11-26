@@ -3962,3 +3962,28 @@ totals 是后端真数据，历史折线只是前端展示层 `localStorage`，�
 导）⑤ 下载用 `a.download`（浏览器本地触发，不依赖后端），headless 验只查 toast 文案（下载动作 headless 无文件，toast 为
 出口证明）。
 
+---
+
+## 第162轮（前端 R148 · goal round125）：跑维护历史 PNG 快照导出（`#mthistpng`，离屏 canvas 重绘折线区存 PNG，截图分享）
+
+**完善性（图档留底）**：R147 `#mthistexport` 导 CSV（数据），**看趋势截图分享 / 贴 issue 复盘**没图档出口。`#mthistexport`
+旁加**`#mthistpng`** 小钮（`⊡ 快照`，`_mtRunHist` 近 10 次耗时 → **离屏 canvas 重绘**（白底 + 网格 4 线 + 面积 + accent 折线
++ 点 + 标题「跑维护耗时 · 近 N 次 · 均值 Xs」+ 时间戳 + Y 轴范围）→ `toDataURL` 下载 `music3_run_hist_<ts>.png` + toast「已导出
+折线快照（PNG）」；空时 toast「无跑维护历史可快照（先跑一次维护）」）——折线图截图分享 / 贴 issue / 存档，与 R147 CSV 导出
+**互补**（CSV 走数据、PNG 走图，同「导出留档」直觉）。
+
+**E2E**：`有历史 → 点 #mthistpng → 离屏 canvas 重绘 + a.download PNG + toast「已导出折线快照（PNG）」+ 空 → toast「无跑维护
+历史可快照（先跑一次维护）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r148_png.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 592→594`，断点 `_归档_封存\SD卡版\洛天依\洛天依\普通DISCO 原版.mp3`。
+
+**坑**：① `#mthistpng` 挂 `#mthistexport` 后（`#mthistspark` 内，`⊡ 快照` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色
+10px，随 `#mthistspark` 显隐——无历史时钮也隐，点不到，提示走「先跑一次维护」文案）② `mtRunHistPng`（`#mthistpng` onclick，
+载入 IIFE 绑）：读 `_mtRunHist`，空 → `_toast`「无跑维护历史可快照」`bad` 不导；非空 → **离屏 canvas**（480×140，白底 + 网格
+4 线 + 面积 `rgba(196,56,31,.12)` + 折线 accent `#c4381f` 2px + 点 3px + 标题 + 时间戳 + Y 轴范围文字）`toDataURL('image/png')`
+下载 `music3_run_hist_<Date.now()>.png` + toast「已导出折线快照（PNG）」③ canvas 重绘坐标 `X(i)/Y(v)`（`h` 归一化到 `iw/ih`，
+`padTop=28/padBot=22` 留标题/时间戳空间），**不依赖** `#mthistsvg` DOM 折线（离屏独立画，PNG 含标题+时间戳+Y 轴范围，比截图
+`#mthistspark` 区信息全）④ `toDataURL` → `a.download`（纯前端，不依赖后端 / 不用 html2canvas 库），headless 验只查 toast
+文案（下载 headless 无文件，toast 为出口证明）⑤ 与 R147 CSV 同「只读导 `_mtRunHist`」（`mtRunHistPng`/`mtRunHistExport` 都不
+改 localStorage，清历史走 R146 `#mthistclear`），两钮可反复导，互不影响。
+

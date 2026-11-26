@@ -1067,7 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
-  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
+  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3581,7 +3581,45 @@ function mtRunHistExport(){
   setTimeout(()=>URL.revokeObjectURL(url), 3000);
   _toast('已导出跑维护历史 '+h.length+' 次（CSV）', 'ok');
 }
-(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } })();
+/* 折线快照存 PNG: 离屏 canvas 重绘 #mthistspark 折线区(背景+折线+均值标签) -> download; 看趋势截图分享(与 R147 CSV 导出互补: CSV 走数据 PNG 走图, 同「导出留档」) */
+function mtRunHistPng(){
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  if(!h.length){ _toast('无跑维护历史可快照（先跑一次维护）', 'bad'); return; }
+  const W=480, H=140, pad=24, padTop=28, padBot=22, padL=12, padR=12;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,W,H);
+  g.strokeStyle='#e4e4ea'; g.lineWidth=1;
+  g.font='12px ui-sans-serif,system-ui,sans-serif';
+  const mx=Math.max.apply(null,h), mn=Math.min.apply(null,h), rng=Math.max(1e-3, mx-mn);
+  const avg=Math.round((h.reduce((a,v)=>a+v,0)/h.length)*10)/10;
+  const iw=W-padL-padR, ih=H-padTop-padBot;
+  const X=i=> h.length>1? padL+i/(h.length-1)*iw : padL+iw/2;
+  const Y=v=> padTop+(1-(v-mn)/rng)*ih;
+  /* 网格线 4 条 */
+  g.strokeStyle='#f0f0f2';
+  for(let k=0;k<=3;k++){ const gy=padTop+ih*k/3; g.beginPath(); g.moveTo(padL,gy); g.lineTo(W-padR,gy); g.stroke(); }
+  /* 面积 */
+  g.beginPath(); g.moveTo(X(0),Y(h[0])); for(let i=1;i<h.length;i++){ g.lineTo(X(i),Y(h[i])); }
+  g.lineTo(X(h.length-1),H-padBot); g.lineTo(X(0),H-padBot); g.closePath();
+  g.fillStyle='rgba(196,56,31,0.12)'; g.fill();
+  /* 折线 */
+  g.beginPath(); g.moveTo(X(0),Y(h[0])); for(let i=1;i<h.length;i++){ g.lineTo(X(i),Y(h[i])); }
+  g.strokeStyle='#c4381f'; g.lineWidth=2; g.lineJoin='round'; g.stroke();
+  /* 点 */
+  h.forEach((v,i)=>{ g.beginPath(); g.arc(X(i),Y(v),3,0,Math.PI*2); g.fillStyle='#c4381f'; g.fill(); });
+  /* 标题 + 均值 + 时间戳 */
+  g.fillStyle='#5a5a5f'; g.font='13px ui-sans-serif,system-ui,sans-serif';
+  g.fillText('跑维护耗时 · 近 '+h.length+' 次 · 均值 '+avg+'s', padL, 18);
+  g.fillStyle='#9a9aa0'; g.font='10px ui-sans-serif,system-ui,sans-serif';
+  g.fillText(new Date().toISOString().replace('T',' ').slice(0,16)+' 时', padL, H-8);
+  g.fillText('Y 轴 '+(mn).toFixed(1)+'~'+(mx).toFixed(1)+'s', W-padR-g.measureText('Y 轴 '+mn.toFixed(1)+'~'+mx.toFixed(1)+'s').width, H-8);
+  const url=c.toDataURL('image/png');
+  const a=document.createElement('a'); a.href=url; a.download='music3_run_hist_'+Date.now()+'.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  _toast('已导出折线快照（PNG）', 'ok');
+}
+(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } const pg=$('#mthistpng'); if(pg){ pg.onclick=mtRunHistPng; } })();
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 /* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */
