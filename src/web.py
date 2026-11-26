@@ -1062,6 +1062,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardpanel" title="维护守护区能力/出口总览(三键状态灯+四段数据+各复制出口+快照/PNG出口内联SVG总览面板, 维护守护区能力/出口全景图, 一眼知有哪些入口/能力免分散找)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▤ 总览</button>
     <button type="button" id="mtguardpanelpng" title="维护守护区总览PNG导出(#mtguardpaneld内联SVG转canvas下载music3_维护守护总览_ts.png, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 总览PNG</button>
     <button type="button" id="mtguardpanelcopy" title="维护守护区总览文本复制(能力/出口分块+各出口标位+三键状态/四段数据当前值文本到剪贴板, 总览可文本留存/贴工单, 与R169/R189/R191/R192/R195/R196复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 总览复制</button>
+    <button type="button" id="mtguardpanelfold" title="折叠/展开维护守护区总览面板(_mtGuardPanelFold折叠标志切显/隐, 总览面板常驻可折叠省高不8s自动隐, 与R159折叠双图区语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▾ 折叠总览</button>
     <div id="mtguardpaneld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
@@ -4241,9 +4242,21 @@ function mtGuardPanel(){
   d.innerHTML=_svg; d.style.display='block';
   const r=document.getElementById('mtguardpanel').getBoundingClientRect();
   d.style.position='absolute'; d.style.left=r.left+'px'; d.style.top=(r.bottom+2)+'px';
-  clearTimeout(window._mtGuardPanelT);
-  window._mtGuardPanelT=setTimeout(function(){ d.style.display='none'; }, 8000);
+  /* R202: 折叠态(_mtGuardPanelFold)不8s自动隐, 展开态才8s自动隐 — 折叠总览常驻省高, 展开总览临时看8s隐 */
+  if(!window._mtGuardPanelFold){ clearTimeout(window._mtGuardPanelT); window._mtGuardPanelT=setTimeout(function(){ d.style.display='none'; }, 8000); }
 }
+(function(){ const c=$('#mtguardpanelfold'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); /* R202 折叠/展开总览面板 */
+  if(window._mtGuardPanelFold===undefined){ window._mtGuardPanelFold=false; }
+  window._mtGuardPanelFold=!window._mtGuardPanelFold;
+  c.textContent=window._mtGuardPanelFold?'▸ 展开总览':'▾ 折叠总览';
+  const d=$('#mtguardpaneld');
+  if(window._mtGuardPanelFold){ /* 折叠: 隐总览面板 */
+    if(d){ d.style.display='none'; } clearTimeout(window._mtGuardPanelT);
+  } else { /* 展开: 显总览面板(拼当前总览SVG) */
+    if(typeof mtGuardPanel==='function'){ mtGuardPanel(); }
+  }
+  if(typeof _toast==='function'){ _toast(window._mtGuardPanelFold?'已折叠维护守护区总览面板':'已展开维护守护区总览面板', 'ok'); }
+}); } })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){

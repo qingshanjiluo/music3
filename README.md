@@ -5595,3 +5595,38 @@ PNG 图片 + 文本复制双路）。`#mtguardpanelpng` 旁加**`#mtguardpanelco
 + 点 `#mtguardpanelcopy` 验 toast「已复制维护守护区总览文本」，剪贴板 / 降级只验 toast 出口，真剪贴板内容 headless 不验，不真跑
 `mtRun` 免 tick 污染 `runs`；`mtGuardPanelCopy` 总览文本拼逻辑验 toast 出口，各段当前值读逻辑同 R196 `mtGuardCopy`）。
 
+---
+
+## 第216轮（前端 R202 · goal round179）：维护守护区能力 / 出口总览面板补折叠（`#mtguardpanelfold` 小钮，点 `#mtguardpanelfold` 折叠 / 展开 `#mtguardpaneld` 总览面板浮层（`_mtGuardPanelFold` 折叠标志，总览面板常驻可折叠省高，不 8s 自动隐，与 R159 折叠双图区语言同）
+
+**简洁性（总览面板常驻可折叠省高免反复点重显）**：R199 `#mtguardpanel` 总览面板 `#mtguardpaneld` **8s 自动隐**（看全貌 8s 即消失，要
+长看总览面板得反复点 `#mtguardpanel` 重显，`#mtguardpanelfold` 折叠 / 展开总览面板（`_mtGuardPanelFold` 标志切显 / 隐，总览面板常驻可
+折叠省高，不 8s 自动隐，与 R159 `#mtmetfold` 折叠双图区语言同，总览面板可折叠省高常驻）。`#mtguardpanelcopy` 旁加**`#mtguardpanelfold`**
+小钮（`▾ 折叠总览`，`#mtguardpanelcopy` 后常驻位），点 `#mtguardpanelfold` 切 **`window._mtGuardPanelFold`** 折叠标志（折叠态 `true`
+时 `#mtguardpaneld` 隐 + `#mtguardpanelfold` 文案「▸ 展开总览」，展开态 `false` 时 `mtGuardPanel()` 显 `#mtguardpaneld` + 文案「▾ 折叠
+总览」），`mtGuardPanel` 改：`_mtGuardPanelFold` 折叠时不 8s 自动隐（总览面板常驻），展开态才 8s 自动隐——总览面板可折叠省高常驻，
+与 R159 折叠双图区语言同。
+
+**E2E**：`点 #mtguardpanelfold（折叠，window._mtGuardPanelFold=true + #mtguardpaneld 隐 + 文案「▸ 展开总览」）→ 再点 #mtguardpanelfold
+（展开，window._mtGuardPanelFold=false + #mtguardpaneld 显 + 文案「▾ 折叠总览」）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r202_panelfold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 700→702`，断点 `_整理后分类\林俊杰\美人鱼.mp3`。
+
+**坑**：① `#mtguardpanelfold` 小钮挂 `#mtguardpanelcopy` 旁常驻位（`#mtguardpanelcopy` 后 `inline-block`，维护守护区总览折叠常驻入口，
+非 hover 态控——`#mtguardpanel` 总览 + `#mtguardpanelpng` 总览 PNG + `#mtguardpanelcopy` 总览复制 + `#mtguardpanelfold` 总览折叠四
+入口并排，总览可看可存可贴可折叠省高，维护守护区总览全链路）② `window._mtGuardPanelFold` 挂 `window`（`#mtguardpanelfold` 点切
+`true`/`false` + `mtGuardPanel` 读折叠态不 8s 自动隐，跨 IIFE 读必须挂 `window`，同 R180 `window._mtPaused` 块级作用外读坑）③
+`mtGuardPanel` 改 8s 自动隐跟折叠态（`if(!window._mtGuardPanelFold){ clearTimeout(window._mtGuardPanelT); window._mtGuardPanelT=setTimeout(
+function(){ d.style.display='none'; }, 8000); }`——折叠态 `window._mtGuardPanelFold===true` 不 8s 自动隐（总览面板常驻省高，用户手动
+点 `#mtguardpanelfold` 折叠 / 展开控制），展开态 `false` 才 8s 自动隐（临时看全貌 8s 隐，同 R199 原行为），折叠态总览面板常驻不消失，
+展开态临时看 8s 隐，两态分工）④ `#mtguardpanelfold` IIFE 绑切折叠（`if(window._mtGuardPanelFold===undefined){ window._mtGuardPanelFold=
+false; } window._mtGuardPanelFold=!window._mtGuardPanelFold;` 惰性初始化 + 切，`c.textContent` 切「▸ 展开总览」/「▾ 折叠总览」，折叠态
+`#mtguardpaneld` 隐 + `clearTimeout` 清 8s 定时（不残留自动隐），展开态 `mtGuardPanel()` 重拼当前总览 SVG 显（读当前态非缓存旧态），
+toast「已折叠 / 已展开维护守护区总览面板」，同 R159 `#mtmetfold` 折叠双图区切 `display` 语言）⑤ 与 R199 `#mtguardpanel` 总览面板**分工**
+（R199 `#mtguardpanel` 点显总览面板（8s 自动隐，临时看全貌），R202 `#mtguardpanelfold` 折叠 / 展开总览面板（`_mtGuardPanelFold` 折叠态
+常驻省高 + 展开态 8s 自动隐），看全貌临时 + 总览常驻可折叠省高双路）⑥ 验收**函数级**（点 `#mtguardpanelfold` 验 `window._mtGuardPanelFold`
+切 `true`（折叠）+ `#mtguardpaneld` 隐 + 文案「▸ 展开总览」，再点验 `window._mtGuardPanelFold` 切 `false`（展开）+ `#mtguardpaneld` 显 +
+文案「▾ 折叠总览」，不真跑 `mtRun` 免 tick 污染 `runs`；`_mtGuardPanelFold` 折叠态不 8s 自动隐验折叠态 `#mtguardpaneld` 常驻显 10s 不隐
+（`setTimeout` 不触），展开态 8s 自动隐不验（`setTimeout` 时序），验折叠 / 展开切标志 + 显隐 + 文案切换）。
+
