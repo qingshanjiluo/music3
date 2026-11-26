@@ -5667,3 +5667,41 @@ window._mtGuardSnapT)` 清四段快照 6s 定时，不残留自动显——折�
 层」，不真跑 `mtRun` 免 tick 污染 `runs`；全浮层折叠态 `display:none` 验五浮层全隐，展开态不验强显（各浮层自身触发，不验展开态各浮层
 `display`））。
 
+---
+
+## 第218轮（前端 R204 · goal round181）：维护守护区全浮层折叠记忆（`_mtGuardFoldAll` 折叠标志存 `localStorage._mtGuardFoldAll`，刷新后恢复折叠态，维护守护区全浮层折叠态跨会话留存）
+
+**完善性（全浮层折叠态跨会话留存免刷新复位）**：R203 `#mtguardfoldall` 全浮层折叠 `window._mtGuardFoldAll` 标志，但**刷新后丢**
+（`window` 标志跨会话不持久，刷新后 `window._mtGuardFoldAll` 复位 `false` 展开态，全浮层折叠态不跨会话留存，`_mtGuardFoldAll` 存
+`localStorage._mtGuardFoldAll`，刷新后恢复折叠 / 展开态，维护守护区全浮层折叠态跨会话留存，与 R159 双图区折叠 `localStorage._mtMetFold`
+记忆语言同）。`#mtguardfoldall` IIFE（R203 区）改：`window._mtGuardFoldAll` 惰性初始化读 `localStorage._mtGuardFoldAll`（`'1'` 折叠态 /
+`'0'` 展开态 / 无默认展开态），切后存 `localStorage._mtGuardFoldAll`，`#mtguardfoldall` 文案随初始折叠态（`localStorage._mtGuardFoldAll===
+'1'` 显「◎ 展开全浮层」/ 否则「⊘ 折叠全浮层」），全浮层 `display` 随初始折叠态（折叠态隐全浮层）——维护守护区全浮层折叠态跨会话
+留存，与 R159 双图区折叠记忆语言同。
+
+**E2E**：`点 #mtguardfoldall（折叠）→ localStorage._mtGuardFoldAll='1'（折叠态存 localStorage 刷新恢复）；再点（展开）→
+localStorage._mtGuardFoldAll='0'`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r204_foldmem.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 704→706`，断点 `_整理后分类\洛天依\Vsinger.mp3`。
+
+**坑**：① `window._mtGuardFoldAll` 惰性初始化读 `localStorage._mtGuardFoldAll`（`#mtguardfoldall` IIFE 顶，`if(window._mtGuardFoldAll===
+undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldAll')==='1'); }catch(_){} window._mtGuardFoldAll=_init; }`
+——刷新后 `window._mtGuardFoldAll` 未设（`undefined`）则读 `localStorage._mtGuardFoldAll` 恢复折叠 / 展开态，`'1'` 折叠 / `'0'` / 无展开，
+`try/catch` `localStorage` 不可用（隐私模式 / 沙箱）降级 `false` 展开态，同 R159 `_mtMetFold` / R175 `_mtRunHist` `localStorage` 惰性
+读降级纪律）② 切后存 `localStorage`（`#mtguardfoldall` 点切 `window._mtGuardFoldAll` 后 `try{ localStorage.setItem('_mtGuardFoldAll',
+window._mtGuardFoldAll?'1':'0'); }catch(_){}`——折叠态 `true` 存 `'1'` / 展开态 `false` 存 `'0'`，`localStorage` 不可用降级不记（跨会话
+不留存，当前会话 `window` 标志仍生效），`localStorage` 键族加 `_mtGuardFoldAll`（同 `_mtRunHist`/`_mtRunDelta`/`_mtMetFold`/`_mtAuto`
+维护守护区折叠记忆）③ 初始折叠态同步（`#mtguardfoldall` IIFE 惰性初始化 `window._mtGuardFoldAll` 后：`c.textContent=window._mtGuardFoldAll?
+'◎ 展开全浮层':'⊘ 折叠全浮层'`（文案随初始折叠态）+ `if(window._mtGuardFoldAll)` 全浮层 `display:none` 隐（刷新恢复折叠态隐全浮层，
+`_allFolds` 五浮层 `#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`/`#mtguardsnapd`/`#mtguardpaneld`）——刷新后恢复初始折叠态
+（文案 + 全浮层 `display` 随 `localStorage._mtGuardFoldAll`，折叠态刷新隐全浮层省高，展开态刷新不隐）④ 与 R203 `#mtguardfoldall` 全浮层
+折叠**分工**（R203 全浮层折叠 `window._mtGuardFoldAll` 当前会话切显 / 隐，R204 折叠记忆 `localStorage._mtGuardFoldAll` 跨会话留存——
+当前会话折叠 + 跨会话记忆，`#mtguardfoldall` 折叠态存 `localStorage` 刷新恢复，免刷新复位展开态重折叠）⑤ 与 R159 `#mtmetfold` 双图区
+折叠记忆 / R202 `#mtguardpanelfold` 总览面板折叠**语言同**（R159 `_mtMetFold` 存 `localStorage._mtMetFold` 双图区折叠记忆，R202 `_mtGuardPanelFold`
+总览面板折叠当前会话（未存 `localStorage`），R204 `_mtGuardFoldAll` 存 `localStorage._mtGuardFoldAll` 全浮层折叠记忆，双图区折叠记忆
+`localStorage` + 总览面板折叠 `window` + 全浮层折叠记忆 `localStorage`，各域折叠 / 记忆各管各）⑥ 验收**函数级**（清 `localStorage._mtGuardFoldAll`
++ 点 `#mtguardfoldall` 验 `window._mtGuardFoldAll` 切 `true`（折叠）+ `localStorage._mtGuardFoldAll` 存 `'1'`，再点验 `window._mtGuardFoldAll`
+切 `false`（展开）+ `localStorage._mtGuardFoldAll` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem`
+值，刷新恢复验 `localStorage` 值非真刷新 headless）⑦ 验收**函数级**（`localStorage._mtGuardFoldAll` 存 `'1'` / `'0'` 验折叠 / 展开切 `localStorage`
+值，刷新恢复验 `localStorage` 读值非真刷新）。
+

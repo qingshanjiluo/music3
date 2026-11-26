@@ -4258,20 +4258,29 @@ function mtGuardPanel(){
   }
   if(typeof _toast==='function'){ _toast(window._mtGuardPanelFold?'已折叠维护守护区总览面板':'已展开维护守护区总览面板', 'ok'); }
 }); } })();
-/* 维护守护区全浮层折叠(R203): #mtguardfoldall 点 -> 切 window._mtGuardFoldAll 折叠标志, 折叠/展开维护守护区全浮层(#mtstatebardtl状态详情/#mtmetsumdetail逐轮明细/_mtkeyhintdetail三键提示/_mtguardsnapd四段快照/_mtguardpaneld总览面板display切), 一键折叠/展开维护守护区全浮层省高, 与R159折叠双图区/R202折叠总览面板语言同 */
+/* 维护守护区全浮层折叠(R203): #mtguardfoldall 点 -> 切 window._mtGuardFoldAll 折叠标志, 折叠/展开维护守护区全浮层(#mtstatebardtl状态详情/#mtmetsumdetail逐轮明细/_mtkeyhintdetail三键提示/_mtguardsnapd四段快照/_mtguardpaneld总览面板display切), 一键折叠/展开维护守护区全浮层省高, 与R159折叠双图区/R202折叠总览面板语言同; R204 折叠态存 localStorage._mtGuardFoldAll 刷新恢复 */
 (function(){ const c=$('#mtguardfoldall'); if(!c) return;
+  /* R204: 惰性初始化读 localStorage._mtGuardFoldAll, 折叠态跨会话留存(刷新恢复折叠/展开态, 与R159双图区折叠localStorage._mtMetFold记忆语言同) */
+  if(window._mtGuardFoldAll===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldAll')==='1'); }catch(_){}
+    window._mtGuardFoldAll=_init;
+  }
+  /* 初始折叠态同步: 文案 + 全浮层display */
+  c.textContent=window._mtGuardFoldAll?'◎ 展开全浮层':'⊘ 折叠全浮层';
+  const _allFolds=['mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardsnapd','mtguardpaneld'];
+  if(window._mtGuardFoldAll){ /* 刷新恢复折叠态: 隐全浮层 */
+    for(let _i=0; _i<_allFolds.length; _i++){ const _el=document.getElementById(_allFolds[_i]); if(_el){ _el.style.display='none'; } }
+  }
   c.addEventListener('click', function(e){ e.stopPropagation();
     if(window._mtGuardFoldAll===undefined){ window._mtGuardFoldAll=false; }
     window._mtGuardFoldAll=!window._mtGuardFoldAll;
     c.textContent=window._mtGuardFoldAll?'◎ 展开全浮层':'⊘ 折叠全浮层';
-    /* 全浮层 display 切: 折叠态隐全浮层省高, 展开态恢复(不残留隐, 各浮层自身 hover/点触发才显) */
-    const _allFolds=['mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardsnapd','mtguardpaneld'];
+    /* R204: 折叠态存 localStorage, 刷新恢复 */
+    try{ localStorage.setItem('_mtGuardFoldAll', window._mtGuardFoldAll?'1':'0'); }catch(_){}
     if(window._mtGuardFoldAll){ /* 折叠: 隐全浮层 */
       for(let _i=0; _i<_allFolds.length; _i++){ const _el=document.getElementById(_allFolds[_i]); if(_el){ _el.style.display='none'; } }
       clearTimeout(window._mtGuardPanelT); /* 清总览面板8s定时, 不残留自动显 */
       clearTimeout(window._mtGuardSnapT); /* 清四段快照6s定时 */
-    } else { /* 展开: 恢复(不强制显, 各浮层自身触发才显, 仅清残留隐藏态) */
-      for(let _i=0; _i<_allFolds.length; _i++){ const _el=document.getElementById(_allFolds[_i]); if(_el && _el.style.display==='none'){ /* 仅恢复被折叠隐的, 不强制显 */ } }
     }
     if(typeof _toast==='function'){ _toast(window._mtGuardFoldAll?'已折叠维护守护区全浮层':'已展开维护守护区全浮层', 'ok'); }
   });
