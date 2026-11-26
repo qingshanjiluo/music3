@@ -1067,7 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
-  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
+  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3648,7 +3648,14 @@ function mtRunHistImport(){
   };
   inp.click();
 }
-(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } const pg=$('#mthistpng'); if(pg){ pg.onclick=mtRunHistPng; } const im=$('#mthistimport'); if(im){ im.onclick=mtRunHistImport; } })();
+/* 重置基线: 清 _mtRunHist + 记 _mtRunHistBase(当前时间戳, 0s 起算点) + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 趋势重定 0 点(清历史+记基线, 看距基线多久补X), 与 R146 清历史/R149 导入「基线可管」闭环 */
+function mtRunHistReset(){
+  try{ localStorage.removeItem('_mtRunHist'); }catch(e){}
+  try{ localStorage.setItem('_mtRunHistBase', String(Date.now())); }catch(e){}
+  mtRunHistDraw();
+  _toast('已重置基线 · 下次跑维护从 0s 起算（基线 '+new Date().toISOString().replace('T',' ').slice(0,16)+'）', 'ok');
+}
+(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } const pg=$('#mthistpng'); if(pg){ pg.onclick=mtRunHistPng; } const im=$('#mthistimport'); if(im){ im.onclick=mtRunHistImport; } const rs=$('#mthistreset'); if(rs){ rs.onclick=mtRunHistReset; } })();
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 /* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */

@@ -4012,3 +4012,30 @@ totals 是后端真数据，历史折线只是前端展示层 `localStorage`，�
 + `mtRunHistDraw()`（重画折线 + hover）⑤ 与 R147 CSV **格式对称**（R147 导 `序号,耗时(s)` + 头注释 `#`，R149 导回解析同格式，
 导出→导入往返无损），**不清** 现有 `_mtRunHist`（导入 = 覆盖重填末 10 条，区别于追加——CSV 本就是末 10 条快照）。
 
+---
+
+## 第164轮（前端 R150 · goal round127）：跑维护历史一键重置基线（`#mthistreset`，清 `_mtRunHist` + 记 0s 起算基线时间戳，趋势重定 0 点）
+
+**完善性（基线可管闭环）**：R146 `#mthistclear` 清历史（只清不记基线，清完趋势「从哪算起」没数），R149 `#mthistimport`
+导入还原，**重定 0 点**（清完想看「距基线多久补 X」）没入口。`#mthistimport` 旁加**`#mthistreset`** 小钮（`⟲ 重置`，清
+`localStorage._mtRunHist` + **同时记 `_mtRunHistBase` = 当前时间戳**（0s 起算点）+ `mtRunHistDraw` 重画（空 → `#mthistspark` 隐）
++ toast「已重置基线 · 下次跑维护从 0s 起算（基线 <ts>）」）——趋势重定 0 点（清历史 + 记基线时间，下次跑维护耗时从新基线
+累计，看「距基线多久补 X」），与 R146 清历史 + R149 导入「基线可管」闭环。
+
+**E2E**：`点 #mthistreset → _mtRunHist 删(store=None) + _mtRunHistBase 记时间戳(hasBase=True) + #mthistspark 隐(none) +
+toast「已重置基线 · 下次跑维护从 0s 起算（基线 2026-11-26 00:21）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、
+node 0、console 0、截图 r150_reset.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 596→598`，断点 `_归档_封存\SD卡版\洛天依\洛天依\镜中绮旅 - 2599523213.mp3`。
+
+**坑**：① `#mthistreset` 挂 `#mthistimport` 后（`#mthistspark` 内，`⟲ 重置` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色
+10px，随 `#mthistspark` 显隐——无历史时钮隐，重置是「清+记基线」通常有历史才点，空历史点不到符合「先跑再重置」逻辑）
+② `mtRunHistReset`（`#mthistreset` onclick，载入 IIFE 绑）：`localStorage.removeItem('_mtRunHist')`（清耗时）+
+`localStorage.setItem('_mtRunHistBase', String(Date.now()))`（记基线 0s 起算点，**区别于 R146 `mtRunHistClear` 只清不记**——
+重置 = 清 + 记基线，清 = 只清，两钮分工）+ `mtRunHistDraw()`（空 → `#mthistspark` 隐）+ `_toast`「已重置基线 · 下次跑维护
+从 0s 起算（基线 <ts>）」③ `_mtRunHistBase` 记 `Date.now()` 时间戳（基线 0 点），后续可算「距基线 X」看趋势重定 0 点
+（`_mtRunHist` 空时 `#mthistlabel` 可附「基线 <ts>」，R144 标签 `近 N 次 · 均值 Xs` 可扩展）④ 重置**同时清 `_mtRunHist` +
+记 `_mtRunHistBase`**（两步原子），toast 带基线时间戳（`<ts> 16 位 yyyy-mm-dd HH:MM`），操作者可核对 ⑤ 与 R146/R149 三钮分工
+（清 = 只清 / 导入 = 回读还原 / 重置 = 清 + 记 0 点基线），`#mthistspark` 内一排 5 小钮（清历史 / 导出 / 快照 / 导入 / 重置），
+`align-items:center` 一行排开，不占额外高度。
+
