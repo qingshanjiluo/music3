@@ -7002,3 +7002,38 @@ R244 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层折叠
 6 键复位态总览）+ `_mtGuardAllFoldStat`（`has6key=true`，全折叠域 6 键进 SVG），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstatd` 全复位态总览拼逻辑验全复位后 SVG 标题含「· 全复位态」（`_allReset6` 检测 `localStorage` 6 键全
 `'0'` + `window` 6 标志全 `false` → `_rTag=' · 全复位态'`），非真渲染像素）。
 
+---
+
+## 第259轮（前端 R245 · goal round222）：维护守护区全折叠域 5 域折叠态 PNG 快照全复位后 6 键复位态总览（`#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照（R233，`mtAllFoldPng` 内联 SVG 读 6 键 `localStorage` + 6 标志 `window` + 6 折叠钮 + 8 浮层当前态）补全复位检测（读 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`），全复位时 PNG 标题加「· 全复位态」（全复位后 PNG 快照自含 6 键复位态总览）
+
+**完善性（全复位后 PNG 快照自含 6 键复位态总览）**：R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览（SVG 标题加「· 全复位态」标记，`_allReset6` 检测 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`），但**`mtAllFoldPng`（R233 区，`#mtallfoldpng` 全折叠域 5 域折叠态
+PNG 快照，内联 SVG 读 6 键 `localStorage` + 6 标志 `window` + 6 折叠钮 + 8 浮层当前态，R238 已补第 6 键）没全复位检测**（全复位后 PNG 快照要自含 6 键复位态总览，`mtAllFoldPng`（R233 区）拼 SVG 前加全复位检测（`_allReset6`：读 `localStorage` 6 键
+全 `'0'`（`||'0'` 降级）+ `window` 6 标志全 `false`），全复位时 SVG 标题加「· 全复位态」（`_rTag=_allReset6?' · 全复位态':''`），全复位后 PNG 快照自含 6 键复位态总览，与 R244 `#mtallfoldstatd` 浮层全复位后 SVG 标题加「· 全复位态」同域）。
+
+**E2E**：`#mtallfoldpng 全复位后 PNG 标题含「全复位态」（读 mtAllFoldPng toString 验 _allReset6 + 全复位态 + _k6 进 JS 源码，全复位后 PNG 快照自含 6 键复位态总览；host 容器 headless 下载已移除不验）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r245_allreset_pngsrc.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 788→790`，断点 `_The Ludlows.mp3`。
+
+**坑**：① `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照（R233 区，`mtAllFoldPng` 拼全折叠域 5 域 / 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态内联 SVG：`_rows` 数组拼标题 + `[全折叠域5域]` 6 域色带（`_doms` 数组 6 元素（R238 补第 6 键 `_mtGuardAllFoldStat`），各域 `localStorage`
+折叠态（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 域名 + 键名 + 值 + `[6标志 window]` 6 标志色带（`_w5` 各 `window` 标志，`false` 展开 `--ok` 绿 / `true` 折叠 `--bad` 红）+ 标志名 + 值 + `[6折叠钮文案]` 6 折叠钮 `textContent` + `[8浮层 display]`
+8 浮层 `style.display` 色带（`none` 隐 `--ok` 绿 / 显 `--dim` 灰），`_host` 隐藏容器 + `_imgv` SVG 转 PNG + `canvas` `toBlob` 转 PNG 下载「music3_全折叠域5域折叠态_<ts>.png」（`toBlob` 不可用降级 toast「PNG 导出不可用（toBlob 不支持）」+ `canvas`
+不可用降级 toast「PNG 导出失败（canvas 不可用）」+ SVG 渲染失败降级 toast「PNG 导出失败（SVG 渲染不可用）」））补全复位检测（R245，`mtAllFoldPng`（R233 区 4878 行）拼 SVG 前加全复位检测（`_allReset6`：读 `localStorage` 6 键（`_k6` 数组 6 元素
+`_mtMetFold` / `_mtGuardPanelFold` / `_mtGuardFoldAll` / `_mtGuardFoldCtl` / `_mtGuardAllDomain` / `_mtGuardAllFoldStat`）全 `'0'`（`||'0'` 降级）+ `window` 6 标志（`_w6` 数组 6 元素）全 `false`，全 `'0'` + 全 `false` 才 `_allReset6=true`），全复位时
+SVG 标题加「· 全复位态」（`_rTag=_allReset6?' · 全复位态':''`），全复位后 PNG 快照自含 6 键复位态总览，与 R244 `#mtallfoldstatd` 浮层全复位后 SVG 标题加「· 全复位态」同域，`#mtallfoldpng` PNG 快照全复位后自含 6 键复位态总览）② `mtAllFoldPng`（R233
+区）与 `mtAllFoldStat`（R234 区）同结构（`var _W=420, _y=8, _rows=[];` + SVG 标题行），`edit` `old_string` 匹配 2 次——加 `function mtAllFoldPng(){` + `_host` 特征行作锚定位 `mtAllFoldPng`（`mtAllFoldStat` 是 `_d` 浮层无 `_host`），免 `mtAllFoldStat`
+误改（`mtAllFoldStat` R244 已补全复位检测 + SVG 标题「· 全复位态」），同 R244 `mtAllFoldStat` 补全复位检测用 `function mtAllFoldStat(){` + `_d` 行作锚纪律③ 与 R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览（SVG 标题加「· 全复位态」
+标记，`_allReset6` 检测 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`）/ R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG）/ R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复 / R242 `mtAllFoldStat` 8s 自动隐定时
+`innerHTML` 非空校验 / R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键**分工**（R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览（SVG 标题加「· 全复位态」标记，
+全复位后 `#mtallfoldstatd` 浮层自含 6 键复位态总览），R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG），R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复（刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态），R242 `mtAllFoldStat`
+8s 自动隐定时 `innerHTML` 非空校验（全复位后 `innerHTML` 空时 8s 自动隐不隐 `display` 免无副作用触发），R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用（全复位后 `#mtallfoldstat` 折叠记忆切 IIFE 点 `#mtallfoldstat` 切折叠态时
+`clearTimeout(window._mtGuardAllFoldStatT)` 已清 8s 自动隐定时无副作用），R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`localStorage` 清 `'0'` + `window` 标志 `false` + 文案复位 + `display` 复位 + `clearTimeout`），R245 `#mtallfoldpng` PNG 快照
+全复位后自含 6 键复位态总览（`mtAllFoldPng` 拼 SVG 前加全复位检测（`_allReset6`：读 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`），全复位时 SVG 标题加「· 全复位态」，全复位后 PNG 快照自含 6 键复位态总览）——R235/R240/R241/R242/R243/R244/R245
+全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层 / PNG 快照全复位后自含 6 键复位态总览，七路自含全折叠域 6 键复位态）④ 与 R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览 / R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清 / R241
+`#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复 / R242 `mtAllFoldStat` 8s 自动隐定时 `innerHTML` 非空校验 / R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键**语言同**
+（各全复位后 `#mtallfoldstatd` / `#mtallfoldpng` SVG 标题加「· 全复位态」标记 / `innerHTML` 清 / 刷新初始同步 IIFE / 8s 自动隐定时 / 折叠记忆切 IIFE 读 6 键 `localStorage` 复位值（全 `'0'`）+ 6 标志 `window` 复位值（全 `false`）+ 6 折叠钮文案（全
+展开态）+ 8 浮层 `display`（全 `none`），全折叠域 6 键复位态同语言，各出口自含全折叠域出口标位）⑤ 验收**源码级**（读 `mtAllFoldPng` `toString()` 验全复位检测进 JS 源码（`_allReset6`（`hasAllReset=true`，全复位检测读 `localStorage` 6 键全 `'0'` +
+`window` 6 标志全 `false`）+ `全复位态`（`hasResetTag=true`，全复位时 SVG 标题加「· 全复位态」）+ `_k6`（`hasK6=true`，6 键数组），不真跑 `mtRun` 免 tick 污染 `runs`；host 容器 headless 下载已移除不验（`mtAllFoldPng` 拼 SVG 后 `_host` 隐藏容器 +
+`canvas` `toBlob` 转 PNG 下载后 `setTimeout` 移除 `_host`，headless 下载后 host 已移除，验 `mtAllFoldPng` 源码全复位检测逻辑进 JS，非真 PNG 渲染像素），同 R244 `#mtallfoldstatd` 浮层全复位后 SVG 标题含「全复位态」验收直接调函数拼面板纪律（R244 验
+`#mtallfoldstatd` `innerHTML` 含「全复位态」，R245 验 `mtAllFoldPng` 源码含全复位检测）。
+

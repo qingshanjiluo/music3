@@ -4878,7 +4878,15 @@ function mtAllFoldCopy(){
 function mtAllFoldPng(){
   var _OK='rgb(47,125,85)', _BAD='rgb(163,38,26)', _DIM='rgb(119,112,106)', _LN='rgb(226,221,211)', _ACC='#c4381f';
   var _W=420, _y=8, _rows=[];
-  _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠域5域折叠态 · '+new Date().toLocaleString()+'</text>'); _y+=18;
+  /* R245 全复位检测: 读localStorage6键全'0'+window6标志全false, 全复位时PNG标题加「· 全复位态」(_mtallfoldpng全复位后PNG快照自含6键复位态总览, 与R244_mtallfoldstatd浮层全复位后SVG标题加_·全复位态同域) */
+  var _allReset6=true;
+  try{ var _k6=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain','_mtGuardAllFoldStat'];
+    for(var _k=0;_k<6;_k++){ if((localStorage.getItem(_k6[_k])||'0')!=='0'){ _allReset6=false; break; } }
+    var _w6=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain,window._mtGuardAllFoldStat];
+    for(var _w=0;_w<6;_w++){ if(_w6[_w]!==false){ _allReset6=false; break; } }
+  }catch(_){ _allReset6=false; }
+  var _rTag=_allReset6?' · 全复位态':'';
+  _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠域5域折叠态'+_rTag+' · '+new Date().toLocaleString()+'</text>'); _y+=18;
   _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[全折叠域5域]</text>'); _y+=14;
   var _doms=[['双图区','_mtMetFold'],['总览面板','_mtGuardPanelFold'],['全浮层','_mtGuardFoldAll'],['折叠全链路','_mtGuardFoldCtl'],['全折叠域总控','_mtGuardAllDomain'],['全折叠域5域折叠态总控浮层','_mtGuardAllFoldStat']];
   for(var _i=0;_i<6;_i++){ var _fv='0'; try{ _fv=(localStorage.getItem(_doms[_i][1])||'0'); }catch(_){} var _c=(_fv==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_doms[_i][0]+' '+_doms[_i][1]+'='+_fv+'</text>'); _y+=13; }
