@@ -5297,3 +5297,39 @@ _mtKeyLog` 置 `null` + `#mtkeyhint` `dispatchEvent` `mouseenter` 验「未用�
 维护 tab 激活 + 焦点非输入框）验 `window._mtKeyLog.esc` 更新 + hover 显「Esc 最近 <ts>」+ `Space` 未用过，不真跑 `mtRun` 免 tick 污染
 `runs`；三键操作各验各自 `window._mtKeyLog.<key>` 更新，`#mtkeyhintdetail` 逐键 headless 验 `innerHTML` 含「最近」/「未用过」）。
 
+---
+
+## 第208轮（前端 R194 · goal round171）：`#mtkeyhint` 三键提示浮层补三键最近触发顺序回放（`#mtkeyhintdetail` 逐键时间戳后补「触发顺序：Esc→Space→Enter」最近 N 次触发顺序串（读 `window._mtKeyLogOrder`（`document` 三键操作后 push 键名，保留最近 10 次顺序），hover 显最近触发顺序串，看三键使用顺序 / 习惯节奏，键盘流使用习惯可回放）
+
+**完善性（键盘流使用习惯可回放）**：R193 `#mtkeyhintdetail` 逐键显最近一次触发时间戳，但**没显三键触发顺序 / 序列**（`Space`→`Enter`→
+`Esc` 最近 N 次顺序串，`window._mtKeyLogOrder` 存最近 10 次三键触发顺序，hover `#mtkeyhintdetail` 逐键时间戳后补「触发顺序：Esc→Space→
+Enter→…」（最近 N 次），看三键使用顺序 / 习惯节奏，键盘流使用习惯可回放）。`document` `keydown` 三键操作后 `window._mtKeyLogOrder.
+push(keyName)`（保留最近 10 次顺序，`Esc`/`Enter`/`Space` 各操作后 push，超 10 次 `shift` 弃最早），`#mtkeyhint` hover 委托（R193
+区）逐键时间戳后补「触发顺序：<最近 10 次串>」（读 `window._mtKeyLogOrder` `join('→')` 拼，无显「无触发顺序（未用过）」）——hover 看
+三键使用顺序 / 习惯节奏，键盘流使用习惯可回放 / 可回忆。
+
+**E2E**：`document 按 Esc→Space→Enter（三键 keydown）→ window._mtKeyLogOrder 更新 ['Esc','Space','Enter'] → #mtkeyhint hover →
+#mtkeyhintdetail 逐键时间戳后显「触发顺序：Esc→Space→Enter」；window._mtKeyLogOrder=null → hover 显「无触发顺序（未用过）」`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r194_orderreplay.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 684→686`，断点 `_整理后分类\洛天依\洛天依\七月 - 0036PcMt3SIB17.mp3`。
+
+**坑**：① `window._mtKeyLogOrder` 挂 `window`（`document` `keydown` 监听 IIFE 三键操作后 `push(keyName)` + 跨作用域读，同 R193
+`window._mtKeyLog` 块级作用外读坑——`document` 监听 / `#mtkeyhint` hover 委托（不同 IIFE）读必须挂 `window` 才跨作用域可读）② 保留
+最近 10 次顺序（`Esc`/`Enter`/`Space` 各操作后 `if(!window._mtKeyLogOrder){ window._mtKeyLogOrder=[]; } window._mtKeyLogOrder.push(
+'Esc'|'Enter'|'Space'); if(window._mtKeyLogOrder.length>10){ window._mtKeyLogOrder.shift(); }`——惰性初始化 + `push` 尾追加 + 超 10
+次 `shift` 头弃最早，保留最近 10 次触发顺序，`join('→')` 拼「Esc→Space→Enter→…」）③ **`Space` 记录移 `!window._mtRunning` return
+前**（R194 坑：R193 `Space` 触发记录 `window._mtKeyLog.space` + `window._mtKeyLogOrder.push('Space')` 在 `document` `Space` 分支
+`if(e.key===' '){ ... if(!window._mtRunning){ _toast; return; } ... }` 的 `return` 后——非跑维护中 `Space` 按下 `!window._mtRunning`
+return，记录不执行（首验 `orderSet` 假，`Space` 没记进 `window._mtKeyLogOrder`）；改 `Space` 记录移到 `!window._mtRunning` return 前
+（按下即记 Space，非跑维护中也记——`window._mtKeyLog.space` + `window._mtKeyLogOrder.push('Space')` 不依赖跑中，暂停 / 续跑逻辑才
+需跑中，触发记录是「按过 Space」不管跑不跑，`!window._mtRunning` 才 `toast` + `return`）④ `#mtkeyhint` hover 委托（R193 区 `_html` 拼
+三键色点 + 时间戳处）补「触发顺序：<最近 10 次串>」（`const _ko=window._mtKeyLogOrder||[]`，`_order=_ko.length?('触发顺序：'+_ko.
+join('→')):'无触发顺序（未用过）'`，三键色点文案后补 `<br>` + `<span style="color:var(--dim)">` 触发顺序串（灰 `--dim` 弱显，逐键
+时间戳后一行，`d.innerHTML` 拼，headless 验 `innerHTML` 含「触发顺序：Esc→Space→Enter」）⑤ 与 R193 逐键时间戳**分工**（R193 逐键显
+最近一次触发时间戳「最近 10:21:34」单键最近，R194 触发顺序串「Esc→Space→Enter」多键序列，时间戳 = 各键最近 + 顺序串 = 多键使用节奏，
+两路看键盘流使用习惯可追溯 / 可回放）⑥ 验收**函数级**（`document` `dispatchEvent` `keydown`（`key:'Escape'`/`' '`/`'Enter'` 维护 tab
+激活 + 焦点非输入框）验 `window._mtKeyLogOrder` 更新 `['Esc','Space','Enter']` + `#mtkeyhint` `mouseenter` 验 `#mtkeyhintdetail`
+含「触发顺序：Esc→Space→Enter」，`window._mtKeyLogOrder=null` + `#mtkeyhint` `mouseenter` 验含「无触发顺序（未用过）」，不真跑
+`mtRun` 免 tick 污染 `runs`；`#mtkeyhintdetail` 触发顺序串 headless 验 `innerHTML` 含「触发顺序：Esc→Space→Enter」/「无触发顺序」）。
+

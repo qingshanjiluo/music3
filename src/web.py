@@ -3935,6 +3935,7 @@ function mtLiveBadgeJump(){
       if(typeof _toast==='function'){ _toast('已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）', 'ok'); }
       if(typeof mtStateBarDraw==='function'){ mtStateBarDraw(); } /* R184 取消同步指示条红 */
       if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.esc=new Date().toLocaleTimeString(); /* R193 Esc 触发记录 */
+      if(!window._mtKeyLogOrder){ window._mtKeyLogOrder=[]; } window._mtKeyLogOrder.push('Esc'); if(window._mtKeyLogOrder.length>10){ window._mtKeyLogOrder.shift(); } /* R194 触发顺序记录(保留最近10次) */
     }
     /* Enter 跳双图(R179): 维护 tab 激活 + 焦点非输入框 -> mtLiveBadgeJump(跳双图+mtFocusLatest聚焦最新轮), 跑中看徽标手放键盘按 Enter 即跳双图免移开手点, 与 R171 点击跳双图同「趋势条可管」但键盘路径 */
     if(e.key==='Enter'){
@@ -3942,10 +3943,13 @@ function mtLiveBadgeJump(){
       if(typeof mtLiveBadgeJump==='function'){ mtLiveBadgeJump(); }
       if(typeof _toast==='function'){ _toast('已跳双图区 · 聚焦最新轮（Enter）', 'ok'); }
       if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.enter=new Date().toLocaleTimeString(); /* R193 Enter 触发记录 */
+      if(!window._mtKeyLogOrder){ window._mtKeyLogOrder=[]; } window._mtKeyLogOrder.push('Enter'); if(window._mtKeyLogOrder.length>10){ window._mtKeyLogOrder.shift(); } /* R194 触发顺序记录 */
     }
     /* Space 暂停/续跑(R180): 维护 tab 激活 + 焦点非输入框 + 跑维护中(window._mtRunning) -> window._mtPaused 切换(暂停/续跑)+ #mtrun 黄态 + toast, 跑中全库挂起不等跑完/不取消 */
     if(e.key===' '){
       e.preventDefault(); /* 挡全局 Space(滚动等), 维护区 Space 只做暂停/续跑 */
+      if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.space=new Date().toLocaleTimeString(); /* R193 Space 触发记录(R194: 移到 !running return 前, 非跑维护中也记 Space 按下) */
+      if(!window._mtKeyLogOrder){ window._mtKeyLogOrder=[]; } window._mtKeyLogOrder.push('Space'); if(window._mtKeyLogOrder.length>10){ window._mtKeyLogOrder.shift(); } /* R194 触发顺序记录 */
       if(!window._mtRunning){ if(typeof _toast==='function'){ _toast('Space 暂停需跑维护中（先点「跑一轮」）', 'bad'); } return; }
       if(window._mtPaused===false){
         window._mtPaused=true; /* 暂停: 循环顶挂起 */
@@ -3957,7 +3961,6 @@ function mtLiveBadgeJump(){
         if(typeof _toast==='function'){ _toast('已续跑 · 维护继续', 'ok'); }
       }
       if(typeof mtStateBarDraw==='function'){ mtStateBarDraw(); } /* R184 暂停/续跑同步指示条(暂停黄/续跑回跑中绿) */
-      if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.space=new Date().toLocaleTimeString(); /* R193 Space 暂停/续跑触发记录 */
     }
   });
 })();
@@ -3992,9 +3995,13 @@ function _mtUnpausedBtn(){
     const _spT=_kl.space?('最近 '+_kl.space):'未用过';
     const _esT=_kl.esc?('最近 '+_kl.esc):'未用过';
     const _enT=_kl.enter?('最近 '+_kl.enter):'未用过';
+    /* 触发顺序回放(R194): 读 window._mtKeyLogOrder(最近10次三键触发顺序), 补「触发顺序：Esc→Space→Enter→…」 */
+    const _ko=window._mtKeyLogOrder||[];
+    const _order=_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）';
     const _html=_keyDot(_spCan, _ps&&_spCan)+'Space 暂停/续跑 · '+_spT+'<br>'
       +_keyDot(_esCan, false)+'Esc 取消 · '+_esT+'<br>'
-      +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮 · '+_enT;
+      +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮 · '+_enT+'<br>'
+      +'<span style="color:var(--dim)">'+_order+'</span>';
     d.innerHTML=_html; d.style.display='block';
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtkeyhint 下方浮层, 靠右/靠底不溢出 */
     const r=k.getBoundingClientRect();
