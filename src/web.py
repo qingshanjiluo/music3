@@ -4089,6 +4089,16 @@ function mtGuardCopy(){
   _all+='Esc 取消 · '+(_kl.esc?('最近 '+_kl.esc):'未用过')+'\n';
   _all+='Enter 跳双图 + 聚焦最新轮 · '+(_kl.enter?('最近 '+_kl.enter):'未用过')+'\n';
   _all+=_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）';
+  /* R222 段5: 全折叠域当前态(读5键localStorage+5标志window+5折叠钮文案+7浮层display, 维护守护全记录自含全折叠域当前态, 与R219/R220/R221全折叠域字段同域) */
+  const _fl5=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _wl5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
+  const _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  const _floors5=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
+  _all+='\n[全折叠域当前态]\n';
+  _all+='localStorage 5键: _mtMetFold='+_fl5[0]+' · _mtGuardPanelFold='+_fl5[1]+' · _mtGuardFoldAll='+_fl5[2]+' · _mtGuardFoldCtl='+_fl5[3]+' · _mtGuardAllDomain='+_fl5[4]+'\n';
+  _all+='window 5标志: _mtMetFold='+_wl5[0]+' · _mtGuardPanelFold='+_wl5[1]+' · _mtGuardFoldAll='+_wl5[2]+' · _mtGuardFoldCtl='+_wl5[3]+' · _mtGuardAllDomain='+_wl5[4]+'\n';
+  for(let _i=0;_i<5;_i++){ const _bb=document.getElementById(_btns5[_i]); _all+=_btns5[_i]+'='+(_bb?_bb.textContent:'无')+'\n'; }
+  for(let _i=0;_i<7;_i++){ const _ff=document.getElementById(_floors5[_i]); _all+=_floors5[_i]+'='+(_ff?_ff.style.display:'无')+'\n'; }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_all).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护守护全记录（四段）', 'ok'); } }).catch(function(){ _copyFallback(_all); });
   } else { _copyFallback(_all); }
@@ -4100,7 +4110,7 @@ function mtGuardSnap(){
   let _h=[]; try{ _h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
   let _b=[]; try{ _b=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
   const _n=Math.max(_h.length, _b.length);
-  const _W=360, _H=150, _pads=8;
+  const _W=360, _H=210, _pads=8;
   let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
   /* 段1: 双指标逐轮柱状(顶部 40px, 近N次耗时柱) */
   _svg+='<text x="'+_pads+'" y="12" font-size="9" fill="var(--dim)">双指标逐轮 · 近'+_n+'次</text>';
@@ -4135,6 +4145,16 @@ function mtGuardSnap(){
       _svg+='<rect x="'+_x+'" y="100" width="'+_cw+'" height="14" rx="2" fill="var(--bg2)" stroke="var(--line)"/><text x="'+(_x+2)+'" y="110" font-size="8" fill="'+(_kc[_ko[_i]]||'var(--ink)')+'">'+_ko[_i]+'</text>';
     }
   } else { _svg+='<text x="'+_pads+'" y="110" font-size="9" fill="var(--dim)">未用过</text>'; }
+  /* R222 段5: 全折叠域当前态(5键localStorage色带, 维护守护全记录快照自含全折叠域当前态, 与R219/R220/R221全折叠域字段同域) */
+  _svg+='<text x="'+_pads+'" y="130" font-size="9" fill="var(--dim)">全折叠域 5键</text>';
+  const _fl5s=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _knames=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain'];
+  const _scw=Math.min(52, Math.floor((_W-_pads*2)/5)-2);
+  for(let _i=0;_i<5;_i++){
+    const _sx=_pads+_i*(Math.floor((_W-_pads*2)/5));
+    const _scol=(_fl5s[_i]==='0')?'var(--ok)':'var(--bad)';
+    _svg+='<rect x="'+_sx+'" y="136" width="'+_scw+'" height="14" rx="2" fill="var(--bg2)" stroke="'+_scol+'"/><text x="'+(_sx+2)+'" y="146" font-size="7" fill="'+_scol+'">'+_knames[_i].replace('_mt','')+'='+_fl5s[_i]+'</text>';
+  }
   /* 时间戳 */
   _svg+='<text x="'+_pads+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
   _svg+='</svg>';
