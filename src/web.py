@@ -1058,6 +1058,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtkeyhintcopy" title="复制键盘流触发记录(三键最近触发时间戳+触发顺序串, 贴工单/记录使用习惯, 与R169/R189/R191/R192复制出口同语言)" style="display:none;padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制触发记录</button>
     <button type="button" id="mtguardcopy" title="一键全复制维护守护区(双指标逐轮明细+状态详情+全库完成详情+键盘流触发记录四段, 维护守护区数据一键全留存/全贴工单, 与R189/R191/R192/R195单点复制同语言但全量)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全复制</button>
     <button type="button" id="mtguardsnap" title="维护守护区四段数据快照可视化(双指标逐轮柱状+状态色带+完成徽标+键盘流顺序条内联SVG, 一眼看维护守护区四段当前全貌, 与R158双图区快照语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 快照</button>
+    <button type="button" id="mtguardsnappng" title="维护守护区四段快照PNG导出(#mtguardsnapd内联SVG转canvas下载music3_维护守护全记录_快照_ts.png, 四段全貌快照可存档/可分享, 与R158双图区PNG快照同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 快照PNG</button>
     <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
@@ -4128,6 +4129,43 @@ function mtGuardSnap(){
   window._mtGuardSnapT=setTimeout(function(){ d.style.display='none'; }, 6000);
 }
 (function(){ const c=$('#mtguardsnap'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardSnap(); }); } })();
+/* 维护守护区四段快照PNG导出(R198): #mtguardsnappng 点 -> 读 #mtguardsnapd 内联SVG(若无则先 mtGuardSnap 生成), canvas 转 PNG 下载「music3_维护守护全记录_快照_<ts>.png」, 四段全貌快照可存档/可分享, 与R158双图区PNG快照(_mtmetpng)语言同 */
+function mtGuardSnapPng(){
+  const d=$('#mtguardsnapd'); if(!d) return;
+  /* #mtguardsnapd 无 SVG(未点过 #mtguardsnap)则先生成 */
+  if(!d.innerHTML || d.innerHTML.indexOf('<svg')<0){ if(typeof mtGuardSnap==='function'){ mtGuardSnap(); } }
+  const svg=d.querySelector('svg');
+  if(!svg){ if(typeof _toast==='function'){ _toast('无维护守护区四段快照可导出（维护守护区数据空）', 'bad'); } return; }
+  const _W=svg.getAttribute('width')||360, _H=svg.getAttribute('height')||150;
+  const _svgStr=new XMLSerializer().serializeToString(svg);
+  const _b64=btoa(unescape(encodeURIComponent(_svgStr)));
+  const _img=new Image();
+  _img.onload=function(){
+    const _cv=document.createElement('canvas'); _cv.width=Number(_W); _cv.height=Number(_H);
+    const _cx=_cv.getContext('2d');
+    _cx.fillStyle='#f7f5f0'; _cx.fillRect(0,0,_cv.width,_cv.height); /* 浅色底(R158 同, 透明底 PNG 贴工单看不清) */
+    _cx.drawImage(_img,0,0);
+    try{
+      _cv.toBlob(function(blob){
+        if(!blob){ _fallbackCopy(); return; }
+        const _url=URL.createObjectURL(blob);
+        const _a=document.createElement('a');
+        _a.href=_url; _a.download='music3_维护守护全记录_快照_'+new Date().toISOString().replace(/[:.]/g,'-')+'.png';
+        document.body.appendChild(_a); _a.click(); document.body.removeChild(_a);
+        setTimeout(function(){ URL.revokeObjectURL(_url); }, 4000);
+        if(typeof _toast==='function'){ _toast('已下载维护守护区四段快照 PNG', 'ok'); }
+      },'image/png');
+    }catch(_){ _fallbackCopy(); }
+    function _fallbackCopy(){ /* toBlob/canvas 不可用降级: 复制 SVG 源码到剪贴板 */
+      const _txt='#music3 维护守护全记录 快照 SVG\n'+_svgStr;
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护守护区四段快照 SVG（PNG 导出不可用降级）', 'ok'); } }).catch(function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败且复制降级失败', 'bad'); } }); }
+      else { if(typeof _toast==='function'){ _toast('PNG 导出失败（canvas 不可用）', 'bad'); } }
+    }
+  };
+  _img.onerror=function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败（SVG 渲染不可用）', 'bad'); } };
+  _img.src='data:image/svg+xml;base64,'+_b64;
+}
+(function(){ const c=$('#mtguardsnappng'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardSnapPng(); }); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
