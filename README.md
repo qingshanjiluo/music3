@@ -6553,3 +6553,34 @@ PNG 快照 / R230 全库完成详情补全折叠域字段**语言同**（各跑�
 补 `data-dtl` 全折叠域段）+ 点 `#mtlivedetailcopy` 验 toast「已复制当前轮双指标详情」（复制含全折叠域 5 键当前态段）+ 验 `data-dtl` 含全折叠域 5 键段（`hasFold=true`），不真跑 `mtRun` 免 tick 污染
 `runs`；跑中详情复制拼逻辑验 `data-dtl` 含全折叠域 5 键段 + `mtLiveDetailCopy` 复制 `data-dtl` 自动含（`b.getAttribute('data-dtl')` 复制），非真剪贴板 / 渲染像素）。
 
+---
+
+## 第246轮（前端 R232 · goal round209）：维护守护区全折叠域 5 域折叠态一键复制出口（`#mtallfoldcopy` 全折叠域 5 域折叠态一键复制（R232），拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态到剪贴板，全折叠域 5 域折叠态一键留存 / 贴工单）
+
+**完善性（全折叠域 5 域折叠态一键留存 / 贴工单免逐点各面板 / 出口）**：R222-R231 各面板 / 出口补全折叠域 5 键段分散，但**无全折叠域 5 域折叠态一键复制出口**（全折叠域 5 域折叠态要一键留存 / 贴工单，
+`#mtallfoldcopy` 全折叠域 5 域折叠态一键复制出口（R232）拼全折叠域 5 域（双图区 / 总览面板 / 全浮层 / 折叠全链路 / 全折叠域总控面板）+ 5 键 `localStorage` + 5 标志 `window` + 5 折叠钮文案 +
+7 浮层 `display` 当前态到剪贴板（`#music3 全折叠域5域折叠态一键复制 · <ts>` + 全折叠域 5 域各折叠 / 展开 + `localStorage` 值 + 5 键 `localStorage` + 5 标志 `window` + 5 折叠钮文案 + 7 浮层 `display`），
+全折叠域 5 域折叠态一键留存 / 贴工单，免逐点各面板 / 出口，与 R222-R231 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 5 标志全 true → 点 #mtallfoldcopy → toast「已复制全折叠域 5 域折叠态」（复制含全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态）`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r232_allfold5copy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 762→764`，断点 `_周杰伦\伊斯坦堡.mp3`。
+
+**坑**：① `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制小钮（R232，维护守护区小钮区 `#mtguardfoldresetcopy` 后）+ `mtAllFoldCopy` 函数（拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态到剪贴板，
+`#music3 全折叠域5域折叠态一键复制 · <ts>` + 全折叠域 5 域（双图区 / 总览面板 / 全浮层 / 折叠全链路 / 全折叠域总控面板）各折叠 / 展开 + `localStorage` 值 + 5 键 `localStorage`（`_mtMetFold`/
+`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`，`||'0'` 降级）+ 5 标志 `window`（各布尔值）+ 5 折叠钮文案（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/
+`#mtguardfoldctl`/`#mtguardalldomain` 各 `textContent`）+ 7 浮层 `display`（`#mtguardpaneld`/`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`/
+`#mtguardalldomains` 各 `style.display`），`navigator.clipboard.writeText` 降级 `_copyFallback` + toast「已复制全折叠域5域折叠态」，全折叠域 5 域折叠态一键留存 / 贴工单，与 R222-R231 补全折叠域字段
+同域，`#mtallfoldcopy` 复制出口拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态）② 全折叠域 5 域（`_doms` 数组 5 元素：`['双图区','#mtmetfold','_mtMetFold']` / `['总览面板','#mtguardpanelfold',
+'_mtGuardPanelFold']` / `['全浮层','#mtguardfoldall','_mtGuardFoldAll']` / `['折叠全链路','#mtguardfoldctl','_mtGuardFoldCtl']` / `['全折叠域总控','#mtguardalldomain','_mtGuardAllDomain']`，各域
+`getElementById` 折叠钮 + `localStorage.getItem` 折叠态（`==='1'` 折叠 / `'0'` 展开）+ `textContent` 文案），`_lines+=` 拼全折叠域 5 域各折叠 / 展开 + `localStorage` 值（全折叠域 5 域折叠态一键
+复制自含全折叠域 5 域各态）③ 与 R224 `#mtguardfoldstat` 全折叠域 5 域折叠态总览 / R225 `#mtguardfoldctl` 折叠全链路总控 / R222-R231 各面板 / 出口补全折叠域 5 键段**分工**（R224/R225/R222-R231
+全折叠域 5 域折叠态总览 / 各面板 / 出口补全折叠域 5 键段分散，R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制出口拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态到剪贴板——全折叠域 5 域
+折叠态一键留存 / 贴工单，免逐点各面板 / 出口，`#mtallfoldcopy` 复制出口自含全折叠域 5 域全当前态）④ 与 R196/R201/R208/R214/R217 复制出口**语言同**（各复制出口读各数据源拼文本到剪贴板，
+`navigator.clipboard.writeText` 降级 `_copyFallback`，全折叠域 5 域折叠态一键复制读全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼文本，各出口自含全折叠域出口标位）⑤ `#mtallfoldcopy` 维护
+tab 懒加载坑 → `document` click 委托（`document.addEventListener('click', function(e){ if(e.target.id==='mtallfoldcopy'){ e.stopPropagation(); mtAllFoldCopy(); } });`），免维护 tab 未激活小钮
+DOM 未渲染 `c=null` 不绑（同 R212/R214/R215/R216/R217 `document` click 委托纪律）⑥ 验收**函数级**（设 5 键全 `'1'` + 5 标志全 `true` + 点 `#mtallfoldcopy` 验 toast「已复制全折叠域5域折叠态」
+（复制含全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldcopy` 复制拼逻辑验全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层字段进文本（`_lines+=`
+全折叠域 5 域各折叠 / 展开 + `localStorage` 值 + 5 键 + 5 标志 + 5 折叠钮 + 7 浮层），非真剪贴板 / 渲染像素）。
+

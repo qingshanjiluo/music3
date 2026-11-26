@@ -1072,6 +1072,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardfoldctscopy" title="折叠全链路文本复制(五块分块+各折叠出口标位文本到剪贴板, 折叠全链路可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全链路复制</button>
     <button type="button" id="mtguardfoldreset" title="重置维护守护区全折叠记忆(localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll/_mtGuardFoldCtl全清0+全折叠出口#mtmetfold/_mtguardpanelfold/_mtguardfoldall/_mtguardfoldctl文案/display恢复展开态, 维护守护区全折叠记忆一键复位)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">↺ 重置折叠</button>
     <button type="button" id="mtguardfoldresetcopy" title="全折叠记忆重置详情复制(4键localStorage复位值+4window标志复位值+4折叠钮文案复位+6浮层display复位+重置时间戳到剪贴板, 全折叠记忆重置详情可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 重置复制</button>
+    <button type="button" id="mtallfoldcopy" title="全折叠域5域折叠态一键复制(R232, 全折叠域5域/5键/5标志/5折叠钮/7浮层当前态文本到剪贴板, 全折叠域5域折叠态一键留存/贴工单, 免逐点各面板/出口, 与R222-R231补全折叠域字段同域)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全折叠域复制</button>
     <button type="button" id="mtguardfoldresetpng" title="全折叠记忆重置详情PNG导出(4键+4标志+4折叠钮+6浮层复位状态SVG转canvas下载music3_全折叠记忆重置详情_ts.png, 全折叠记忆重置详情PNG存档/贴工单, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 重置PNG</button>
     <button type="button" id="mtguardalldomain" title="维护守护区全折叠域总控面板(四折叠记忆localStorage键+四折叠出口+全折叠重置/详情复制/详情PNG+全浮层复位出口一张全折叠域总控图, 全折叠域能力/出口全景图免分散找, 与R209折叠全链路总控同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 全折叠域</button>
     <button type="button" id="mtguardalldomainpng" title="全折叠域总控面板PNG导出(#mtguardalldomains内联SVG转canvas下载music3_全折叠域总控_ts.png, 全折叠域总控面板PNG存档/可分享, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 全折叠PNG</button>
@@ -4832,6 +4833,38 @@ function mtGuardAllDomainCopy(){
 }
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomainpng'){ e.stopPropagation(); mtGuardAllDomainPng(); } }); })();
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomaincopy'){ e.stopPropagation(); mtGuardAllDomainCopy(); } }); })();
+/* 全折叠域5域折叠态一键复制(R232): #mtallfoldcopy 点 -> 拼全折叠域5域/5键/5标志/5折叠钮/7浮层当前态到剪贴板(#music3 全折叠域5域折叠态一键复制·<ts>+全折叠域5域+5键localStorage+5标志window+5折叠钮文案+7浮层display), 全折叠域5域折叠态一键留存/贴工单, 免逐点各面板/出口, 与R222-R231补全折叠域字段同域 */
+function mtAllFoldCopy(){
+  let _lines='#music3 全折叠域5域折叠态一键复制 · '+new Date().toLocaleString()+'\n';
+  /* 全折叠域5域(双图区/总览面板/全浮层/折叠全链路/全折叠域总控面板) */
+  _lines+='[全折叠域5域]\n';
+  const _doms=[['双图区','#mtmetfold','_mtMetFold'],['总览面板','#mtguardpanelfold','_mtGuardPanelFold'],['全浮层','#mtguardfoldall','_mtGuardFoldAll'],['折叠全链路','#mtguardfoldctl','_mtGuardFoldCtl'],['全折叠域总控','#mtguardalldomain','_mtGuardAllDomain']];
+  for(let _i=0;_i<5;_i++){
+    const _btn=document.getElementById(_doms[_i][1].replace('#',''));
+    let _fold=false; try{ _fold=(localStorage.getItem(_doms[_i][2])==='1'); }catch(_){}
+    _lines+=_doms[_i][0]+' ('+_doms[_i][1]+') · '+(_fold?'折叠':'展开')+' · localStorage '+_doms[_i][2]+'='+(_fold?'1':'0')+'\n';
+  }
+  /* 5键localStorage */
+  _lines+='\n[5键 localStorage 当前态]\n';
+  const _ls5=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  _lines+='_mtMetFold='+_ls5[0]+' · _mtGuardPanelFold='+_ls5[1]+' · _mtGuardFoldAll='+_ls5[2]+' · _mtGuardFoldCtl='+_ls5[3]+' · _mtGuardAllDomain='+_ls5[4]+'\n';
+  /* 5标志window */
+  _lines+='\n[5标志 window 当前态]\n';
+  const _w5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
+  _lines+='_mtMetFold='+_w5[0]+' · _mtGuardPanelFold='+_w5[1]+' · _mtGuardFoldAll='+_w5[2]+' · _mtGuardFoldCtl='+_w5[3]+' · _mtGuardAllDomain='+_w5[4]+'\n';
+  /* 5折叠钮文案 */
+  _lines+='\n[5折叠钮文案]\n';
+  const _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  for(let _i=0;_i<5;_i++){ const _b=document.getElementById(_btns5[_i]); _lines+=_btns5[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
+  /* 7浮层display */
+  _lines+='\n[7浮层 display 当前态]\n';
+  const _floors7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
+  for(let _i=0;_i<7;_i++){ const _f=document.getElementById(_floors7[_i]); _lines+=_floors7[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠域5域折叠态', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
+  } else { _copyFallback(_lines); }
+}
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtallfoldcopy'){ e.stopPropagation(); mtAllFoldCopy(); } }); })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){
