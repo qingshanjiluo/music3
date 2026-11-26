@@ -2992,6 +2992,8 @@ async function mtRun(){
       /* 跑中双指标实时徽标(R166): 每轮 tick 后刷「跑中·第i/N轮·本轮回+X·本轮耗Ys」, 扫一眼当前跑双指标实况 */
       _mtTotalDur=Math.round((_mtTotalDur+(Date.now()-_t1))/100)/10;
       try{ if(typeof mtLiveBadge==='function'){ mtLiveBadge(i, N, (r.lyric_ok||0)+(r.cover_ok||0), Math.round((Date.now()-_t1)/100)/10, r.lyric_ok||0, r.cover_ok||0, _mtTotalDur, N); } }catch(e){}
+      /* 跑中每轮 tick 自动跟最新轮(R173): 双图区在视口内时 #mtdelthover/#mtpairlbl 自动跟到本轮, 跑中滚动看双图趋势最新柱逐轮推进免手 hover */
+      try{ if(typeof mtFocusLatest==='function' && $('#mtdeltabar') && $('#mtdeltabar').style.display!=='none'){ const _db=$('#mtdeltabar').getBoundingClientRect(); if(_db.bottom>0 && _db.top<window.innerHeight){ mtFocusLatest(); } } }catch(e){}
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
@@ -3809,31 +3811,27 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
   }
 }
 function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } const d=$('#mtlivedetail'); if(d){ d.style.display='none'; d.textContent=''; } }
+/* 聚焦最新轮双指标(R172/R173 共用): #mtdeltabar 末柱点亮 #mtdelthover + #mtpairlbl 显配对(第N次·耗时Xs·补入+Y), 读 _mtRunHist 末位耗时+_mtRunDelta 末位补入; 跳双图(R172)/跑中每轮 tick 在视口内(R173) 都调 */
+function mtFocusLatest(){
+  try{
+    let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+    let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+    if(!h.length && !d.length){ return; }
+    const n=Math.max(h.length, d.length);
+    const lastIdx=n-1;
+    const dEl=$('#mtdelthover'), pair=$('#mtpairlbl');
+    const hv=h[lastIdx], dv=d.length?d[d.length-1]:null;
+    if(pair){ pair.textContent='第 '+(lastIdx+1)+' 次 · 耗时 '+(hv!==undefined?hv:'-')+'s · 补入 '+(dv!==null?'+'+dv:'-'); pair.style.display='inline-block'; }
+    if(dEl && dv!==null && d.length){ const mx=Math.max.apply(null,d.concat([1])); const top=(20-Math.round(dv/mx*18))-1; dEl.style.display='block'; dEl.style.top=top+'px'; dEl.style.left='100%'; }
+  }catch(e){}
+}
 /* 徽标点击跳双图区(R171): #mtlivebadge onclick -> 展开 #mtmetfoldwrap(若 R163 折叠)+ scrollIntoView 滚到双图区(#mthistspark), 跑中扫一眼当前轮后直接看双图趋势(耗时折线/补入柱状), 徽标->双图跳转与 R163 折叠开关同「趋势条可管」语言 */
 function mtLiveBadgeJump(){
   const wrap=$('#mtmetfoldwrap');
   if(wrap && wrap.style.display==='none'){ wrap.style.display='block'; try{ localStorage.setItem('_mtMetFold','0'); }catch(e){} const bf=$('#mtmetfold'); if(bf){ bf.textContent='▾ 折趋势'; } }
   const tgt=$('#mthistspark'); if(tgt){ tgt.scrollIntoView({behavior:'smooth', block:'center'}); }
-  /* 跳双图后自动聚焦最新轮(R172): 滚入双图区后 #mtdeltabar 末柱点亮 #mtdelthover + #mtpairlbl 显配对(第N次·耗时Xs·补入+Y), 免手 hover 看最新, 与 R155 双图 hover 联动同「双指标配对」但跳双图后自动聚焦最新轮 */
-  setTimeout(function(){
-    try{
-      let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
-      let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
-      if(!h.length && !d.length){ return; }
-      const n=Math.max(h.length, d.length);
-      const lastIdx=n-1;
-      const dEl=$('#mtdelthover'), dLbl=$('#mtdelthovlbl'), pair=$('#mtpairlbl');
-      const dSvg=$('#mtdeltaSvg');
-      /* 末柱位置: #mtdeltabar data-hd 解补入, x 按 frac=1(末柱) */
-      if(dSvg && pair){
-        const dh=pair.getAttribute('data-hd'); /* R156 挂 data-hd */
-      }
-      /* 高亮末柱: #mtdelthover(绿点)放到末柱顶 + #mtpairlbl 配对文案 */
-      const hv=h[lastIdx], dv=d.length?(d[d.length-1]):null;
-      if(pair){ pair.textContent='第 '+(lastIdx+1)+' 次 · 耗时 '+(hv!==undefined?hv:'-')+'s · 补入 '+(dv!==null?'+'+dv:'-'); pair.style.display='inline-block'; }
-      if(dEl){ dEl.style.display='block'; /* top 末柱顶: viewBox 100x22 末柱 frac=1, 补入值 dv 高 round(dv/mx*18)+2 底 */ const mx=Math.max.apply(null,d.concat([1])); const top=(20-Math.round((dv&&dv>0?dv:0)/mx*18))-1; dEl.style.top=top+'px'; dEl.style.left='100%'; }
-    }catch(e){}
-  }, 400); /* scrollIntoView smooth 滚完再聚焦(400ms 滚势停), 滚到双图区时末柱已高亮 */
+  /* 跳双图后自动聚焦最新轮(R172): 滚势停后调 mtFocusLatest(末柱高亮+配对最新轮), 免手 hover */
+  setTimeout(function(){ if(typeof mtFocusLatest==='function'){ mtFocusLatest(); } }, 400);
 }
 (function(){ const j=$('#mtlivebadge'); if(j){ j.addEventListener('click', mtLiveBadgeJump); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */

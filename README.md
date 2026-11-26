@@ -4628,3 +4628,37 @@ CSS 320/320、node 0、console 0、截图 r172_focus.png。
 `_mtRunHist`/`_mtRunDelta` 5 条 + 点 `#mtlivebadge` 验 400ms 后 `#mtpairlbl` 末位配对 + `#mtdelthover` 点亮，不真跑 `mtRun`
 免 tick 污染 `runs`；`setTimeout` 400ms 验证 `await 600ms` 后读，不真滚 `scrollIntoView` 只验双图区展开 + 聚焦落定）。
 
+---
+
+## 第187轮（前端 R173 · goal round150）：`#mtlivebadge` 跑中每轮 tick 双图区在视口内自动跟最新轮（`#mtdelthover`/`#mtpairlbl` 自动跟到本轮，跑中滚动看双图趋势时最新柱逐轮推进）
+
+**连贯性（跑中滚动双图趋势时最新柱逐轮推进免手 hover）**：R172 跳双图**时**（点 `#mtlivebadge`）聚焦末柱，但**跑中每轮
+tick 刷新**时若双图区在视口内，`#mtdelthover`/`#mtpairlbl` 没跟到本轮（跑中滚动看双图趋势时最新柱逐轮推进没自动跳，
+要手 hover 看当前轮）。`mtRun` 每轮 tick 后（`mtLiveBadge` 调用区后）：双图区在视口内（`#mtdeltabar` `style.display` 非
+none + `getBoundingClientRect` 与视口交 `bottom>0 && top<innerHeight`）时自动调 `mtFocusLatest()`（`#mtdelthover` 改本轮
+柱顶 + `#mtpairlbl` 改本轮配对）——跑中滚动看双图趋势时最新柱逐轮推进到当前轮，免手 hover；双图区不在视口内（折叠 / 滚出）
+不跟（不刷 `#mtpairlbl`，省无效刷）。
+
+**E2E**：`双图区在视口内（#mtdeltabar 显 + getBoundingClientRect 与视口交）+ mock 每轮 tick（_mtRunHist/_mtRunDelta 各
+6 条末 _mtRunDelta=9/_mtRunHist=0.4）→ mtFocusLatest 跟到本轮 #mtpairlbl「第 6 次 · 耗时 0.4s · 补入 +9」（末柱逐轮推进到
+当前轮，免手 hover）`（绿，`inViewport` + 配对 6/0.4/+9）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r173_vport.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 642→644`，断点 `_整理后分类\华语经典\周杰伦\一口气全念对.mp3`。
+
+**坑**：① `mtFocusLatest()`（R172 聚焦逻辑抽成函数，`#mtdeltabar` 末柱 `#mtdelthover` 点亮 + `#mtpairlbl` 配对，读
+`_mtRunHist` 末位耗时 + `_mtRunDelta` 末位补入量）：R172 `mtLiveBadgeJump` 的 `setTimeout` 聚焦 + R173 `mtRun` 每轮 tick 都调，
+**两处复用同一聚焦函数**（跳双图 `setTimeout` 400ms 滚势停调 / 每轮 tick 视口内直接调，不重复实现）② `mtRun` 每轮 tick 后
+（`mtLiveBadge` 调用区后）：`$('#mtdeltabar').style.display!=='none'`（双图区未折叠）+ `getBoundingClientRect().bottom>0 &&
+top<window.innerHeight`（双图区与视口交，在视口内）时 `mtFocusLatest()`——**双图区在视口内才跟**（折叠 / 滚出视口不刷
+`#mtpairlbl`，省无效刷；`#mtdeltabar` `display:none`（无补入量 / R163 折叠）时 `getBoundingClientRect` 返 0，`display!=='none'`
+先判挡住）③ 与 R172 跳双图聚焦**分工**（R172 是「点 `#mtlivebadge` 跳双图后聚焦末柱」一次性，R173 是「跑中每轮 tick 视口内
+自动跟最新轮」持续——R173 跑中滚动双图区时逐轮推进，R172 跳双图落定那一刻聚焦，两触发源共存：跑中滚动 R173 逐轮 / 点跳
+R172 落定，`mtFocusLatest` 同函数，后触者覆盖 `#mtpairlbl`/`#mtdelthover`）④ `mtFocusLatest` 末柱定位（`lastIdx=n-1`，
+`#mtdelthover` `top` 末柱顶 / `left=100%` 最右），**`#mtpairlbl` 配对文案按末位**（`_mtRunHist` 末耗时 / `_mtRunDelta` 末
+补入，`n=max(两数组)` 时末位对齐——逐轮推进时 `n` 增末位就是当前轮），两数组不同长时 `hv=h[lastIdx]` 缺 `undefined` 显 `-` /
+`dv=d[d.length-1]` 缺 `null` 显 `-`（降级不阻）⑤ `try/catch`（`getBoundingClientRect` / `mtFocusLatest` 未定义不阻循环，
+视口判定 / 聚焦失败 tick 照跑）⑥ 验收**函数级**（双图区 `#mtdeltabar` 显 + `getBoundingClientRect` 与视口交 + mock 每轮 tick
+推 `_mtRunHist`/`_mtRunDelta` 验 `mtFocusLatest` 跟到末柱 6，不真跑 `mtRun` 免 tick 污染 `runs`；`inViewport` 验双图区在视口内
+判定 + 配对末位，不在视口内时 `style.display==='none'` 挡不跟）。
+
