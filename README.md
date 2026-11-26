@@ -3915,3 +3915,25 @@ delta=5+2=7 + 实测 9s vs 估剩 9s）+ hasReview`（绿）；端点 **30/0**�
 `e.target=document`（`document.closest` 不是 `#mthistbox`，委托命中不了）——改 `box.dispatchEvent`（`e.target=box`，
 `closest('.mthistbox')` 命中委托）；真浏览器 hover `e.target` 是 box 内 svg/span，冒泡到 `document` 委托正常命中。
 
+---
+
+## 第160轮（前端 R146 · goal round123）：跑维护历史清空按钮（`#mthistclear`，清 `_mtRunHist` 重画折线，重计基线）
+
+**完善性（记状态可管）**：R144 跑维护历史 `#mthistspark` 记 `localStorage._mtRunHist`（近 10 次跑耗时），**看趋势久了**
+（10 次满后折线固化旧基线）想**重计基线**没入口。`#mthistspark` 旁加**`#mthistclear`** 小钮（`✕ 清历史`，点清
+`localStorage._mtRunHist` + `mtRunHistDraw` 重画（空 → `#mthistspark` 隐）+ toast「跑维护耗时历史已清空 · 重新计基线」）
+——历史可清可留（与 R119 自动刷持久化、R135 末点值标开关「记状态可管」同直觉），清完下次 `#mtrun` 跑维护重新积累。
+
+**E2E**：`清空前 #mthistspark 显 flex + _mtRunHist 有(store=True) → 点 #mthistclear 后 _mtRunHist 删(store=None) +
+#mthistspark 隐(none)`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r146_clear.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 588→590`，断点 `_归档_封存\SD卡版\洛天依\洛天依\云与海.mp3`。
+
+**坑**：① `#mthistclear` 挂 `#mthistspark` 内（`#mthistsvg` 后，`✕ 清历史` 小钮，`--bg2` 底 + `--line` 描边 + `--dim`
+色，10px，随 `#mthistspark` 显隐——无历史时 `#mthistspark` 隐，钮也隐）② `mtRunHistClear`（`#mthistclear` onclick，载入
+IIFE 绑）：`localStorage.removeItem('_mtRunHist')` + `mtRunHistDraw()`（空 → `#mthistspark` `display:none`）+ `_toast`
+「跑维护耗时历史已清空 · 重新计基线」③ 只清 `_mtRunHist`（跑维护历史），**不碰** `maintain_state.json`（tick 游标/补入
+totals 是后端真数据，历史折线只是前端展示层 `localStorage`，清折线不动真维护进度）④ 清空后 `#mthistspark` 隐（空历史
+`display:none`），下次 `#mtrun` 跑维护 `_mtRunHist` 重新积累、`mtRunHistDraw` 重画恢复 ⑤ 钮随 `#mthistspark` 容器
+`align-items:center` 排（标签 + 折线 + 清钮一行），不占额外高度。
+
