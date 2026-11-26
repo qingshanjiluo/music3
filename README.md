@@ -6526,3 +6526,30 @@ _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardA
 折叠域 5 键当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；全库完成详情复制拼逻辑验 5 键段进文本（`let _txt` + `_txt+=` 全折叠域段），跑中详情 hover 浮层验 `data-dtl` 属性含全折叠域 5 键段（`_dtl+=`
 全折叠域段 + `el.setAttribute('data-dtl',_dtl)`），非真剪贴板 / 渲染像素。
 
+---
+
+## 第245轮（前端 R231 · goal round208）：维护守护区跑中详情复制出口自含全折叠域字段（`#mtlivedetailcopy` 跑中详情复制（R169 区，`mtLiveDetailCopy` 复制 `#mtlivebadge` 的 `data-dtl`）验 `data-dtl` R230 已含全折叠域 5 键段，`mtLiveDetailCopy` 复制 `data-dtl` 自动含全折叠域 5 键段，跑中详情复制自含全折叠域当前态）
+
+**完善性（跑中详情复制自含全折叠域当前态）**：R230 全库完成详情 / 跑中详情 `data-dtl` 补全折叠域 5 键，但**`#mtlivedetailcopy` 跑中详情复制（R169 区 `mtLiveDetailCopy`）验 `data-dtl` 含全折叠域 5 键段**
+（`data-dtl` R230 已含全折叠域 5 键段，`mtLiveDetailCopy` 复制 `data-dtl` 自动含全折叠域 5 键段（R230 `data-dtl` 补全折叠域段后），跑中详情复制自含全折叠域当前态，与 R222-R230 补全折叠域字段同域）。
+`mtLiveDetailCopy`（R169 区）复制 `#mtlivebadge` 的 `data-dtl`（`b.getAttribute('data-dtl')`，`data-dtl` R230 已含全折叠域 5 键段），`#music3 维护跑中详情 · <ts>` + `data-dtl` 复制，
+`mtLiveDetailCopy` 复制 `data-dtl` 自动含全折叠域 5 键段（免重改函数体——`data-dtl` R230 补全折叠域段后 `mtLiveDetailCopy` 复制自动含，同 R229 `#mtmetpng` PNG 读 canvas 自动含全折叠域 5 键段 / R230
+全库完成详情复制 `data-dtl` 自动含全折叠域段纪律），跑中详情复制自含全折叠域当前态，与 R222-R230 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设 #mtlivebadge 跑中态 data-dtl（含全折叠域 5 键段，R230）→ 点 #mtlivedetailcopy → toast「已复制当前轮双指标详情」（复制含全折叠域 5 键当前态段，data-dtl R230 已含全折叠域段）`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r231_livedetail5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 760→762`，断点 `_亚细亚旷世奇才\医生.mp3`。
+
+**坑**：① `mtLiveDetailCopy`（R169 区）跑中详情复制（`#mtlivedetailcopy` 点复制 `#music3 维护跑中详情 · <ts>` + `data-dtl`（`b.getAttribute('data-dtl')`，`#mtlivebadge` 属性 `data-dtl`（`#mtlivedetail`
+hover 浮层数据源，R166 区 `mtLiveBadgeDraw` 写）））复制 `data-dtl` 自动含全折叠域 5 键段（`data-dtl` R230 已含全折叠域 5 键段（`_dtl+=` 全折叠域段 + `el.setAttribute('data-dtl',_dtl)`），
+`mtLiveDetailCopy` 复制 `data-dtl` 自动含全折叠域 5 键段，免重改函数体——`data-dtl` R230 补全折叠域段后 `mtLiveDetailCopy` 复制自动含，同 R229 `#mtmetpng` PNG 读 canvas 自动含全折叠域 5 键段 / R230
+全库完成详情复制 `data-dtl` 自动含全折叠域段纪律，`#mtlivedetailcopy` 跑中详情复制自含全折叠域 5 键段）② 与 R169 `#mtlivedetailcopy` 跑中详情复制**分工**（R169 跑中详情复制（`#music3 维护跑中详情 ·
+<ts>` + `data-dtl`），R231 验 `data-dtl` R230 已含全折叠域 5 键段 + `mtLiveDetailCopy` 复制 `data-dtl` 自动含全折叠域 5 键段——跑中详情复制自含全折叠域当前态，`#mtlivedetailcopy` 复制出口自动含全折叠
+域段，免重改 `mtLiveDetailCopy` 函数体）③ 与 R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总控 / R226 双图区明细 / R227 键盘流触发记录 / R228 状态详情 / R229 双图区
+PNG 快照 / R230 全库完成详情补全折叠域字段**语言同**（各跑中详情复制 / 全折叠域 / 三域 / 全链路 / 双图区 / 键盘流 / 状态详情 / 双图区 PNG / 全库完成详情读 5 键 `localStorage` 拼文本 / 色带，全折叠域
+当前态同语言，各出口自含全折叠域出口标位；`#mtlivedetailcopy` 复制 `data-dtl` 自动含全折叠域段同 R229/R230 复制 `data-dtl` / 读 canvas 自动含全折叠域段纪律）④ 验收**函数级**（设 5 键全 `'1'` + 设
+`#mtlivebadge` 跑中态 `data-dtl`（`badge.setAttribute('data-dtl', '本轮回 +5(歌词 +3 / 封面 +2)· 本轮耗 1.2s · 累计 12s · 跑到 5/100 · [全折叠域当前态] _mtMetFold=1 · ...')`（含全折叠域 5 键段，R230
+补 `data-dtl` 全折叠域段）+ 点 `#mtlivedetailcopy` 验 toast「已复制当前轮双指标详情」（复制含全折叠域 5 键当前态段）+ 验 `data-dtl` 含全折叠域 5 键段（`hasFold=true`），不真跑 `mtRun` 免 tick 污染
+`runs`；跑中详情复制拼逻辑验 `data-dtl` 含全折叠域 5 键段 + `mtLiveDetailCopy` 复制 `data-dtl` 自动含（`b.getAttribute('data-dtl')` 复制），非真剪贴板 / 渲染像素）。
+
