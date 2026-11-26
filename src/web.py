@@ -1067,7 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
-  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
+  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3619,7 +3619,36 @@ function mtRunHistPng(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   _toast('已导出折线快照（PNG）', 'ok');
 }
-(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } const pg=$('#mthistpng'); if(pg){ pg.onclick=mtRunHistPng; } })();
+/* 导入跑维护历史 CSV: 文件选择框选 R147 导的 CSV -> 解析数据行(序号,耗时) -> 重填 localStorage._mtRunHist(末10条) + mtRunHistDraw + toast; 换设备/清历史后把旧 CSV 导回来(与 R147 导出对称的「导入还原」闭环) */
+function mtRunHistImport(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.csv,text/csv';
+  inp.onchange=function(ev){
+    const f=ev.target.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=function(){
+      try{
+        const txt=String(rd.result||'').replace(/^\ufeff/,'');
+        const rows=txt.split(/\r?\n/).filter(x=>x && x.indexOf('#')!==0);
+        /* 数据行: 序号,耗时(s) (跳表头 序号/耗时); 取末10条耗时列 */
+        const vals=[];
+        rows.forEach(r=>{
+          const c=r.split(',');
+          const t=parseFloat(c[1]);
+          if(c.length>=2 && !isNaN(t) && t>0){ vals.push(t); }
+        });
+        if(!vals.length){ _toast('CSV 无有效耗时行（需 序号,耗时(s)）', 'bad'); return; }
+        const keep=vals.slice(-10);
+        localStorage.setItem('_mtRunHist', JSON.stringify(keep));
+        mtRunHistDraw();
+        _toast('已导入跑维护历史 '+keep.length+' 次（CSV）', 'ok');
+      }catch(e){ _toast('导入失败: '+e, 'bad'); }
+    };
+    rd.readAsText(f, 'utf-8');
+  };
+  inp.click();
+}
+(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } const pg=$('#mthistpng'); if(pg){ pg.onclick=mtRunHistPng; } const im=$('#mthistimport'); if(im){ im.onclick=mtRunHistImport; } })();
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 /* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */

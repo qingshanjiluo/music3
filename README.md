@@ -3987,3 +3987,28 @@ totals 是后端真数据，历史折线只是前端展示层 `localStorage`，�
 文案（下载 headless 无文件，toast 为出口证明）⑤ 与 R147 CSV 同「只读导 `_mtRunHist`」（`mtRunHistPng`/`mtRunHistExport` 都不
 改 localStorage，清历史走 R146 `#mthistclear`），两钮可反复导，互不影响。
 
+---
+
+## 第163轮（前端 R149 · goal round126）：跑维护历史 CSV 导入还原（`#mthistimport`，R147 导的 CSV 回读重填 `_mtRunHist`，换设备/清历史后导回来）
+
+**完善性（导入还原闭环）**：R147 `#mthistexport` 导 CSV（数据走），**换设备 / 清历史（R146）后把旧 CSV 导回来**没入口。
+`#mthistpng` 旁加**`#mthistimport`** 小钮（`↑ 导入`，文件选择框选 R147 导的 CSV → 解析 `序号,耗时(s)` 数据行（跳 BOM / `#` 头
+注释 / 表头，取 `c[1]` 数值）→ 重填 `localStorage._mtRunHist`（末 10 条）+ `mtRunHistDraw` 重画 + toast「已导入 N 次（CSV）」；
+无有效行 → toast「CSV 无有效耗时行（需 序号,耗时(s)）」）——换设备 / 清历史后把旧 CSV 导回来还原趋势，与 R147 导出**对称**
+（导出走数据、导入还原，导出/导入闭环）。
+
+**E2E**（函数级验解析，不真选文件）：`R147 CSV 文本（BOM + 头注释 + 表头 + 6 数据行）→ 解析 keep=6 条（1.2/0.8/0.9/1.5/1.1/0.7）
+→ 重填 _mtRunHist + #mthistspark 显 flex + store=6 条`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r149_import.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 594→596`，断点 `_归档_封存\SD卡版\洛天依\洛天依\盘点.mp3`。
+
+**坑**：① `#mthistimport` 挂 `#mthistpng` 后（`#mthistspark` 内，`↑ 导入` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色 10px，
+随 `#mthistspark` 显隐——无历史时钮隐，导入口此时「先跑一次维护」，有历史才显，导入是「带回来」场景通常已有 CSV）②
+`mtRunHistImport`（`#mthistimport` onclick，载入 IIFE 绑）：动态 `input[type=file]`（`accept=.csv,text/csv`，`inp.click()` 触发
+文件选择）+ `FileReader.readAsText`（utf-8）读 → 解析 ③ 解析：`txt.replace(/^\ufeff/,'')`（剥 BOM）+ `split(/\r?\n/)` 分行 +
+`filter(x.indexOf('#')!==0)`（跳 `#` 头注释）+ 每行 `split(',')` 取 `c[1]`（耗时列，`parseFloat`，`t>0` 有效），`表头 序号,耗时(s)`
+的 `parseFloat('耗时')=NaN` 自动跳 ④ 取 `vals.slice(-10)`（末 10 条，对齐 R144 `slice(-10)` 存储粒度）重填 `localStorage._mtRunHist`
++ `mtRunHistDraw()`（重画折线 + hover）⑤ 与 R147 CSV **格式对称**（R147 导 `序号,耗时(s)` + 头注释 `#`，R149 导回解析同格式，
+导出→导入往返无损），**不清** 现有 `_mtRunHist`（导入 = 覆盖重填末 10 条，区别于追加——CSV 本就是末 10 条快照）。
+
