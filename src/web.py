@@ -1067,6 +1067,8 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardfoldstat" title="维护守护区三域折叠态总览(双图区_mtMetFold/总览面板_mtGuardPanelFold/全浮层_mtGuardFoldAll三域折叠/展开态色带+localStorage记忆标位内联SVG, 三域折叠态一眼全貌免逐点各折叠钮, 与R197四段快照/R199总览面板语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 折叠总览</button>
     <button type="button" id="mtguardfoldstatpng" title="三域折叠态PNG导出(#mtguardfoldstatd内联SVG转canvas下载music3_维护守护三域折叠态_ts.png, 三域折叠态全貌PNG存档/可分享, 与R158/R198/R200PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 折叠态PNG</button>
     <button type="button" id="mtguardfoldstatcopy" title="三域折叠态文本复制(三域折叠/展开+localStorage记忆值文本到剪贴板, 三域折叠态可文本留存/贴工单, 与R196/R201复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 折叠态复制</button>
+    <button type="button" id="mtguardfoldctl" title="维护守护区折叠全链路总控(三域折叠钮#mtmetfold/_mtguardpanelfold/_mtguardfoldall+折叠联动R206+折叠记忆R204/R205localStorage+三域折叠态总览R207+折叠态PNG/文本R208全折叠出口一张折叠全链路图, 折叠域能力/出口全景图免分散找, 与R199总览面板语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▤ 折叠全链路</button>
+    <div id="mtguardfoldctld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardfoldstatd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardpaneld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
@@ -4414,6 +4416,49 @@ function mtGuardFoldStatCopy(){
   } else { _copyFallback(_lines); }
 }
 (function(){ const c=$('#mtguardfoldstatcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardFoldStatCopy(); }); } })();
+/* 维护守护区折叠全链路总控(R209): #mtguardfoldctl 点 -> 拼内联SVG折叠全链路面板(三域折叠钮+折叠联动R206+折叠记忆R204/R205localStorage+三域折叠态总览R207+折叠态PNG/文本R208全折叠出口分块标位), 显#mtguardfoldctld浮层, 折叠域能力/出口全景图免分散找, 与R199总览面板语言同 */
+function mtGuardFoldCtl(){
+  const d=$('#mtguardfoldctld'); if(!d) return;
+  const _W=400, _H=180, _p=10;
+  let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
+  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区折叠全链路总控</text>';
+  /* 块1: 三域折叠钮 */
+  _svg+='<rect x="'+_p+'" y="22" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="36" font-size="9" fill="var(--dim)">三域折叠钮</text>';
+  const _fbtns=['#mtmetfold 双图区折叠(R159)','#mtguardpanelfold 总览面板折叠(R202)','#mtguardfoldall 全浮层折叠(R203)'];
+  for(let _i=0;_i<3;_i++){ _svg+='<text x="'+(_p+8)+'" y="'+(48+_i*8)+'" font-size="8" fill="var(--ink)">'+_fbtns[_i]+'</text>'; }
+  /* 块2: 折叠联动 */
+  _svg+='<rect x="'+(_p+190)+'" y="22" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="36" font-size="9" fill="var(--dim)">折叠联动 (R206)</text>';
+  _svg+='<text x="'+(_p+198)+'" y="48" font-size="8" fill="var(--ink)">全浮层折叠态强制总览面板折叠</text>';
+  _svg+='<text x="'+(_p+198)+'" y="58" font-size="8" fill="var(--ink)">_mtGuardFoldAll→_mtGuardPanelFold</text>';
+  _svg+='<text x="'+(_p+198)+'" y="68" font-size="8" fill="var(--dim)">展开态恢复自身localStorage值</text>';
+  /* 块3: 折叠记忆 */
+  _svg+='<rect x="'+_p+'" y="78" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="92" font-size="9" fill="var(--dim)">折叠记忆 (R204/R205)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="104" font-size="8" fill="var(--ink)">localStorage _mtGuardFoldAll(全浮层)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="114" font-size="8" fill="var(--ink)">localStorage _mtGuardPanelFold(总览面板)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="124" font-size="8" fill="var(--ink)">localStorage _mtMetFold(双图区)</text>';
+  /* 块4: 三域折叠态总览 */
+  _svg+='<rect x="'+(_p+190)+'" y="78" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="92" font-size="9" fill="var(--dim)">三域折叠态总览 (R207)</text>';
+  _svg+='<text x="'+(_p+198)+'" y="104" font-size="8" fill="var(--ink)">▣ #mtguardfoldstat 三域折叠态SVG</text>';
+  _svg+='<text x="'+(_p+198)+'" y="114" font-size="8" fill="var(--ink)">_mtguardfoldstatd 内联SVG色带</text>';
+  /* 块5: 折叠态 PNG / 文本 */
+  _svg+='<rect x="'+_p+'" y="134" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="148" font-size="9" fill="var(--dim)">折叠态 PNG / 文本 (R208)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="160" font-size="8" fill="var(--ink)">⬇ #mtguardfoldstatpng PNG导出</text>';
+  _svg+='<text x="'+(_p+8)+'" y="170" font-size="8" fill="var(--ink)">⧉ #mtguardfoldstatcopy 文本复制</text>';
+  /* 时间戳 */
+  _svg+='<text x="'+_p+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
+  _svg+='</svg>';
+  d.innerHTML=_svg; d.style.display='block';
+  const r=document.getElementById('mtguardfoldctl').getBoundingClientRect();
+  d.style.position='absolute'; d.style.left=r.left+'px'; d.style.top=(r.bottom+2)+'px';
+  clearTimeout(window._mtGuardFoldCtlT);
+  window._mtGuardFoldCtlT=setTimeout(function(){ d.style.display='none'; }, 8000);
+}
+(function(){ const c=$('#mtguardfoldctl'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardFoldCtl(); }); } })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){

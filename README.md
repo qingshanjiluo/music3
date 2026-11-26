@@ -5858,3 +5858,46 @@ writeText`（`_copyFallback` 降级）+ toast「已复制三域折叠态文本�
 PNG」/ 降级「已复制三域折叠态 SVG」+ 点 `#mtguardfoldstatcopy` 验 toast「已复制三域折叠态文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，
 真 PNG / 剪贴板内容不验，不真跑 `mtRun` 免 tick 污染 `runs`）。
 
+---
+
+## 第223轮（前端 R209 · goal round186）：维护 tab「维护守护」区加维护守护区折叠全链路总控（`#mtguardfoldctl` 小钮，点显 `#mtguardfoldctld` 浮层内联折叠全链路面板——三域折叠钮（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`）+ 折叠联动（R206 全浮层 + 总览面板）+ 折叠记忆（R204/R205 `localStorage`）+ 三域折叠态总览（R207）+ 折叠态 PNG / 文本（R208）全折叠出口一张折叠全链路图，折叠域能力 / 出口全景图）
+
+**简洁性（折叠域能力 / 出口全景图免分散找）**：R208 `#mtguardfoldstatcopy` 三域折叠态文本复制，但**维护守护区折叠域各出口分散各入口**（三域
+折叠钮 R159/R202/R203 / 折叠联动 R206 / 折叠记忆 R204/R205 / 三域折叠态总览 R207 / 折叠态 PNG / 文本 R208 分散各处，要全知折叠域有哪些出口得逐个找，
+`#mtguardfoldctl` 点显折叠全链路面板浮层（内联 SVG 全折叠出口分块标位），折叠域能力 / 出口全景图，一眼知折叠域有哪些出口，免分散找，与 R199 总览
+面板语言同）。`#mtguardfoldstatcopy` 旁加**`#mtguardfoldctl`** 小钮（`▤ 折叠全链路`，`#mtguardfoldstatcopy` 后常驻位）+ **`#mtguardfoldctld`** SVG
+浮层（`#mtguardfoldctl` 下沿，`z-index:70`），点 `#mtguardfoldctl` → **`mtGuardFoldCtl`**（拼内联 SVG 折叠全链路面板：`[三域折叠钮]`（`#mtmetfold`
+双图区 R159 / `#mtguardpanelfold` 总览面板 R202 / `#mtguardfoldall` 全浮层 R203 标位）+ `[折叠联动 (R206)]`（全浮层折叠态强制总览面板折叠
+`_mtGuardFoldAll→_mtGuardPanelFold` + 展开态恢复自身 `localStorage` 值标位）+ `[折叠记忆 (R204/R205)]`（`localStorage._mtGuardFoldAll` 全浮层 /
+`localStorage._mtGuardPanelFold` 总览面板 / `localStorage._mtMetFold` 双图区记忆标位）+ `[三域折叠态总览 (R207)]`（`#mtguardfoldstat` 三域折叠态 SVG
++ `#mtguardfoldstatd` 内联 SVG 色带标位）+ `[折叠态 PNG / 文本 (R208)]`（`#mtguardfoldstatpng` PNG 导出 + `#mtguardfoldstatcopy` 文本复制标位），
+显 `#mtguardfoldctld` 浮层，8s 自动隐）——折叠域能力 / 出口全景图，一眼知折叠域有哪些出口，免分散找，与 R199 总览面板语言同。
+
+**E2E**：`点 #mtguardfoldctl → #mtguardfoldctld 显内联 SVG 折叠全链路面板（svg 含五块：维护守护区折叠全链路总控标题 + [三域折叠钮] +
+[折叠联动 (R206)] + [折叠记忆 (R204/R205)] + [三域折叠态总览 (R207)] + [折叠态 PNG / 文本 (R208)]）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r209_foldctl.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 714→716`，断点 `_整理后分类\洛天依\霜雪千年 - 001mzBxY4UVcAH.mp3`。
+
+**坑**：① `#mtguardfoldctl` 小钮挂 `#mtguardfoldstatcopy` 旁常驻位（`#mtguardfoldstatcopy` 后 `inline-block`，维护守护区折叠域全链路总控常驻入口，
+非 hover 态控——`#mtguardfoldstat` 三域折叠态总览 + `#mtguardfoldstatpng` 折叠态 PNG + `#mtguardfoldstatcopy` 折叠态复制 + `#mtguardfoldctl` 折叠
+全链路四入口并排，三域折叠态看全貌 + PNG 存档 + 文本复制 + 全链路总控，折叠域全貌 / 留存 / 全景全链路）② `mtGuardFoldCtl` 拼内联 SVG 折叠全链路五块
+（`<svg width="400" height="180">`，`[三域折叠钮]` 块（`_fbtns` 三个折叠钮标位 `#mtmetfold` 双图区 R159 / `#mtguardpanelfold` 总览面板 R202 /
+`#mtguardfoldall` 全浮层 R203）+ `[折叠联动 (R206)]` 块（全浮层折叠态强制总览面板折叠 `_mtGuardFoldAll→_mtGuardPanelFold` + 展开态恢复自身
+`localStorage` 值标位）+ `[折叠记忆 (R204/R205)]` 块（`localStorage._mtGuardFoldAll` 全浮层 / `localStorage._mtGuardPanelFold` 总览面板 /
+`localStorage._mtMetFold` 双图区三域记忆标位）+ `[三域折叠态总览 (R207)]` 块（`#mtguardfoldstat` 三域折叠态 SVG + `#mtguardfoldstatd` 内联 SVG
+色带标位）+ `[折叠态 PNG / 文本 (R208)]` 块（`#mtguardfoldstatpng` PNG 导出 + `#mtguardfoldstatcopy` 文本复制标位），`d.innerHTML=_svg` 拼，
+`d.style.display='block'`）③ `#mtguardfoldctld` 挂 `#mtguardfoldctl` 下沿（`#mtguardfoldctl` `getBoundingClientRect` + `position:absolute` 定位，
+`top:r.bottom+2`，`z-index:70` 高于 `#mtstatebar`/`#mtmetsumdetail`/`#mtguardsnapd`/`#mtguardpaneld`/`#mtguardfoldstatd` 浮层，`--bg2` 底 + `--line`
+描边 + `box-shadow` 微浮，`white-space:nowrap` 内联 SVG 不折，`pointer-events:none` 不挡下层，8s 自动隐 `clearTimeout(window._mtGuardFoldCtlT)`
+重置——折叠全链路面板临时看全貌不常驻，`setTimeout` 8s 后隐，再点重计 8s，同 R197 `mtGuardSnap` / R199 `mtGuardPanel` / R207 `mtGuardFoldStat` 8s
+自动隐纪律）④ 各块全折叠出口标位含自身（`[三域折叠钮]` R159/R202/R203 三折叠钮 + `[折叠联动]` R206 + `[折叠记忆]` R204/R205 + `[三域折叠态总览]`
+R207 + `[折叠态 PNG / 文本]` R208 + `[折叠全链路]` R209 自身，`mtGuardFoldCtl` 标位全量含 R159/R202/R203/R204/R205/R206/R207/R208/R209 九折叠域
+出口，折叠全链路自含全出口标位，一眼全折叠域出口清单）⑤ 与 R199 `#mtguardpanel` 总览面板 / R207 `#mtguardfoldstat` 三域折叠态总览**分工**（R199
+总览面板看能力 / 出口全景（维护守护区全出口），R207 三域折叠态总览看三域折叠 / 展开态（`localStorage` 记忆值），R209 折叠全链路总控看折叠域全出口
+（三域折叠钮 + 折叠联动 + 折叠记忆 + 三域折叠态总览 + 折叠态 PNG / 文本），三总览各管各域——维护守护区全出口 / 三域折叠态 / 折叠域全出口）⑥ 与
+R197 四段快照 / R199 总览面板 / R207 三域折叠态总览**语言同**（各内联 SVG 总览面板（数据快照 / 能力出口 / 三域折叠态 / 折叠全链路），`<svg>` 拼
+分块标位 + `#...` 浮层 `z-index:70` + 8s 自动隐，四总览内联 SVG 语言同）⑦ 验收**函数级**（点 `#mtguardfoldctl` 验 `#mtguardfoldctld` 显 +
+`innerHTML` 含 `<svg` + 五块标题（「维护守护区折叠全链路总控」/「三域折叠钮」/「折叠联动」/「折叠记忆」/「三域折叠态总览」/「折叠态 PNG / 文本」），
+不真跑 `mtRun` 免 tick 污染 `runs`；`mtGuardFoldCtl` 内联 SVG 五块 headless 验 `innerHTML` 含 `<svg` + 各块标题，非真渲染 SVG 像素）。
+
