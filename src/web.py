@@ -2927,9 +2927,12 @@ function _mtProg(i, total, hide){
 }
 /* 取消本轮跑标志: 跑多轮中点「取消」(按钮变红) 置 true, 循环下一轮 break(已跑的轮不回滚, 断点已写); 跑完/取消后按钮回「跑一轮」 */
 let _mtAborted=false;
+let _mtRunning=false; /* R180 跑维护中标志: Space 暂停需跑维护中才触, document 监听判(块级挂全局 window 可访问) */
+window._mtRunning=_mtRunning;
 async function mtRun(){
   const btn = $('#mtrun');
   _mtAborted=false;
+  _mtRunning=true; window._mtRunning=true; /* R180 跑维护中, Space 暂停判 */
   /* 跑中: 按钮变「取消」(点即跳出, 不 disabled 才能点); 跑完/取消后回「跑一轮」 */
   btn.disabled = false;
   btn.textContent = '取消';
@@ -2954,9 +2957,19 @@ async function mtRun(){
   let FULL_DONE=false;
   let ticksFirstMs=0;
   let _mtTotalDur=0; /* R167 累计耗时累加器: 每轮 tick 后累加本轮耗, hover #mtlivebadge 详情显累计 */
+  let _mtPaused=false; /* R180 暂停态: Space 键暂停跑维护循环(循环顶挂起不跑 tick), 再 Space 续跑; 区别于取消(_mtAborted 回滚断点); 挂 window 供 document 监听读写 */
+  window._mtPaused=_mtPaused;
   try{
     for(let i=1;i<=N;i++){
       if(_mtAborted){ setMsg($('#mtmsg'), '已取消 · 跑到第 '+Math.min(i, N)+' 轮（已跑的轮不回滚，断点已写）', 'ok'); _mtUnaborted(); break; }
+      /* 暂停检查(R180): window._mtPaused 时循环顶挂起不跑 tick, await setTimeout 轮询 window._mtPaused=false 才续跑(Space 暂停/续跑, 跑中全库挂起不等跑完/不取消) */
+      if(window._mtPaused){
+        setMsg($('#mtmsg'), '暂停中 · 按 Space 续跑（已跑的 '+Math.max(0,i-1)+' 轮不回滚）', 'warn');
+        const _run=$('#mtrun'); if(_run){ _run.textContent='暂停中 · 按 Space 续跑'; _run.style.background='var(--warn)'; _run.style.color='#fff'; _run.style.borderColor='var(--warn)'; }
+        while(window._mtPaused){ await new Promise(r=>setTimeout(r,300)); if(_mtAborted){ break; } } /* 轮询暂停态, 续跑(_mtPaused=false)或取消(_mtAborted)才跳出 */
+        if(_mtAborted){ setMsg($('#mtmsg'), '已取消 · 跑到第 '+Math.min(i, N)+' 轮（已跑的轮不回滚，断点已写）', 'ok'); _mtUnaborted(); break; }
+        _mtUnpausedBtn(); /* 续跑恢复 #mtrun 态 */
+      }
       setSpin(i);
       const _elapsed=Math.round((Date.now()-t0)/100)/10;
       /* 跑到全库: 首 tick 实测后外推预估(首 tick 冷启动, 实测 perTick) */
@@ -3010,6 +3023,8 @@ async function mtRun(){
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
     if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg+' · 点双图区汇总（#mtmetsum）跳双图看趋势 + 聚焦最新轮'; _toast(_tm, 'ok'); }
+    /* R180 跑完/取消复位: 跑维护中标志置 false(Space 暂停不再触) + 暂停态复位(下次跑不继承暂停) */
+    _mtRunning=false; window._mtRunning=false; window._mtPaused=false;
     /* 本批补了什么即时回显(拉 maintain status recent 最新几条, 不等 5 卡重拉) */
     try{
       const st2 = await (await fetch('/api/maintain')).json();
@@ -3887,8 +3902,29 @@ function mtLiveBadgeJump(){
       if(typeof mtLiveBadgeJump==='function'){ mtLiveBadgeJump(); }
       if(typeof _toast==='function'){ _toast('已跳双图区 · 聚焦最新轮（Enter）', 'ok'); }
     }
+    /* Space 暂停/续跑(R180): 维护 tab 激活 + 焦点非输入框 + 跑维护中(window._mtRunning) -> window._mtPaused 切换(暂停/续跑)+ #mtrun 黄态 + toast, 跑中全库挂起不等跑完/不取消 */
+    if(e.key===' '){
+      e.preventDefault(); /* 挡全局 Space(滚动等), 维护区 Space 只做暂停/续跑 */
+      if(!window._mtRunning){ if(typeof _toast==='function'){ _toast('Space 暂停需跑维护中（先点「跑一轮」）', 'bad'); } return; }
+      if(window._mtPaused===false){
+        window._mtPaused=true; /* 暂停: 循环顶挂起 */
+        const run=$('#mtrun'); if(run){ run.textContent='暂停中 · 按 Space 续跑'; run.style.background='var(--warn)'; run.style.color='#fff'; run.style.borderColor='var(--warn)'; }
+        if(typeof _toast==='function'){ _toast('已暂停 · 按 Space 续跑（已跑的轮不回滚）', 'ok'); }
+      } else {
+        window._mtPaused=false; /* 续跑: 循环顶轮询跳出 */
+        const run=$('#mtrun'); if(run){ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
+        if(typeof _toast==='function'){ _toast('已续跑 · 维护继续', 'ok'); }
+      }
+    }
   });
 })();
+/* 续跑恢复 #mtrun 态(R180): 暂停检查跳出(续跑/取消)后恢复 #mtrun 跑中态, 循环顶暂停检查调用 */
+function _mtUnpausedBtn(){
+  const run=$('#mtrun'); if(!run) return;
+  const _r=typeof window._mtRunning!=='undefined' && window._mtRunning;
+  run.textContent=_r?'取消':'跑一轮';
+  run.style.background=_r?'var(--bad)':''; run.style.color=_r?'#fff':''; run.style.borderColor=_r?'var(--bad)':'';
+}
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
