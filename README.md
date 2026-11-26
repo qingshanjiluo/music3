@@ -4241,3 +4241,32 @@ hover 配对）**互补**：`#mtmetsum` 常驻看 N 次汇总（扫一眼维护�
 两视图（常驻汇总 / hover 单次）⑤ 耗时均值 `1dp`（`toFixed(1)`，与 R144 `#mthistlabel` 均值同粒度）、补入均值 `round`（整数，补入量
 是整数）、合计 `Σdelta`（补入总量，看维护累计补了多少）⑥ node 重启瞬断（服务重启后 `Start-Sleep 3` 抓 JS 配平 0）。
 
+---
+
+## 第173轮（前端 R159 · goal round136）：双指标区一键全清（`#mtmetclear`，`_mtRunHist`/`_mtRunDelta`/`_mtRunHistBase` 三键一起清 + 三图重画隐，维护区趋势区一键归零）
+
+**简洁性（趋势区一键归零）**：R146 `#mthistclear` 清耗时（`_mtRunHist`）、R157 `#mtdeltaclear` 清补入（`_mtRunDelta`）、
+R150 `#mthistreset` 重置基线（`_mtRunHistBase`），**全清要连点三次**（耗时 / 补入 / 基线各一钮）。`#mtmetsum` 旁加
+**`#mtmetclear`** 小钮（`⊗ 全清`，`_mtRunHist` + `_mtRunDelta` + `_mtRunHistBase` 三键一起清 + `mtRunHistDraw`/`mtRunDeltaDraw`/
+`mtMetSumDraw` 重画隐 + toast「维护趋势区已全清（耗时 + 补入量 + 基线 · 重新计基线）」）——维护区趋势区**一键归零**
+（耗时折线 / 补入柱状 / 基线标签三图全隐），与 R146 清耗时 / R157 清补入 / R150 重置基线三钮**分工**（单清 / 全清）。
+
+**E2E**：`清前 #mthistspark/#mtdeltabar 显 flex + 三键全写 → 点 #mtmetclear 后 三键全删(s1/s2/s3=None) + 三图隐
+(spark/bar/sum=none) + toast「维护趋势区已全清（耗时 + 补入量 + 基线 · 重新计基线）」`（绿）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r159_metclear.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 614→616`，断点 `_归档_封存\SD卡版\宋冬野\活着.mp3`。
+
+**坑**：① `#mtmetclear` 挂 `#mtdeltabar` 内（`#mtmetsum` 后，`⊗ 全清` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色 10px，
+随 `#mtdeltabar` 显隐——无补入量时 `#mtdeltabar` 隐全清钮也隐，全清通常三图都显才点；`#mtdeltabar` 隐但有 `#mthistspark`
+（耗时）时全清钮不可达——**全清主要场景是两指标都在**，`#mtdeltabar` 显才挂钮，耗时单独场景走 R146 清耗时）② `mtMetClear`
+（`#mtmetclear` onclick，载入 IIFE 绑）：`localStorage.removeItem` 三键（`_mtRunHist`/`_mtRunDelta`/`_mtRunHistBase`，
+一次全清）+ `mtRunHistDraw()`（耗时折线隐 + 基线标签态回隐）+ `mtRunDeltaDraw()`（补入柱状隐）+ `mtMetSumDraw()`（汇总隐）
++ `_toast`「维护趋势区已全清（耗时 + 补入量 + 基线 · 重新计基线）」③ 三键原子全清（一次 `removeItem` 三连，区别于 R146/R157
+分次清——全清是「归零」意图，三键必须同时清，半清留基线会显「距基线」标签态）④ 清完三图全隐（`#mthistspark`/`#mtdeltabar`/
+`#mtmetsum` 都 `display:none`，`mtRunHistDraw` 基线标签态也回隐——`_mtRunHistBase` 清了没基线，`_mtRunHist` 空 + 无基线 →
+`#mthistspark` 隐，非基线标签态）⑤ 与 R146/R150/R157 三钮**分工**（清耗时 / 重置基线 / 清补入 单指标各管各，全清是「三键
+归零」一键），`#mtdeltabar` 内一排 7 小钮（导出 / 快照 / 导入 / 重置 / 清历史 / 清补入 / 全清），`align-items:center` 一行
+排开，全清靠最右（收尾位）⑥ 只清前端展示层三键（`_mtRunHist`/`_mtRunDelta`/`_mtRunHistBase` 都是 `localStorage` 趋势，
+不动后端 `maintain_state.json` tick 游标/totals——真维护进度不动，只清趋势展示区）。
+

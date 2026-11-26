@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3657,6 +3657,15 @@ function mtRunDeltaClear(){
 (function(){ const c=$('#mtdeltaclear'); if(c){ c.onclick=mtRunDeltaClear; } })();
 /* 载入: 按 _mtRunHist+_mtRunDelta 画双指标一行汇总(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } }); } else { if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } } })();
+/* 一键全清维护趋势区(R159): _mtRunHist(耗时)+_mtRunDelta(补入量)+_mtRunHistBase(基线)三键一起清 + mtRunHistDraw/mtRunDeltaDraw/mtMetSumDraw 重画隐 -> 维护区趋势区一键归零; 与 R146清耗时/R157清补入/R150重置基线三钮分工, 全清要连点三次时一键归零 */
+function mtMetClear(){
+  try{ localStorage.removeItem('_mtRunHist'); localStorage.removeItem('_mtRunDelta'); localStorage.removeItem('_mtRunHistBase'); }catch(e){}
+  mtRunHistDraw();
+  mtRunDeltaDraw();
+  if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
+  _toast('维护趋势区已全清（耗时 + 补入量 + 基线 · 重新计基线）', 'ok');
+}
+(function(){ const c=$('#mtmetclear'); if(c){ c.onclick=mtMetClear; } })();
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
