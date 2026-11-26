@@ -1072,7 +1072,7 @@ body._nosplabel .mtspark-lastval{display:none}
   <span id="mtlivebadge" style="display:none;margin-top:4px;font-size:11px;color:var(--ok);font-weight:600;position:relative;cursor:default"></span>
   <div id="mtlivedetail" style="display:none;position:absolute;z-index:60;margin-top:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--ink);line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap"><button type="button" id="mtlivedetailcopy" title="复制当前轮双指标详情(贴工单/记录维护日志)" style="pointer-events:auto;padding:0 6px;margin-left:8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制</button></div>
   <div id="mtstatebar" style="height:3px;width:100%;background:var(--line);border-radius:2px;overflow:hidden;position:relative" title="维护状态色带: 绿跑中 / 黄暂停 / 红取消 / 灰完成"></div>
-  <div id="mtstatebardtl" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:10px;color:var(--ink);line-height:1.5;box-shadow:0 1px 5px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none;top:6px;left:0"></div>
+  <div id="mtstatebardtl" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:10px;color:var(--ink);line-height:1.5;box-shadow:0 1px 5px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none;top:6px;left:0"></div><button type="button" id="mtstatebardtlcopy" title="复制维护状态详情(贴工单/记录维护日志, 与R169详情复制/R189逐轮明细复制同「复制出口」)" style="display:none;padding:0 6px;margin-top:2px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⧉ 复制状态</button>
   <div style="margin-top:4px"><button type="button" id="mtmetfold" title="折叠/展开维护趋势条(耗时折线+补入柱状+汇总, 窄屏省高)" style="padding:0 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">▾ 折趋势</button></div>
   <div id="mtmetfoldwrap">
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
@@ -4120,7 +4120,7 @@ function mtStateBarDraw(){
 }
 /* 指示条 hover 显状态详情(R185): #mtstatebar mouseenter -> #mtstatebardtl 浮层显「跑中·第i/N轮·本轮回+X·本轮耗Ys」/「已暂停·…」/「已取消·…」, 读 window._mtLiveInfo(mtRun 每轮 tick 存)+window._mtPaused/_mtAborted 同态, 色带+hover文字双路知状态(扫顶栏色带+hover看详情) */
 (function(){
-  const bar=$('#mtstatebar'), d=$('#mtstatebardtl');
+  const bar=$('#mtstatebar'), d=$('#mtstatebardtl'), cp=$('#mtstatebardtlcopy');
   if(!bar || !d) return;
   bar.addEventListener('mouseenter', function(){
     let _txt='维护状态：';
@@ -4135,9 +4135,27 @@ function mtStateBarDraw(){
       _txt='维护完成 / 未跑（灰）';
     }
     d.textContent=_txt; d.style.display='block';
+    if(cp){ cp.style.display=(typeof window._mtRunning!=='undefined'&&window._mtRunning)||(typeof window._mtPaused!=='undefined'&&window._mtPaused)||(typeof window._mtAborted!=='undefined'&&window._mtAborted)?'inline-block':'none'; } /* R191 copy 跟 hover 态: 跑中/暂停/取消显, 完成/未跑隐 */
+    /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtstatebar 下方浮层 */
+    const r=bar.getBoundingClientRect();
+    d.style.left=r.left+'px';
+    d.style.top=(r.bottom+2)+'px';
   });
-  bar.addEventListener('mouseleave', function(){ d.style.display='none'; d.textContent=''; });
+  bar.addEventListener('mouseleave', function(){ d.style.display='none'; d.textContent=''; if(cp){ cp.style.display='none'; } });
 })();
+/* 维护状态详情复制(R191): #mtstatebardtlcopy 点 -> 复制「#music3 维护状态·<ts>」+状态详情文本(跑中/暂停/取消+第i/N轮+本轮回+X+本轮耗Ys)到剪贴板(navigator.clipboard,_copyFallback降级), 贴工单/记录维护日志, 与R169详情复制/R189逐轮明细复制同「复制出口」语言 */
+function mtStateBarCopy(){
+  const li=window._mtLiveInfo;
+  let _st='维护完成 / 未跑';
+  if(typeof window._mtAborted!=='undefined' && window._mtAborted){ _st='已取消 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):'跑到断点'); }
+  else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ _st='已暂停 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):''); }
+  else if(typeof window._mtRunning!=='undefined' && window._mtRunning){ _st='跑中 · '+(li?('第 '+li.i+'/'+(li.N>100000?'∞':li.N)+' 轮 · 本轮回 +'+li.back+' · 本轮耗 '+li.dur+'s'):''); }
+  const _txt='#music3 维护状态 · '+new Date().toLocaleString()+'\n'+_st;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护状态详情', 'ok'); } }).catch(function(){ _copyFallback(_txt); });
+  } else { _copyFallback(_txt); }
+}
+(function(){ const c=$('#mtstatebardtlcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtStateBarCopy(); }); } })();
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */
 function mtRunHistClear(){
   try{ localStorage.removeItem('_mtRunHist'); }catch(e){}

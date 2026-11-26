@@ -5204,3 +5204,34 @@ clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制双指标逐�
 双指标逐轮明细（4 次）」，`mouseleave` 验浮层 + copy 隐，不真跑 `mtRun` 免 tick 污染 `runs`；copy 复制只验 toast 出口，真剪贴板内容
 headless 不验）。
 
+---
+
+## 第205轮（前端 R191 · goal round168）：`#mtstatebar` 指示条 hover 详情补复制出口（`#mtstatebardtlcopy` 小钮，hover `#mtstatebar` 显 `#mtstatebardtl` 状态详情浮层（R185）时同步显复制小钮，复制「#music3 维护状态 · <ts>」+ 状态详情文本到剪贴板，贴工单 / 记录维护日志，与 R169 / R189 复制出口同语言）
+
+**完善性（状态详情留存 / 分享免手抄）**：R185 `#mtstatebardtl` hover 显状态详情（跑中 / 暂停 / 取消 + 第 i/N 轮 + 本轮回 +X +
+本轮耗 Ys），但**没复制出口**（状态详情文本要留存 / 贴工单得手动抄，`#mtstatebardtlcopy` 复制小钮 hover 详情浮层内顺手复制免手抄，
+状态详情可留存 / 可分享）。`#mtstatebar` 旁加**`#mtstatebardtlcopy`** 小钮（`⧉ 复制状态`，挂 `#mtstatebar` 下沿独立位，`#mtstatebar`
+hover 委托（R185 区）`mouseenter` 显 `#mtstatebardtl` 浮层时 copy 同步显（跑中 / 暂停 / 取消显 / 完成 · 未跑隐），点 `#mtstatebardtlcopy`
+→ **`mtStateBarCopy`**（读 `window._mtLiveInfo` + `window._mtPaused`/`_mtAborted`/`_mtRunning` 拼「#music3 维护状态 · <ts>」+ 状态详情文本
+（跑中 / 暂停 / 取消 + 第 i/N 轮 + 本轮回 +X + 本轮耗 Ys），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制维护状
+态详情」）——状态详情复制贴工单 / 记录维护日志，维护状态可留存 / 可分享，与 R169 详情复制 / R189 逐轮明细复制同「复制出口」语言。
+
+**E2E**：`跑中（window._mtRunning=true+window._mtLiveInfo）→ #mtstatebar hover → #mtstatebardtl 显 + #mtstatebardtlcopy 显（跑中）+
+点 copy → toast「已复制维护状态详情」；复位 → #mtstatebar hover → 「维护完成 / 未跑（灰）」+ copy 隐（完成 / 未跑不显 copy）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r191_statecopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 678→680`，断点 `_整理后分类\摇滚民谣\草东没有派对\海浪.mp3`。
+
+**坑**：① `#mtstatebardtlcopy` 挂 `#mtstatebar` 下沿独立位（`#mtstatebar` 后 `margin-top:2px`，非 `#mtstatebardtl` 内——R189 同坑纪律，
+`#mtstatebardtl` `textContent` 重写不冲 copy，copy 独立挂 `#mtstatebar` 旁）② copy 跟**hover 态 + 跑维护态**（`#mtstatebar` `mouseenter`
+显 `#mtstatebardtl` 浮层时，跑中 / 暂停 / 取消（`window._mtRunning`/`_mtPaused`/`_mtAborted` 任一）copy 显 `inline-block` / 完成 · 未跑
+（都非）copy 隐 `none`——copy 显跟「跑维护态」非「完成 / 未跑」（完成 / 未跑无状态详情可复制，不显 copy），`mouseleave` 浮层 + copy 隐）③
+`mtStateBarCopy`（读 `window._mtLiveInfo` + `window._mtAborted`/`_mtPaused`/`_mtRunning` 拼状态，取消 / 暂停 / 跑中 / 完成未跑四态同
+`#mtstatebardtl` hover 文案逻辑，`#music3 维护状态 · <new Date().toLocaleString()>` 头 + 状态详情，`navigator.clipboard.writeText`
+（`_copyFallback` `textarea` `execCommand` 降级）+ toast「已复制维护状态详情」，同 R169/R189 复制函数出口纪律）④ 与 R185 `#mtstatebardtl`
+hover 详情**分工**（R185 hover 显状态详情看（`#mtstatebardtl` 浮层），R191 copy 复制状态详情文本留存 / 分享（`#mtstatebardtlcopy` 贴工单
+/ 记录维护日志），看 + 复制双出口，维护状态可看可留存）⑤ 验收**函数级**（`window._mtRunning=true` + `window._mtLiveInfo` 置 + `#mtstatebar`
+`dispatchEvent` `mouseenter` 验 `#mtstatebardtl` 显 + `#mtstatebardtlcopy` hover 态显 + 点 copy 验 toast「已复制维护状态详情」，复位
+`window._mtRunning=false` + `#mtstatebar` `mouseenter` 验 `#mtstatebardtl`「维护完成 / 未跑（灰）」+ copy 隐，不真跑 `mtRun` 免 tick
+污染 `runs`；copy 复制只验 toast 出口，真剪贴板内容 headless 不验）。
+
