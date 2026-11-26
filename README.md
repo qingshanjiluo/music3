@@ -6416,3 +6416,30 @@ _mtGuardAllDomain=...」，双指标逐轮明细文本自含全折叠域 5 键�
 文本含全折叠域 5 键当前态段）+ `#mtmetsum` `mouseenter` 验 `#mtmetsumdetail` `innerHTML` 含 `全折叠域当前态` 段（hover 明细浮层自含 5 键段），不真跑 `mtRun` 免 tick 污染 `runs`；双图区明细 / hover 浮层拼逻辑验 5 键段进文本 / `innerHTML`，非真剪贴板
 / 渲染像素）。
 
+---
+
+## 第241轮（前端 R227 · goal round204）：维护守护区键盘流触发记录面板补全折叠域字段（`#mtkeyhintdetail` 键盘流触发记录 hover 浮层 + `#mtkeyhintcopy` 键盘流触发记录文本补全折叠域 5 键当前态字段，键盘流触发记录自含全折叠域当前态）
+
+**完善性（键盘流触发记录自含全折叠域当前态）**：R226 双图区明细补全折叠域 5 键，但**`#mtkeyhintdetail` 键盘流触发记录 hover 浮层 / `#mtkeyhintcopy` 键盘流触发记录文本（R181/R195 区，
+`Space` / `Esc` / `Enter` 三键触发记录 + 触发顺序）没全折叠域 5 键**（键盘流触发记录要自含全折叠域当前态，`#mtkeyhintdetail` hover 浮层（R181 区，三键状态灯 + 最近触发时间 + 触发顺序回放）补
+`[全折叠域当前态]` 5 键段（`localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`），`mtKeyHintCopy`（R195 区）键盘流触发记录
+文本同补 5 键段，键盘流触发记录自含全折叠域当前态，与 R222/R223/R224/R225/R226 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设键盘流触发记录（window._mtKeyLog/_mtKeyLogOrder）→ #mtkeyhint mouseenter → #mtkeyhintdetail hover 浮层 innerHTML 含全折叠域当前态段；点 #mtkeyhintcopy →
+toast「已复制键盘流触发记录」（键盘流触发记录文本含全折叠域 5 键当前态段）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r227_keyhint5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 752→754`，断点 `_陈奕迅\时代曲.mp3`。
+
+**坑**：① `#mtkeyhintdetail` hover 浮层（R181 区，`#mtkeyhint` `mouseenter` 显 `#mtkeyhintdetail` 三键状态灯（`Space` / `Esc` / `Enter` 可触 / 暂停 / 不可触色点）+ 最近触发时间（`window._mtKeyLog`
+各键 `最近 <ts>` / 未用过）+ 触发顺序回放（`window._mtKeyLogOrder` 最近 10 次 `Esc→Space→Enter` 串），`mouseleave` 隐）补 `[全折叠域当前态]` 5 键段（`_html` 拼三键 + 触发顺序后加
+`<span style="color:var(--dim)">[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... ·
+_mtGuardAllDomain=...</span>`，5 键 `localStorage` 各 `||'0'` 降级，键盘流触发记录 hover 浮层自含全折叠域 5 键当前态，与 R222/R223/R224/R225/R226 补全折叠域字段同域）② `mtKeyHintCopy`
+（R195 区，`#mtkeyhintcopy` 点复制「#music3 键盘流触发记录 · <ts>」+ 三键最近触发时间戳 + 触发顺序串到剪贴板，`navigator.clipboard.writeText` 降级 `_copyFallback`）同补 5 键段（`_lines+=` 触发顺序段后
+加「[全折叠域当前态] localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...」，键盘流触发记录文本自含全折叠域 5 键当前态，
+与 `#mtkeyhintdetail` hover 浮层同数据源同步）③ 与 R181 `#mtkeyhintdetail` 键盘三键提示浮层 / R195 `#mtkeyhintcopy` 键盘流触发记录复制**分工**（R181/R195 键盘流触发记录 hover / 复制（三键触发记录 +
+触发顺序），R227 补全折叠域 5 键当前态段——键盘流触发记录自含全折叠域当前态，`#mtkeyhintdetail` hover + `#mtkeyhintcopy` 复制双路同 5 键段）④ 与 R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态
+总览 / R225 折叠全链路总控 / R226 双图区明细补全折叠域字段**语言同**（各键盘流 / 全折叠域 / 三域 / 全链路 / 双图区读 5 键 `localStorage` 拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口
+标位）⑤ 验收**函数级**（设 5 键全 `'1'` + 设键盘流触发记录 `window._mtKeyLog` / `_mtKeyLogOrder` + `#mtkeyhint` `mouseenter` 验 `#mtkeyhintdetail` `innerHTML` 含 `全折叠域当前态` 段（hover 浮层自含
+5 键段）+ 点 `#mtkeyhintcopy` 验 toast「已复制键盘流触发记录」（键盘流触发记录文本含全折叠域 5 键当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；键盘流触发记录 hover / 复制拼逻辑验 5 键段进
+`innerHTML` / 文本，非真剪贴板 / 渲染像素）。
+

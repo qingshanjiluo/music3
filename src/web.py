@@ -4027,7 +4027,9 @@ function _mtUnpausedBtn(){
     const _html=_keyDot(_spCan, _ps&&_spCan)+'Space 暂停/续跑 · '+_spT+'<br>'
       +_keyDot(_esCan, false)+'Esc 取消 · '+_esT+'<br>'
       +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮 · '+_enT+'<br>'
-      +'<span style="color:var(--dim)">'+_order+'</span>';
+      +'<span style="color:var(--dim)">'+_order+'</span><br>'
+      /* R227 键盘流触发记录补全折叠域5键当前态(自含全折叠域当前态, 与R222/R223/R224/R225/R226补全折叠域字段同域) */
+      +'<span style="color:var(--dim)">[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0')+'</span>';
     d.innerHTML=_html; d.style.display='block';
     if(cp){ const _hasRec=_kl.space||_kl.esc||_kl.enter||_ko.length; cp.style.display=_hasRec?'inline-block':'none'; } /* R195 copy 跟触发记录: 有触发记录才显 */
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtkeyhint 下方浮层, 靠右/靠底不溢出 */
@@ -4053,6 +4055,8 @@ function mtKeyHintCopy(){
   _lines+='Esc 取消 · '+(_kl.esc?('最近 '+_kl.esc):'未用过')+'\n';
   _lines+='Enter 跳双图 + 聚焦最新轮 · '+(_kl.enter?('最近 '+_kl.enter):'未用过')+'\n';
   _lines+=_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）';
+  /* R227 键盘流触发记录补全折叠域5键当前态(自含全折叠域当前态, 与R222/R223/R224/R225/R226补全折叠域字段同域) */
+  _lines+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+(localStorage.getItem('_mtMetFold')||'0')+' · _mtGuardPanelFold='+(localStorage.getItem('_mtGuardPanelFold')||'0')+' · _mtGuardFoldAll='+(localStorage.getItem('_mtGuardFoldAll')||'0')+' · _mtGuardFoldCtl='+(localStorage.getItem('_mtGuardFoldCtl')||'0')+' · _mtGuardAllDomain='+(localStorage.getItem('_mtGuardAllDomain')||'0');
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制键盘流触发记录', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
