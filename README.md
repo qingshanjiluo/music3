@@ -4662,3 +4662,37 @@ R172 落定，`mtFocusLatest` 同函数，后触者覆盖 `#mtpairlbl`/`#mtdelth
 推 `_mtRunHist`/`_mtRunDelta` 验 `mtFocusLatest` 跟到末柱 6，不真跑 `mtRun` 免 tick 污染 `runs`；`inViewport` 验双图区在视口内
 判定 + 配对末位，不在视口内时 `style.display==='none'` 挡不跟）。
 
+---
+
+## 第188轮（前端 R174 · goal round151）：`#mtmetsum` 双指标汇总标签点击跳双图区（`#mtmetsum` 点击 → 展开 `#mtmetfoldwrap`（若折叠）+ `scrollIntoView` 双图区 + `mtFocusLatest` 聚焦最新轮，汇总入口跳双图）
+
+**连贯性（非跑中看汇总后跳双图看趋势免手动滚）**：R171 `#mtlivebadge` 点击跳双图区是**跑中入口**（跑中每轮 `#mtlivebadge`
+显，点跳双图），但**常驻汇总 `#mtmetsum`**（R158「近 N 次 · 耗时均值 Xs · 补入均值 +Y/次 · 合计 +Z」，跑中 / 非跑中都显）**没有
+跳转入口**（要看双图趋势 / 聚焦最新轮得手动滚或等跑中点 `#mtlivebadge`，非跑中看汇总后跳双图没入口）。`#mtmetsum` 加
+**`onclick`**（`mtMetSumJump`：展开 `#mtmetfoldwrap`（若折叠）+ `scrollIntoView` `#mthistspark` + `setTimeout` 400ms `mtFocusLatest`
+聚焦最新轮）——**汇总入口跳双图**（非跑中也能从 `#mtmetsum` 跳双图看趋势 + 聚焦最新轮，`cursor:pointer` + `title` 提示点我），
+与 R171 徽标跳双图**同「趋势条可管」但汇总入口**（跑中 `#mtlivebadge` 跳 / 非跑中 `#mtmetsum` 跳，两入口共用 `mtFocusLatest` +
+展开 + `scrollIntoView`）。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(4 末=0) → #mtmetsum 显 + 折叠双图区 → 点 #mtmetsum → 展开（block）+ mtFocusLatest 聚焦
+最新轮 #mtpairlbl「第 4 次 · 耗时 1.5s · 补入 +0」（_mtRunHist 末 1.5 / _mtRunDelta 末 0）`（绿）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r174_sumjump.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 644→646`，断点 `_整理后分类\华语经典\周杰伦\回到过去.mp3`。
+
+**坑**：① `#mtmetsum` 是 `#mtdeltabar` 内 R158 span（`display:none` 默认，`mtMetSumDraw` 有数据才显），`onclick` 加在
+`mtMetSumJump` 定义后 IIFE（`ms.addEventListener('click')`，不内联 `onclick=`——`#mtmetsum` `textContent` 每跑 `mtMetSumDraw`
+刷新，内联会被覆盖丢事件，`addEventListener` 挂元素不随 `textContent` 变，与 R171 `#mtlivebadge` 同 `addEventListener` 纪律）②
+`mtMetSumJump`（`#mtmetsum` onclick）：复用 R171 展开逻辑（`#mtmetfoldwrap` 折叠 `display:none` → `display='block'` +
+`_mtMetFold='0'` + `#mtmetfold` 钮 `▾ 折趋势`）+ `#mthistspark` `scrollIntoView({behavior:'smooth', block:'center'})` +
+`setTimeout(400) mtFocusLatest()`（滚势停后聚焦最新轮，与 R172 `mtLiveBadgeJump` 同 `setTimeout` 400ms + `mtFocusLatest`，两处
+跳双图入口共用聚焦）③ **汇总入口 vs 徽标入口**（R171 `#mtlivebadge` 跑中入口 / R174 `#mtmetsum` 非跑中也入口——`#mtmetsum`
+常驻显（`mtMetSumDraw` 有数据就显，跑中 / 非跑中），`#mtlivebadge` 只跑中每轮 tick 显，两入口分工：跑中扫当前轮看双图点
+`#mtlivebadge`，非跑中看汇总回顾跳双图点 `#mtmetsum`，都展开 + `scrollIntoView` + `mtFocusLatest` 聚焦最新轮）④ `cursor:pointer`
++ `title='点我看双图趋势 + 聚焦最新轮'`（`#mtmetsum` 是 span，`cursor:pointer` 暗示可点，`title` 悬停提示，常驻汇总标签可点
+不突兀——`#mtmetsum` 在 `#mtdeltabar` 内靠右，点它跳双图区，与双图区一排小钮同「点看」语言）⑤ `mtFocusLatest` 聚焦最新轮（末
+柱 `#mtdelthover` + `#mtpairlbl` 配对），`_mtRunDelta` 末 `0`（空补）时 `dv=0` `#mtpairlbl` 补入显 `+0`（0 也是有效值，非空，
+`dv!==null` 判——`_mtRunDelta` 有 0 值条目时末位 0 照显 `+0`，不显 `-`）⑥ 验收**函数级**（写 `_mtRunHist`/`_mtRunDelta` 4 条
+末 `_mtRunDelta=0` + 折叠双图区 + 点 `#mtmetsum` 验展开 `block` + 400ms 后 `#mtpairlbl` 末位配对，不真跑 `mtRun` 免 tick 污染
+`runs`；`scrollIntoView` headless 不验实际滚动只验双图区展开 + 聚焦落定，`#mtmetsum` `msOn` 验 `mtMetSumDraw` 有数据显）。
+

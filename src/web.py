@@ -3825,6 +3825,14 @@ function mtFocusLatest(){
     if(dEl && dv!==null && d.length){ const mx=Math.max.apply(null,d.concat([1])); const top=(20-Math.round(dv/mx*18))-1; dEl.style.display='block'; dEl.style.top=top+'px'; dEl.style.left='100%'; }
   }catch(e){}
 }
+/* 汇总标签点击跳双图(R174): #mtmetsum onclick -> 展开 #mtmetfoldwrap(若折叠)+ scrollIntoView 双图区 + mtFocusLatest 聚焦最新轮, 汇总入口跳双图(非跑中也能从汇总看双图趋势), 与 R171 徽标跳双图同「趋势条可管」但汇总入口 */
+function mtMetSumJump(){
+  const wrap=$('#mtmetfoldwrap');
+  if(wrap && wrap.style.display==='none'){ wrap.style.display='block'; try{ localStorage.setItem('_mtMetFold','0'); }catch(e){} const bf=$('#mtmetfold'); if(bf){ bf.textContent='▾ 折趋势'; } }
+  const tgt=$('#mthistspark'); if(tgt){ tgt.scrollIntoView({behavior:'smooth', block:'center'}); }
+  setTimeout(function(){ if(typeof mtFocusLatest==='function'){ mtFocusLatest(); } }, 400);
+}
+(function(){ const ms=$('#mtmetsum'); if(ms){ ms.addEventListener('click', mtMetSumJump); ms.style.cursor='pointer'; ms.title='点我看双图趋势 + 聚焦最新轮'; } })();
 /* 徽标点击跳双图区(R171): #mtlivebadge onclick -> 展开 #mtmetfoldwrap(若 R163 折叠)+ scrollIntoView 滚到双图区(#mthistspark), 跑中扫一眼当前轮后直接看双图趋势(耗时折线/补入柱状), 徽标->双图跳转与 R163 折叠开关同「趋势条可管」语言 */
 function mtLiveBadgeJump(){
   const wrap=$('#mtmetfoldwrap');
