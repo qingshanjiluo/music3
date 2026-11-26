@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3565,6 +3565,7 @@ function mtRunHistDraw(){
   svg.innerHTML='<div class="mthistbox" data-hh="'+encodeURIComponent(JSON.stringify(h))+'" style="position:relative;width:110px;height:22px"><svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><defs><linearGradient id="mthistg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity="0"></stop><stop offset="1" stop-color="var(--acc)" stop-opacity="0.18"></stop></linearGradient></defs><polygon points="'+area+'" fill="url(#mthistg)"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linecap="round"/></svg><span id="mthisthover" style="position:absolute;left:-99px;top:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--acc);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span id="mthisthovlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:var(--acc);white-space:nowrap;display:none;pointer-events:none"></span></div>';
   /* 基线附注: R150 重置记的 _mtRunHistBase, 有基线时 #mthistlabel 附「基线 <ts> · 距基线 X」(看趋势重定0点后随时知道距基线多久补X) */
   try{ const base=localStorage.getItem('_mtRunHistBase'); if(base){ const d=Math.max(0,Date.now()-(+base)); const hh=Math.floor(d/3600000), mm=Math.floor(d/60000)%60, ss=Math.floor(d/1000)%60; const dt=hh>0?(hh+'h '+mm+'m'):(mm>0?(mm+'m '+ss+'s'):(ss+'s')); const bts=new Date(+base).toISOString().replace('T',' ').slice(5,16); lbl.textContent+= ' · 基线 '+bts+' · 距基线 '+dt; } }catch(e){}
+  if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
 }
 /* 跑维护历史折线 hover 数值跟随: document 捕获 mousemove/mouseout, 命中 #mthistbox 按 x 定位最近点, 显该次耗时(与 R134 维护卡 sparkline hover 同「hover 看值」直觉, 顶栏小折线也能扫单次耗时) */
 document.addEventListener('mousemove', function(e){
@@ -3612,6 +3613,7 @@ function mtRunDeltaDraw(){
   const total=d.reduce((a,c)=>a+c,0);
   lbl.textContent='近 '+n+' 次跑维护补入 · 合计 +'+total+'（绿=补入, 空=没补到）';
   svg.innerHTML='<div class="mtdeltabox" data-hd="'+encodeURIComponent(JSON.stringify(d))+'" style="position:relative;width:110px;height:22px"><svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><line x1="0" y1="20" x2="100" y2="20" stroke="var(--line)" stroke-width="1"/>'+bars+'</svg><span id="mtdelthover" style="position:absolute;left:-99px;top:0;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--ok);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span id="mtdelthovlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:var(--ok);white-space:nowrap;display:none;pointer-events:none"></span></div>';
+  if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
 }
 /* 补入量柱状 hover 数值跟随: document 捕获 mousemove/mouseout, 命中 #mtdeltabar .mtdeltabox 按 x 定位最近柱, 显该次补入量+X(与 R145 历史折线 hover 同「hover 看值」直觉, 顶栏柱状也能扫单次补入) */
 document.addEventListener('mousemove', function(e){
@@ -3649,13 +3651,32 @@ document.addEventListener('mouseout', function(e){
 function mtRunDeltaClear(){
   try{ localStorage.removeItem('_mtRunDelta'); }catch(e){}
   mtRunDeltaDraw();
+  if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
   _toast('补入量历史已清空 · 重新计基线', 'ok');
 }
 (function(){ const c=$('#mtdeltaclear'); if(c){ c.onclick=mtRunDeltaClear; } })();
+/* 载入: 按 _mtRunHist+_mtRunDelta 画双指标一行汇总(跨会话, 重开还在) */
+(function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } }); } else { if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } } })();
+/* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
+function mtMetSumDraw(){
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+  const el=$('#mtmetsum'); if(!el) return;
+  if(!h.length && !d.length){ el.style.display='none'; return; }
+  const n=Math.max(h.length, d.length);
+  const hAvg=h.length? (h.reduce((a,c)=>a+c,0)/h.length).toFixed(1) : '—';
+  const dAvg=d.length? Math.round(d.reduce((a,c)=>a+c,0)/d.length) : null;
+  const dSum=d.length? d.reduce((a,c)=>a+c,0) : null;
+  let txt='近 '+n+' 次 · 耗时均值 '+(h.length?hAvg+'s':'—');
+  if(d.length){ txt+=' · 补入均值 +'+dAvg+'/次 · 合计 +'+dSum; }
+  el.textContent=txt;
+  el.style.display='inline-block';
+}
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */
 function mtRunHistClear(){
   try{ localStorage.removeItem('_mtRunHist'); }catch(e){}
   mtRunHistDraw();
+  if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); }
   _toast('跑维护耗时历史已清空 · 重新计基线', 'ok');
 }
 /* 导出跑维护历史 CSV: _mtRunHist 近10次耗时(序号/秒/导出时间) -> Blob 下载; 换设备带历史走/存档复盘(与 R113 日志导出同「导出留档」直觉) */

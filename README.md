@@ -4216,3 +4216,28 @@ onclick，载入 IIFE 绑）：`localStorage.removeItem('_mtRunDelta')` + `mtRun
 重新积累、`mtRunDeltaDraw` 重画恢复 ⑤ 只清**前端展示层** `_mtRunDelta`（补入量柱状是前端 `localStorage` 趋势，不清后端
 `maintain_state.json` tick 游标/totals——真维护进度不动，只清补入量折线展示）。
 
+---
+
+## 第172轮（前端 R158 · goal round135）：双指标区一行汇总标签（`#mtmetsum`，`_mtRunHist`/`_mtRunDelta` 汇总「近 N 次 · 耗时均值 Xs · 补入均值 +Y/次 · 合计 +Z」）
+
+**简洁性（两指标总体一览）**：R153 `#mtdeltabar` 补入量柱状（`_mtRunDelta`）+ R144 `#mthistspark` 耗时折线（`_mtRunHist`），
+R156 `#mtpairlbl` 看**单次**配对（hover），**N 次汇总**（耗时均值 + 补入均值 + 合计，扫一眼两指标总体）没出口。`#mtdeltaclear`
+旁加**`#mtmetsum`**（`_mtRunHist`/`_mtRunDelta` 都非空时显「近 N 次 · 耗时均值 Xs · 补入均值 +Y/次 · 合计 +Z」，都空隐）
+——双指标总体一览（耗时均值 + 补入均值 + 合计补入），与 R156 `#mtpairlbl` **互补**（`#mtmetsum` 看 N 次汇总、`#mtpairlbl`
+hover 看单次配对）。
+
+**E2E**：`写 _mtRunHist=[1.2,0.8,0.9,1.5,1.1,0.7]+_mtRunDelta=[8,5,12,0,3,2] → #mtmetsum 显「近 6 次 · 耗时均值 1.0s · 补入
+均值 +5/次 · 合计 +30」（on1=inline-block）+ 都空 → 隐（on2=none）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、
+node 0、console 0、截图 r158_sum.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 612→614`，断点 `_归档_封存\SD卡版\周杰伦\魔术先生.mp3`。
+
+**坑**：① `#mtmetsum` 挂 `#mtdeltabar` 内（`#mtdeltaclear` 后，`--dim` 色 10px，`display:none` 默认，两指标汇总才 `inline-block`）
+② `mtMetSumDraw`：读 `_mtRunHist`（耗时）+ `_mtRunDelta`（补入量），`n=max(两数组长)`，`耗时均值 = (Σhist)/len .toFixed(1)`（1dp）、
+`补入均值 = round(Σdelta/len)`、`合计 = Σdelta`（补入总量），拼「近 N 次 · 耗时均值 Xs · 补入均值 +Y/次 · 合计 +Z」（耗时或补入
+缺一个时该段显 `—` / 不显补入段）；都空 `display:none` ③ `mtRunHistDraw`/`mtRunDeltaDraw` 尾部（画完折线/柱状）+ `mtRunHistClear`/
+`mtRunDeltaClear`（清完）+ 载入 IIFE 都调 `mtMetSumDraw()`（两指标任一更新 / 清除，汇总同步重画）④ 与 R156 `#mtpairlbl`（单次
+hover 配对）**互补**：`#mtmetsum` 常驻看 N 次汇总（扫一眼维护两指标总体），`#mtpairlbl` hover 看单次（悬停某次看耗时+补入配对），
+两视图（常驻汇总 / hover 单次）⑤ 耗时均值 `1dp`（`toFixed(1)`，与 R144 `#mthistlabel` 均值同粒度）、补入均值 `round`（整数，补入量
+是整数）、合计 `Σdelta`（补入总量，看维护累计补了多少）⑥ node 重启瞬断（服务重启后 `Start-Sleep 3` 抓 JS 配平 0）。
+
