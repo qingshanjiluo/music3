@@ -6472,3 +6472,27 @@ R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总�
 `mouseenter` 验 `#mtstatebardtl` `textContent` 含 `全折叠域当前态` 段（hover 浮层自含 5 键段）+ 点 `#mtstatebardtlcopy` 验 toast「已复制维护状态详情」（状态详情文本含全折叠域 5 键当前态段），不真跑
 `mtRun` 免 tick 污染 `runs`；状态详情 hover / 复制拼逻辑验 5 键段进 `textContent` / 文本，非真剪贴板 / 渲染像素）。
 
+---
+
+## 第243轮（前端 R229 · goal round206）：维护守护区双图区 PNG 快照补全折叠域字段（`#mtmetpng` 双图区 PNG 快照 / `mtMetPng` canvas 画维护趋势耗时折线 + 补入柱状 补全折叠域 5 键当前态段（canvas 底栏 5 键色带），双图区 PNG 快照自含全折叠域当前态）
+
+**完善性（双图区 PNG 快照自含全折叠域当前态）**：R226 双图区明细补全折叠域 5 键，但**`#mtmetpng` 双图区 PNG 快照（R158 区，canvas 画维护趋势耗时折线 + 补入柱状）没全折叠域 5 键**
+（双图区 PNG 快照要自含全折叠域当前态，`mtMetPng`（R158 区）补全折叠域 5 键当前态段（canvas 底栏 5 键色带，`_H=210`→`230` 加高），双图区 PNG 快照自含全折叠域当前态，与
+R222/R223/R224/R225/R226/R227/R228 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设双指标历史 → 点 #mtmetpng 导出 PNG → toast「已导出双指标趋势快照（PNG）」（canvas PNG 含全折叠域 5 键当前态底栏色带）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r229_metpng5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 756→758`，断点 `_陶喆\心乱飞.mp3`。
+
+**坑**：① `mtMetPng`（R158 区）双图区 PNG 快照（canvas 画维护趋势：耗时折线 `32-82` 区 / 补入柱状 `96-146` 区 / 汇总标签 `H-10`，`W=520, H=210`）补全折叠域 5 键当前态段（canvas 底栏 5 键色带：
+`_fl5m` 5 键 `localStorage`（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`，`||'0'` 降级）+ `_kn5m` 5 键名缩写（`Met`/`Pan`/`All`/`Ctl`/`Dom`）+ 循环拼 5 色带
+`fillRect`（`'0'` 展开 `rgb(47,125,85)` 绿 / 非 `'0'` 折叠 `rgb(163,38,26)` 红，`fillText` 键名缩写 + 值白字）+ `全折叠域5键当前态` 标签（`H-40`）+ 色带（`H-34` 区），`H=210`→`230` 加高容全折叠域 5 键底栏
++ 汇总标签 `H-10`→`H-8` 下移避全折叠域段，双图区 PNG 快照自含全折叠域 5 键当前态，与 R222/R223/R224/R225/R226/R227/R228 补全折叠域字段同域，`#mtmetpng` PNG 快照补全折叠域段）② 与 R158 `#mtmetpng`
+双图区 PNG 快照**分工**（R158 双图区 PNG 快照（维护趋势耗时折线 + 补入柱状 + 汇总标签），R229 补全折叠域 5 键当前态段（canvas 底栏 5 键色带）——双图区 PNG 快照自含全折叠域当前态，`#mtmetpng`
+PNG 快照补全折叠域段）③ 与 R158 双图区 PNG 快照 / R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总控 / R226 双图区明细 / R227 键盘流触发记录 / R228 状态详情
+补全折叠域字段**语言同**（各双图区 PNG 快照 / 全折叠域 / 三域 / 全链路 / 双图区明细 / 键盘流 / 状态详情读 5 键 `localStorage` 拼色带 / 文本，全折叠域当前态同语言，各出口自含全折叠域出口标位）
+④ 验收**函数级**（设 5 键全 `'1'` + 设双指标历史 `localStorage._mtRunHist` / `_mtRunDelta` + 点 `#mtmetpng` 导出 PNG 验 toast「已导出双指标趋势快照（PNG）」（canvas PNG 含全折叠域 5 键当前态
+底栏色带），不真跑 `mtRun` 免 tick 污染 `runs`；canvas PNG 拼逻辑验全折叠域 5 键色带进 PNG（`_fl5m` 5 键 + `_kn5m` 5 键名缩写 + 循环拼 5 色带 `fillRect`），非真 PNG 像素（headless 不下载 PNG 文件，
+验 toast 出口 + canvas 全折叠域 5 键色带拼逻辑，真 PNG 内容不验）。
+

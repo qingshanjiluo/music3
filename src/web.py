@@ -3743,7 +3743,7 @@ function mtMetPng(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
   let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
   if(!h.length && !d.length){ _toast('无维护趋势可快照（先跑一次维护）', 'bad'); return; }
-  const W=520, H=210, padL=14, padR=14;
+  const W=520, H=230, padL=14, padR=14;
   const c=document.createElement('canvas'); c.width=W; c.height=H;
   const g=c.getContext('2d');
   g.fillStyle='#fff'; g.fillRect(0,0,W,H);
@@ -3773,8 +3773,21 @@ function mtMetPng(){
   }
   if(h.length){ g.strokeStyle='#e4e4ea'; g.lineWidth=1; g.beginPath(); g.moveTo(padL,30); g.lineTo(W-padR,30); g.stroke(); drawLine(32, h, 'rgb(196,56,31)'); }
   if(d.length){ drawBar(h.length?96:32, d, 'rgb(47,125,85)'); }
+  /* R229 双图区PNG快照补全折叠域5键当前态(canvas底栏5键色带, 自含全折叠域当前态, 与R222-R228补全折叠域字段同域) */
+  const _fl5m=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _kn5m=['Met','Pan','All','Ctl','Dom'];
+  const _cw5m=Math.floor((W-padL-padR)/5)-2;
+  g.fillStyle='#5a5a5f'; g.font='10px ui-sans-serif,system-ui,sans-serif';
+  g.fillText('全折叠域5键当前态', padL, H-40);
+  for(let _i=0;_i<5;_i++){
+    const _sx=padL+_i*(Math.floor((W-padL-padR)/5));
+    g.fillStyle=(_fl5m[_i]==='0')?'rgb(47,125,85)':'rgb(163,38,26)';
+    g.fillRect(_sx, H-34, _cw5m, 12);
+    g.fillStyle='#fff'; g.font='8px ui-sans-serif,system-ui,sans-serif';
+    g.fillText(_kn5m[_i]+'='+_fl5m[_i], _sx+1, H-24);
+  }
   /* 汇总标签 */
-  const sum=$('#mtmetsum'); if(sum && sum.style.display!=='none' && sum.textContent){ g.fillStyle='#c4381f'; g.font='11px ui-sans-serif,system-ui,sans-serif'; g.fillText(sum.textContent, padL, H-10); }
+  const sum=$('#mtmetsum'); if(sum && sum.style.display!=='none' && sum.textContent){ g.fillStyle='#c4381f'; g.font='11px ui-sans-serif,system-ui,sans-serif'; g.fillText(sum.textContent, padL, H-8); }
   const url=c.toDataURL('image/png');
   const a=document.createElement('a'); a.href=url; a.download='music3_trend_'+Date.now()+'.png';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
