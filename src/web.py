@@ -3934,12 +3934,14 @@ function mtLiveBadgeJump(){
       if(run){ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
       if(typeof _toast==='function'){ _toast('已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）', 'ok'); }
       if(typeof mtStateBarDraw==='function'){ mtStateBarDraw(); } /* R184 取消同步指示条红 */
+      if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.esc=new Date().toLocaleTimeString(); /* R193 Esc 触发记录 */
     }
     /* Enter 跳双图(R179): 维护 tab 激活 + 焦点非输入框 -> mtLiveBadgeJump(跳双图+mtFocusLatest聚焦最新轮), 跑中看徽标手放键盘按 Enter 即跳双图免移开手点, 与 R171 点击跳双图同「趋势条可管」但键盘路径 */
     if(e.key==='Enter'){
       e.preventDefault(); /* 挡全局 Enter(表单提交等), 维护区 Enter 只做跳双图 */
       if(typeof mtLiveBadgeJump==='function'){ mtLiveBadgeJump(); }
       if(typeof _toast==='function'){ _toast('已跳双图区 · 聚焦最新轮（Enter）', 'ok'); }
+      if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.enter=new Date().toLocaleTimeString(); /* R193 Enter 触发记录 */
     }
     /* Space 暂停/续跑(R180): 维护 tab 激活 + 焦点非输入框 + 跑维护中(window._mtRunning) -> window._mtPaused 切换(暂停/续跑)+ #mtrun 黄态 + toast, 跑中全库挂起不等跑完/不取消 */
     if(e.key===' '){
@@ -3955,6 +3957,7 @@ function mtLiveBadgeJump(){
         if(typeof _toast==='function'){ _toast('已续跑 · 维护继续', 'ok'); }
       }
       if(typeof mtStateBarDraw==='function'){ mtStateBarDraw(); } /* R184 暂停/续跑同步指示条(暂停黄/续跑回跑中绿) */
+      if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.space=new Date().toLocaleTimeString(); /* R193 Space 暂停/续跑触发记录 */
     }
   });
 })();
@@ -3984,9 +3987,14 @@ function _mtUnpausedBtn(){
     const _spCan=_run&&!_ab;                 /* Space 可触(暂停或续跑), 暂停态显黄(续跑) */
     const _esCan=_run&&!_ab;                 /* Esc 可触(取消跑维护中) */
     const _enCan=!_ab;                       /* Enter 可触(跳双图, 非取消即触) */
-    const _html=_keyDot(_spCan, _ps&&_spCan)+'Space 暂停/续跑 · '
-      +_keyDot(_esCan, false)+'Esc 取消 · '
-      +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮';
+    /* 最近触发时间(R193): 读 window._mtKeyLog(各键操作后更新), 逐键补「最近 <ts>」/未用过 */
+    const _kl=window._mtKeyLog||{};
+    const _spT=_kl.space?('最近 '+_kl.space):'未用过';
+    const _esT=_kl.esc?('最近 '+_kl.esc):'未用过';
+    const _enT=_kl.enter?('最近 '+_kl.enter):'未用过';
+    const _html=_keyDot(_spCan, _ps&&_spCan)+'Space 暂停/续跑 · '+_spT+'<br>'
+      +_keyDot(_esCan, false)+'Esc 取消 · '+_esT+'<br>'
+      +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮 · '+_enT;
     d.innerHTML=_html; d.style.display='block';
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtkeyhint 下方浮层, 靠右/靠底不溢出 */
     const r=k.getBoundingClientRect();

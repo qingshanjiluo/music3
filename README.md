@@ -5266,3 +5266,34 @@ hover 详情**分工**（R185 hover 显状态详情看（`#mtstatebardtl` 浮层
 `window._mtLiveDoneInfo` 空 + 点 copy 验 toast「无全库维护完成详情可复制」，不真跑 `mtRun` 全库免 tick 污染 `runs`；copy 复制只验
 toast 出口，真剪贴板内容 headless 不验）。
 
+---
+
+## 第207轮（前端 R193 · goal round170）：`#mtkeyhint` 三键提示浮层补键盘快捷键实际触发记录（`#mtkeyhintdetail` 三键各带最近一次触发时间戳，`document` 键盘操作后更新 `window._mtKeyLog`，hover 逐键显「最近 <ts>」，键盘流使用节奏可追溯）
+
+**完善性（键盘流使用节奏可追溯 / 可回忆）**：R186 `#mtkeyhint` 三键状态灯显可触 / 不可触，但**没显三键最近一次实际触发的时间
+戳**（键盘流用过 `Space` 暂停 / `Esc` 取消 / `Enter` 跳双图后，`#mtkeyhintdetail` 逐键显「最近 `<ts>`」最近触发时间，看三键最近
+用过的时机，键盘流使用节奏可追溯 / 可回忆）。`document` `keydown` 监听（R178/R179/R180 同 IIFE）三键操作后更新
+`window._mtKeyLog={space:ts, esc:ts, enter:ts}`（`Esc`/`Enter`/`Space` 各操作后 `window._mtKeyLog.<key>=new Date().toLocaleTimeString()`），
+`#mtkeyhint` hover 委托（R186 区）三键色点文案后补「最近 `<ts>`」/「未用过」（读 `window._mtKeyLog` 逐键显最近触发时间，没用过显
+「未用过」）——hover 看三键最近用过的时机，键盘流使用节奏可追溯 / 可回忆。
+
+**E2E**：`三键都没用 → #mtkeyhint hover → #mtkeyhintdetail 逐键显「未用过」；document 按 Esc → window._mtKeyLog.esc 更新（10:21:34）
+→ hover 显「Esc 最近 10:21:34」+ Space/Enter 未用过`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r193_keylog.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 682→684`，断点 `_整理后分类\摇滚民谣\赵雷\纳兰.mp3`。
+
+**坑**：① `window._mtKeyLog` 挂 `window`（`document` `keydown` 监听 IIFE 三键操作后更新 + 跨作用域读，同 R180 `window._mtPaused`
+块级 `let` 作用外读坑——`document` 监听 / `#mtkeyhint` hover 委托（不同 IIFE）读必须挂 `window` 才跨作用域可读）② `Esc`/`Enter`/
+`Space` 各键操作后更新（`if(!window._mtKeyLog){ window._mtKeyLog={}; } window._mtKeyLog.esc=new Date().toLocaleTimeString()`——惰性
+初始化 `window._mtKeyLog`，各键独立存最近触发时间，`Esc` 区（R178）/ `Enter` 区（R179）/ `Space` 区（R180，暂停 / 续跑两分支后）各
+加一行，三键独立记录不互覆写）③ `#mtkeyhint` hover 委托（R186 区 `_html` 拼三键色点 + 文案处）补「最近 <ts>」/「未用过」（`const
+_kl=window._mtKeyLog||{}`，`_spT=_kl.space?('最近 '+_kl.space):'未用过'`，三键色点文案后补 `<br>` 折行逐键显最近触发时间，`d.innerHTML`
+拼，headless 验 `innerHTML` 含「最近」/「未用过」）④ 与 R186 三键状态灯**分工**（R186 色点显三键当前可触 / 不可触 / 暂停（读
+`window._mtRunning`/`_mtPaused`/`_mtAborted` 实时判），R193 逐键补最近触发时间戳（读 `window._mtKeyLog` 历史触发），色点 = 现在能按哪
+键 + 时间戳 = 最近用过哪键何时，两路看键盘流使用节奏可追溯 / 可回忆）⑤ `toLocaleTimeString()` 显时:分:秒（`10:21:34`，不显日期
+——三键触发时间当天节奏够用，`toLocaleTimeString` 非 `toLocaleString`，hover 逐键「最近 10:21:34」紧凑）⑥ 验收**函数级**（`window.
+_mtKeyLog` 置 `null` + `#mtkeyhint` `dispatchEvent` `mouseenter` 验「未用过」，`document` `dispatchEvent` `keydown`（`key:'Escape'`
+维护 tab 激活 + 焦点非输入框）验 `window._mtKeyLog.esc` 更新 + hover 显「Esc 最近 <ts>」+ `Space` 未用过，不真跑 `mtRun` 免 tick 污染
+`runs`；三键操作各验各自 `window._mtKeyLog.<key>` 更新，`#mtkeyhintdetail` 逐键 headless 验 `innerHTML` 含「最近」/「未用过」）。
+
