@@ -6790,3 +6790,40 @@ R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层 / R235 `#mtguardfo
 `_btns5` 加 `mtallfoldstat` + `_floors7` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），headless 下载 PNG 无 toast 属正常（`canvas` `toBlob` 转 PNG 下载不显 toast，降级才 toast「PNG 导出不可用」/「PNG 导出失败」，
 验 `console 0` + 下载成功，真 PNG 内容不验）。
 
+---
+
+## 第253轮（前端 R239 · goal round216）：维护守护区全折叠域 5 域折叠态一键复制出口补全折叠域 6 键（`#mtallfoldcopy` 全折叠域 5 域折叠态一键复制（R232）补第 6 键 `localStorage._mtGuardAllFoldStat` 当前态字段（`[全折叠域5域]` 5 域色带补第 6 域 + `[6键 localStorage]` + `[6标志 window]` + `[6折叠钮]` + `[8浮层 display]`，全折叠域 5 域折叠态一键复制自含全折叠域 6 键当前态）
+
+**完善性（全折叠域 5 域折叠态一键复制自含全折叠域 6 键当前态）**：R238 `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照补第 6 键 `_mtGuardAllFoldStat` 当前态段（内联 SVG 补第 6 域 / 6 标志 / 6 折叠钮 / 8 浮层），但
+**`#mtallfoldcopy` 全折叠域 5 域折叠态一键复制（R232 区，`mtAllFoldCopy` 拼全折叠域 5 域（`_doms` 数组 5 元素）+ 5 键 `localStorage` + 5 标志 `window` + 5 折叠钮 + 7 浮层当前态到剪贴板）没第 6 键 `_mtGuardAllFoldStat`**
+（全折叠域 5 域折叠态一键复制要自含全折叠域 6 键当前态，`mtAllFoldCopy`（R232 区）复制文本补第 6 键 `localStorage._mtGuardAllFoldStat` 当前态段（`_doms` 数组加第 6 元素 `['全折叠域5域折叠态总控浮层',
+'#mtallfoldstat','_mtGuardAllFoldStat']` + `[5键 localStorage]` → `[6键 localStorage]` + `[5标志 window]` → `[6标志 window]` + `[5折叠钮]` → `[6折叠钮]` + `[7浮层 display]` → `[8浮层 display]`，循环 5→6 / 7→8），
+全折叠域 5 域折叠态一键复制自含全折叠域 6 键当前态，与 R235/R236/R237/R238 全折叠记忆重置补全折叠域 6 键同域）。
+
+**E2E**：`设 6 键全 '1' + 6 标志全 true → 点 #mtallfoldcopy → toast「已复制全折叠域 5 域折叠态」（复制含全折叠域 6 域 / 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r239_allfoldcopy6key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 776→778`，断点 `_草东没有派对\Intro.mp3`。
+
+**坑**：① `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制（R232 区，`mtAllFoldCopy` 拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态到剪贴板：`_lines` 拼标题 + `[全折叠域5域]` 5 域（`_doms` 数组 5 元素
+（3 列 `[域名,折叠钮id,键名]`），各域 `localStorage` 折叠态（`'1'` 折叠 / `'0'` 展开）+ 域名 + 折叠钮 id + `localStorage` 值 + `[5键 localStorage 当前态]` 5 键 `localStorage`（`||'0'` 降级）+ `[5标志 window 当前态]` 5
+标志 `window` + `[5折叠钮文案]` 5 折叠钮 `textContent` + `[7浮层 display 当前态]` 7 浮层 `style.display`，`navigator.clipboard.writeText` 降级 `_copyFallback` + toast「已复制全折叠域5域折叠态」））补第 6 键全折叠
+域 5 域折叠态总控浮层折叠记忆（R239，`_doms` 数组加第 6 元素 `['全折叠域5域折叠态总控浮层','#mtallfoldstat','_mtGuardAllFoldStat']`（`_doms` 5 元素 → 6 元素，循环 5→6），`_ls5` 加第 6 元素 `localStorage.
+_mtGuardAllFoldStat`（`_ls5` 5 元素 → 6 元素，`[5键 localStorage]` → `[6键 localStorage]` + 5 键段补 `_mtGuardAllFoldStat`），`_w5` 加第 6 元素 `window._mtGuardAllFoldStat`（`_w5` 5 元素 → 6 元素，`[5标志 window]`
+→ `[6标志 window]` + 5 标志段补 `_mtGuardAllFoldStat`），`_btns5` 加 `mtallfoldstat`（`_btns5` 5 元素 → 6 元素，`[5折叠钮]` → `[6折叠钮]` + 循环 5→6），`_floors7` 加 `mtallfoldstatd`（`_floors7` 7 元素 → 8 元素，
+`[7浮层 display]` → `[8浮层 display]` + 循环 7→8），全折叠域 5 域折叠态一键复制自含全折叠域 6 键当前态（`[全折叠域5域]` 6 域含 `_mtGuardAllFoldStat` 第 6 键 + `[6键 localStorage]` 含 `localStorage._mtGuardAllFoldStat`
++ `[6标志 window]` 含 `window._mtGuardAllFoldStat` + `[6折叠钮]` 含 `mtallfoldstat` + `[8浮层 display]` 含 `mtallfoldstatd`），与 R235/R236/R237/R238 全折叠记忆重置补全折叠域 6 键同域，`#mtallfoldcopy` 复制出口
+补第 6 键）② `mtAllFoldCopy`（R232）`_doms` 数组 3 列结构（`[域名,折叠钮id,键名]`）与 `mtAllFoldPng`（R233）/ `mtAllFoldStat`（R234）`_doms` 数组 2 列结构（`[域名,键名]`）不同（R232 复制文本拼各域 `localStorage` 折叠态
+需折叠钮 id，R233/R234 PNG/浮层拼 SVG 色带不需折叠钮 id 只需键名），R239 补第 6 元素 3 列 `['全折叠域5域折叠态总控浮层','#mtallfoldstat','_mtGuardAllFoldStat']`（同 R232 原 5 元素 3 列结构，补第 6 元素 3 列），
+同 R232 原 `_doms` 3 列结构纪律③ 与 R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制 / R238 `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照补第 6 键 / R237 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层补第 6 键 /
+R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位 / R236 `#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 全折叠记忆重置详情复制 / PNG 补第 6 键**分工**（R232 `#mtallfoldcopy` 全折叠域 5 域
+折叠态一键复制（`_doms` 3 列 5 元素 + 5 键 / 5 标志 / 5 折叠钮 / 7 浮层），R238 `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照内联 SVG 补第 6 键 `_mtGuardAllFoldStat` 当前态段，R237 `#mtallfoldstat` 全折叠域 5 域折叠
+态总控浮层内联 SVG 补第 6 键 `_mtGuardAllFoldStat` 当前态段，R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`#mtguardfoldreset` 全折叠域 6 键全复位），R236 全折叠记忆重置详情复制 / PNG 补第 6 键
+`_mtGuardAllFoldStat` 当前态段，R239 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制补第 6 键 `_mtGuardAllFoldStat` 当前态段（`_doms` 加第 6 元素 + `[6键 localStorage]` + `[6标志 window]` + `[6折叠钮]` + `[8浮层 display]`，
+全折叠域 5 域折叠态一键复制自含全折叠域 6 键当前态），R232/R235/R236/R237/R238/R239 全折叠域 6 键全自含当前态）④ 与 R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制 / R233 `#mtallfoldpng` 全折叠域 5 域折叠态
+PNG 快照 / R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R236 `#mtguardfoldresetcopy` / `#mtguardfoldresetpng` 全折叠记忆重置详情复制 / PNG 补第 6 键 /
+R237 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层补第 6 键 / R238 `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照补第 6 键**语言同**（各全折叠域 5 域折叠态一键复制 / PNG 快照 / 总控浮层 / 全折叠记忆重置 / 重置详情读
+6 键 `localStorage` 当前态 / 复位值 + 6 标志 `window` + 6 折叠钮文案 + 8 浮层 `display` 拼文本 / 色带 / SVG，全折叠域 6 键当前态同语言，各出口自含全折叠域出口标位）⑤ 验收**函数级**（设 6 键全 `'1'` + 6 标志全 `true`
++ 点 `#mtallfoldcopy` 验 toast「已复制全折叠域5域折叠态」（复制含全折叠域 6 域 / 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldcopy` 复制拼逻辑验全折叠域 6 域 / 6 键 / 6
+标志 / 6 折叠钮 / 8 浮层字段进文本（`_doms` 加第 6 元素 + `_ls5`/`_w5` 加第 6 元素 + `_btns5` 加 `mtallfoldstat` + `_floors7` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），非真剪贴板 / 渲染像素）。
+

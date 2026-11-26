@@ -4847,28 +4847,28 @@ function mtAllFoldCopy(){
   let _lines='#music3 全折叠域5域折叠态一键复制 · '+new Date().toLocaleString()+'\n';
   /* 全折叠域5域(双图区/总览面板/全浮层/折叠全链路/全折叠域总控面板) */
   _lines+='[全折叠域5域]\n';
-  const _doms=[['双图区','#mtmetfold','_mtMetFold'],['总览面板','#mtguardpanelfold','_mtGuardPanelFold'],['全浮层','#mtguardfoldall','_mtGuardFoldAll'],['折叠全链路','#mtguardfoldctl','_mtGuardFoldCtl'],['全折叠域总控','#mtguardalldomain','_mtGuardAllDomain']];
-  for(let _i=0;_i<5;_i++){
+  const _doms=[['双图区','#mtmetfold','_mtMetFold'],['总览面板','#mtguardpanelfold','_mtGuardPanelFold'],['全浮层','#mtguardfoldall','_mtGuardFoldAll'],['折叠全链路','#mtguardfoldctl','_mtGuardFoldCtl'],['全折叠域总控','#mtguardalldomain','_mtGuardAllDomain'],['全折叠域5域折叠态总控浮层','#mtallfoldstat','_mtGuardAllFoldStat']];
+  for(let _i=0;_i<6;_i++){
     const _btn=document.getElementById(_doms[_i][1].replace('#',''));
     let _fold=false; try{ _fold=(localStorage.getItem(_doms[_i][2])==='1'); }catch(_){}
     _lines+=_doms[_i][0]+' ('+_doms[_i][1]+') · '+(_fold?'折叠':'展开')+' · localStorage '+_doms[_i][2]+'='+(_fold?'1':'0')+'\n';
   }
-  /* 5键localStorage */
-  _lines+='\n[5键 localStorage 当前态]\n';
-  const _ls5=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
-  _lines+='_mtMetFold='+_ls5[0]+' · _mtGuardPanelFold='+_ls5[1]+' · _mtGuardFoldAll='+_ls5[2]+' · _mtGuardFoldCtl='+_ls5[3]+' · _mtGuardAllDomain='+_ls5[4]+'\n';
-  /* 5标志window */
-  _lines+='\n[5标志 window 当前态]\n';
-  const _w5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
-  _lines+='_mtMetFold='+_w5[0]+' · _mtGuardPanelFold='+_w5[1]+' · _mtGuardFoldAll='+_w5[2]+' · _mtGuardFoldCtl='+_w5[3]+' · _mtGuardAllDomain='+_w5[4]+'\n';
-  /* 5折叠钮文案 */
-  _lines+='\n[5折叠钮文案]\n';
-  const _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
-  for(let _i=0;_i<5;_i++){ const _b=document.getElementById(_btns5[_i]); _lines+=_btns5[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
-  /* 7浮层display */
-  _lines+='\n[7浮层 display 当前态]\n';
-  const _floors7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
-  for(let _i=0;_i<7;_i++){ const _f=document.getElementById(_floors7[_i]); _lines+=_floors7[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
+  /* 6键localStorage */
+  _lines+='\n[6键 localStorage 当前态]\n';
+  const _ls5=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0',localStorage.getItem('_mtGuardAllFoldStat')||'0'];
+  _lines+='_mtMetFold='+_ls5[0]+' · _mtGuardPanelFold='+_ls5[1]+' · _mtGuardFoldAll='+_ls5[2]+' · _mtGuardFoldCtl='+_ls5[3]+' · _mtGuardAllDomain='+_ls5[4]+' · _mtGuardAllFoldStat='+_ls5[5]+'\n';
+  /* 6标志window */
+  _lines+='\n[6标志 window 当前态]\n';
+  const _w5=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain,window._mtGuardAllFoldStat];
+  _lines+='_mtMetFold='+_w5[0]+' · _mtGuardPanelFold='+_w5[1]+' · _mtGuardFoldAll='+_w5[2]+' · _mtGuardFoldCtl='+_w5[3]+' · _mtGuardAllDomain='+_w5[4]+' · _mtGuardAllFoldStat='+_w5[5]+'\n';
+  /* 6折叠钮文案 */
+  _lines+='\n[6折叠钮文案]\n';
+  const _btns5=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain','mtallfoldstat'];
+  for(let _i=0;_i<6;_i++){ const _b=document.getElementById(_btns5[_i]); _lines+=_btns5[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
+  /* 8浮层display */
+  _lines+='\n[8浮层 display 当前态]\n';
+  const _floors7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains','mtallfoldstatd'];
+  for(let _i=0;_i<8;_i++){ const _f=document.getElementById(_floors7[_i]); _lines+=_floors7[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠域5域折叠态', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
