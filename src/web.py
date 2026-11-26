@@ -3020,7 +3020,11 @@ async function mtRun(){
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
     _mtUnaborted(); /* 跑完恢复「跑一轮」按钮态(跑中是「取消」红) */
-    if(typeof mtLiveBadgeHide==='function'){ mtLiveBadgeHide(); } /* 跑完/取消隐跑中双指标实时徽标(R166) */
+    if(FULL_DONE){ /* 全库跑完完成态(R187): #mtlivebadge 显「已跑完·共N轮·耗时Xs」绿--ok(不Hide, 全库收尾看徽标完成态), 与 #mtstatebar 完成灰双路知全库收尾 */
+      if(typeof mtLiveBadgeDone==='function'){ mtLiveBadgeDone(N, _mtTotalDur); }
+    } else {
+      if(typeof mtLiveBadgeHide==='function'){ mtLiveBadgeHide(); } /* 非全库跑完/取消隐跑中双指标实时徽标(R166) */
+    }
     /* 跑维护历史: 本次耗时(dur)推 localStorage._mtRunHist(近10次), 顶栏 #mtmsg 下挂小 sparkline(近几次跑耗时趋势, 跨维护会话粒度看越来越快/变慢, 与 R126 dur_trend 同 sparkline 语言但跨「跑维护」粒度) */
     try{
       const _hDur=Math.round((Date.now()-t0)/100)/10;
@@ -3850,6 +3854,14 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
   }
 }
 function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } const d=$('#mtlivedetail'); if(d){ d.style.display='none'; d.textContent=''; } }
+/* 全库跑完完成态徽标(R187): #mtlivebadge 显「已跑完 · 共 N 轮 · 耗时 Xs」绿--ok, 全库 FULL_DONE 跑完看徽标完成态(区别于跑中每轮刷跑中态, 全库收尾固定显完成), 与 #mtstatebar 完成灰双路知全库收尾 */
+function mtLiveBadgeDone(N, totalDur){
+  const el=$('#mtlivebadge'); if(!el) return;
+  el.textContent='已跑完 · 共 '+N+' 轮 · 耗时 '+totalDur+'s';
+  el.style.color='var(--ok)';
+  el.style.display='inline-block';
+  const d=$('#mtlivedetail'); if(d){ d.textContent='全库维护完成 · 共 '+N+' 轮 · 累计耗时 '+totalDur+'s · 点双图区汇总跳双图看趋势'; d.style.display='none'; }
+}
 /* 聚焦最新轮双指标(R172/R173 共用): #mtdeltabar 末柱点亮 #mtdelthover + #mtpairlbl 显配对(第N次·耗时Xs·补入+Y), 读 _mtRunHist 末位耗时+_mtRunDelta 末位补入; 跳双图(R172)/跑中每轮 tick 在视口内(R173) 都调 */
 function mtFocusLatest(){
   try{

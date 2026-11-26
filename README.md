@@ -5068,3 +5068,36 @@ hover 时 `mouseenter` 读 `window._mtRunning`/`_mtPaused`/`_mtAborted` 算三�
 `var(--line)` + 三键文案 + `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染 `runs`；`_keyDot` 色点 headless 验 `innerHTML` 含色点
 `var()` 色，非真渲染圆点像素）。
 
+---
+
+## 第201轮（前端 R187 · goal round164）：跑维护全库完成（`FULL_DONE`）时 `#mtlivebadge` 补完成态徽标「已跑完 · 共 N 轮 · 耗时 Xs」绿 `--ok`（`mtLiveBadgeDone`，全库收尾看徽标完成态 + 指示条灰双路知全库收尾）
+
+**完善性（全库收尾看徽标完成态免找入口）**：R184 `#mtstatebar` 跑中绿 / 暂停黄 / 取消红 / 完成灰，`FULL_DONE` 全库完成
+`mtStateBarDraw` 灰已显完成，但**`#mtlivebadge` 全库完成 `mtLiveBadgeHide` 隐了**（跑完 / 取消都 `mtLiveBadgeHide`，全库跑完徽标
+消失，看完成状态没入口）。`mtRun` 跑完区（`_mtUnaborted` 后 `mtLiveBadgeHide`）改：`FULL_DONE` 时不 `Hide` 改**`mtLiveBadgeDone`**
+（显 `#mtlivebadge` 绿 `--ok` + 文案「已跑完 · 共 N 轮 · 耗时 Xs」完成态，`#mtlivedetail` 详情「全库维护完成 · 共 N 轮 · 累计耗
+时 Xs · 点双图区汇总跳双图看趋势」）/ 非全库 · 取消仍 `Hide`——全库跑完看 `#mtlivebadge` 完成态 + `#mtstatebar` 完成灰**双路知
+全库收尾**（区别于跑中每轮刷跑中态，全库收尾固定显完成态，扫一眼知道全库维护收工）。
+
+**E2E**：`mtLiveBadgeDone(5, 12.3) → #mtlivebadge 绿 --ok rgb(47,125,85) + 文案「已跑完 · 共 5 轮 · 耗时 12.3s」（完成态徽
+标，非跑中每轮刷）+ #mtlivedetail 详情「全库维护完成 · 共 5 轮 · 累计耗时 12.3s · 点双图区汇总跳双图看趋势」`（绿）；端点
+**30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r187_donebadge.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 670→672`，断点 `_整理后分类\摇滚民谣\亚细亚旷世奇才\旷世奇才.mp3`。
+
+**坑**：① `mtLiveBadgeDone(N, totalDur)`（`#mtlivebadge` 完成态徽标，`mtLiveBadgeHide` 后）：`el.textContent='已跑完 · 共 N 轮 ·
+耗时 totalDurs'` + `el.style.color='var(--ok)'`（绿完成态）+ `display='inline-block'`（显），`#mtlivedetail` 详情「全库维护完成 ·
+共 N 轮 · 累计耗时 totalDurs · 点双图区汇总跳双图看趋势」（`display:'none'` 隐详情——完成态详情只在 hover `#mtlivebadge` 时 `cursor:help`
+看，`mtLiveBadgeDone` 显详情文案不 `display:block`，hover `#mtlivebadge`（`cursor:help`）触发 `#mtlivedetail` 原 hover 委托显）②
+**`mtRun` 跑完区分 `FULL_DONE`**（`_mtUnaborted` 后：`if(FULL_DONE){ mtLiveBadgeDone(N, _mtTotalDur); } else { mtLiveBadgeHide(); }`
+——全库 `FULL_DONE` 显完成态徽标，非全库普通跑完 / 取消 `Hide` 隐徽标，`_mtTotalDur` 全库累计耗时（R167 累加器）传完成态详情，
+`N` 全库 `i`（跑到轮数））③ **完成态 vs 跑中态**（`mtLiveBadge` 跑中每轮 tick 刷「跑中 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」绿
+`--ok`，`mtLiveBadgeDone` 全库收尾固定「已跑完 · 共 N 轮 · 耗时 Xs」绿 `--ok`——两态同绿 `--ok` 但文案不同（跑中每轮刷 / 完成
+固定），全库收尾 `FULL_DONE` 跳出循环后 `mtRun` 跑完区调 `mtLiveBadgeDone` 覆盖跑中最后一轮态，固定显完成）④ 与 `#mtstatebar`
+完成灰**双路**（`#mtstatebar` 全库完成 `mtStateBarDraw` 灰 `--line`（非跑中默认灰），`#mtlivebadge` 全库完成 `mtLiveBadgeDone`
+绿 `--ok` 完成态——色带灰知非跑中 + 徽标绿知完成，两路知全库收尾；`#mtstatebar` 灰是「非跑中」态（完成 / 未跑都灰），`#mtlivebadge`
+绿是「完成」态（`FULL_DONE` 才绿完成，未跑 / 取消不绿），双路区分完成 vs 未跑）⑤ 验收**函数级**（`mtLiveBadgeDone(5, 12.3)` 直调
+验 `#mtlivebadge` 文案「已跑完 · 共 5 轮 · 耗时 12.3s」+ 绿 `--ok` + `inline-block` 显 + `#mtlivedetail` 详情「全库维护完成 · 共 5
+轮 · 累计耗时 12.3s」，不真跑 `mtRun` 全库免 tick 污染 `runs`；`mtRun` 跑完区 `FULL_DONE` 调 `mtLiveBadgeDone` 是循环后行为不验，
+验 `mtLiveBadgeDone` 函数出口）。
+
