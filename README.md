@@ -5901,3 +5901,48 @@ R197 四段快照 / R199 总览面板 / R207 三域折叠态总览**语言同**�
 `innerHTML` 含 `<svg` + 五块标题（「维护守护区折叠全链路总控」/「三域折叠钮」/「折叠联动」/「折叠记忆」/「三域折叠态总览」/「折叠态 PNG / 文本」），
 不真跑 `mtRun` 免 tick 污染 `runs`；`mtGuardFoldCtl` 内联 SVG 五块 headless 验 `innerHTML` 含 `<svg` + 各块标题，非真渲染 SVG 像素）。
 
+---
+
+## 第224轮（前端 R210 · goal round187）：维护守护区折叠全链路总控补 PNG 导出 + 复制出口（`#mtguardfoldctlpng` / `#mtguardfoldctscopy` 小钮，点 `#mtguardfoldctl` 折叠全链路面板后 `#mtguardfoldctlpng` 把折叠全链路 SVG `canvas` 转 PNG 下载「music3_维护守护折叠全链路_<ts>.png」，`#mtguardfoldctscopy` 复制折叠全链路文本（五块分块 + 各折叠出口标位）到剪贴板，折叠全链路 PNG 存档 / 文本贴工单）
+
+**完善性（折叠全链路全貌 PNG 存档 + 文本贴工单免手截 / 手抄）**：R209 `#mtguardfoldctl` 折叠全链路总控内联 SVG 只看，**没 PNG 导出 / 文本复制**
+（折叠全链路全貌要存档 / 分享得手动截屏 / 抄，`#mtguardfoldctlpng` 转 PNG 下载 + `#mtguardfoldctscopy` 文本复制，折叠全链路 PNG 存档 + 文本贴工单双
+出口，与 R158/R198/R200/R208 PNG 导出 + R196/R201/R208 复制出口语言同）。`#mtguardfoldctl` 旁加**`#mtguardfoldctlpng`**（`⬇ 全链路PNG`，`#mtguardfoldctl`
+后）+ **`#mtguardfoldctscopy`**（`⧉ 全链路复制`，`#mtguardfoldctlpng` 后），点 `#mtguardfoldctlpng` → **`mtGuardFoldCtlPng`**（读 `#mtguardfoldctld` 内联
+SVG（无则先 `mtGuardFoldCtl()` 生成），`canvas` 转 PNG 下载「music3_维护守护折叠全链路_<ts>.png」，`toBlob` 不可用降级复制 SVG 源码 + toast），点
+`#mtguardfoldctscopy` → **`mtGuardFoldCtlCopy`**（读折叠全链路五块（`[三域折叠钮]` R159/R202/R203 + `[折叠联动]` R206 + `[折叠记忆]` R204/R205
+`localStorage` 三域记忆值 + `[三域折叠态总览]` R207 + `[折叠态 PNG / 文本]` R208 + `[折叠全链路]` R209/R210 自身）拼全链路文本到剪贴板，
+`navigator.clipboard.writeText` 降级 + toast「已复制折叠全链路文本」）——折叠全链路 PNG 存档 / 文本贴工单双出口，与 R158/R198/R200/R208 PNG 导出 +
+R196/R201/R208 复制出口语言同。
+
+**E2E**：`点 #mtguardfoldctl（生成 #mtguardfoldctld 内联 SVG）→ 点 #mtguardfoldctlpng → toast「已下载折叠全链路 PNG」；点 #mtguardfoldctcopy →
+toast「已复制折叠全链路文本」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r210_ctlpncopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 716→718`，断点 `_热门歌曲\甲乙丙丁.mp3`。
+
+**坑**：① `#mtguardfoldctlpng`/`#mtguardfoldctscopy` 小钮挂 `#mtguardfoldctl` 旁常驻位（`#mtguardfoldctl` 后 `#mtguardfoldctlpng` 再后
+`#mtguardfoldctscopy`，折叠全链路总控 PNG 导出 + 文本复制常驻入口，非 hover 态控——`#mtguardfoldctl` 折叠全链路看全貌 + `#mtguardfoldctlpng`
+全链路 PNG 存档 + `#mtguardfoldctscopy` 全链路文本贴工单三入口并排，折叠全链路可看可存可贴）② `mtGuardFoldCtlPng` 读 `#mtguardfoldctld` 内联 SVG
+（`#mtguardfoldctld` 无 SVG（未点过 `#mtguardfoldctl`）则先 `mtGuardFoldCtl()` 生成，`d.querySelector('svg')` 取 SVG，无 `svg` toast「无折叠全链路
+总控可导出（全链路面板空）」`bad`，同 R198/R200/R208 PNG 导出读各内联 SVG 无则先生成纪律）③ SVG 转 PNG（`new XMLSerializer().serializeToString(svg)`
+→ `btoa(unescape(encodeURIComponent(svgStr)))` base64 → `Image` `onload` `canvas`（`#f7f5f0` 浅色底 fillRect，透明底贴工单看不清同 R158）`drawImage` →
+`toBlob('image/png')` → `a[download]='music3_维护守护折叠全链路_<ts>.png'`（`ts` `new Date().toISOString().replace(/[:.]/g,'-')` 文件名安全，与 R198
+`music3_维护守护全记录_快照_<ts>.png` / R200 `music3_维护守护总览_<ts>.png` / R208 `music3_维护守护三域折叠态_<ts>.png` 区分——折叠全链路 PNG 命名
+「维护守护折叠全链路」）④ `toBlob` 不可用降级（`_fallbackCopy` 复制 SVG 源码到剪贴板 + toast「已复制折叠全链路 SVG（PNG 导出不可用降级）」，
+`canvas` / `toBlob` 沙箱不可用时 SVG 源码降级留存，同 R158/R198/R200/R208 PNG 降级复制 SVG 源码纪律）⑤ `mtGuardFoldCtlCopy` 读折叠全链路五块拼文本
+（`#music3 维护守护区折叠全链路总控 · <new Date().toLocaleString()>` 头 + `[三域折叠钮]`（`#mtmetfold` 双图区 R159 / `#mtguardpanelfold` 总览面板 R202 /
+`#mtguardfoldall` 全浮层 R203 标位）+ `[折叠联动 (R206)]`（全浮层折叠态强制总览面板折叠 `_mtGuardFoldAll→_mtGuardPanelFold` + 展开态恢复自身
+`localStorage` 值标位）+ `[折叠记忆 (R204/R205)]`（`localStorage._mtGuardFoldAll`/`_mtGuardPanelFold`/`_mtMetFold` 三域记忆值实时读，`try/catch` 降级
+`'0'`）+ `[三域折叠态总览 (R207)]`（`#mtguardfoldstat` 三域折叠态 SVG + `#mtguardfoldstatd` 色带标位）+ `[折叠态 PNG / 文本 (R208)]`（`#mtguardfoldstatpng`
+PNG 导出 + `#mtguardfoldstatcopy` 文本复制标位）+ `[折叠全链路 (R209/R210)]`（`#mtguardfoldctl` 全链路总控 + `#mtguardfoldctlpng` 全链路 PNG +
+`#mtguardfoldctscopy` 全链路复制自身标位），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制折叠全链路文本」，全链路文本自含全
+折叠出口标位（R159/R202/R203/R204/R205/R206/R207/R208/R209/R210 十出口），复制全链路文本即全折叠出口清单留存）⑥ 与 R209 `#mtguardfoldctl` 折叠全
+链路总控**分工**（R209 内联 SVG 折叠全链路总控看全貌（`#mtguardfoldctld` 8s 自动隐），R210 全链路 PNG 导出 + 文本复制双出口（`#mtguardfoldctlpng`
+下载 PNG 存档 / 分享 + `#mtguardfoldctscopy` 文本贴工单），看全貌 + 全貌 PNG / 文本留存双路，折叠全链路可看可存可贴）⑦ 与 R158 `#mtmetpng` / R198
+`#mtguardsnappng` / R200 `#mtguardpanelpng` / R208 `#mtguardfoldstatpng` PNG 导出**语言同**（各 PNG 导出读各内联 SVG `canvas` 转 PNG 下载，`toBlob`
+不可用降级复制 SVG 源码，折叠全链路 PNG 同语言）⑧ 与 R196 `#mtguardcopy` / R201 `#mtguardpanelcopy` / R208 `#mtguardfoldstatcopy` 复制出口**语言同**
+（各文本复制读各数据源拼文本到剪贴板，`navigator.clipboard.writeText` 降级，折叠全链路文本复制同语言，全链路文本自含全出口标位）⑨ 验收**函数级**（点
+`#mtguardfoldctl` 生成 `#mtguardfoldctld` 内联 SVG + 点 `#mtguardfoldctlpng` 验 toast「已下载折叠全链路 PNG」/ 降级「已复制折叠全链路 SVG」+ 点
+`#mtguardfoldctcopy` 验 toast「已复制折叠全链路文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，真 PNG / 剪贴板内容不验，不真跑
+`mtRun` 免 tick 污染 `runs`）。
+
