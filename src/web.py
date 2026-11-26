@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3645,6 +3645,13 @@ document.addEventListener('mouseout', function(e){
 }, true);
 /* 载入: 按 _mtRunDelta 画补入量 mini 条形图(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunDeltaDraw(); }); } else { mtRunDeltaDraw(); } })();
+/* 清空补入量历史: 清 localStorage._mtRunDelta + mtRunDeltaDraw 重画(空->#mtdeltabar 隐) + toast; 看补入趋势久了重计基线(与 R146 清耗时历史对称的「补入量历史可清可留」) */
+function mtRunDeltaClear(){
+  try{ localStorage.removeItem('_mtRunDelta'); }catch(e){}
+  mtRunDeltaDraw();
+  _toast('补入量历史已清空 · 重新计基线', 'ok');
+}
+(function(){ const c=$('#mtdeltaclear'); if(c){ c.onclick=mtRunDeltaClear; } })();
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */
 function mtRunHistClear(){
   try{ localStorage.removeItem('_mtRunHist'); }catch(e){}

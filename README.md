@@ -4191,3 +4191,28 @@ hover 命中才 `inline-block`）② `mousemove` 命中 `#mthistbox`（耗时折
 配对汇总（扫一眼「这次跑耗时多少 + 补多少」），双 hover 点/标签分指标细看，两视图（一行汇总 / 分指标点）⑥ node 重启
 瞬断（服务重启后 2s 抓 JS `URLError 10061`/`Cannot find module`，`Start-Sleep 3` 重抓配平 node 0）。
 
+---
+
+## 第171轮（前端 R157 · goal round134）：`#mtdeltabar` 柱状区清补入历史（`#mtdeltaclear`，清 `_mtRunDelta` + `mtRunDeltaDraw` 重画隐，补入量历史可清可留）
+
+**完善性（补入量历史可清可留）**：R146 `#mthistclear` 清**耗时历史**（`_mtRunHist`）、R150 `#mthistreset` 重置**耗时基线**，
+R153 `#mtdeltabar` 补入量柱状（`_mtRunDelta`）看久了**想重计补入基线**（补入量趋势固化旧值）没入口。`#mtdeltabar` 加
+**`#mtdeltaclear`** 小钮（`✕ 清补入`，清 `localStorage._mtRunDelta` + `mtRunDeltaDraw` 重画（空 → `#mtdeltabar` 隐）+ toast
+「补入量历史已清空 · 重新计基线」）——补入量历史可清可留，与 R146 清耗时历史**对称**（耗时 `#mthistclear` / 补入
+`#mtdeltaclear`，双指标各管各的「记状态可管」），清完下次 `#mtrun` 跑维护 `_mtRunDelta` 重新积累重画。
+
+**E2E**：`清空前 #mtdeltabar 显 flex + store=[8,5,12,0,3,2] → 点 #mtdeltaclear 后 _mtRunDelta 删(store=None) + #mtdeltabar
+隐(none) + toast「补入量历史已清空 · 重新计基线」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r157_deltaclear.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 610→612`，断点 `_归档_封存\SD卡版\周杰伦\爱情悬崖.mp3`。
+
+**坑**：① `#mtdeltaclear` 挂 `#mtdeltabar` 内（`#mtpairlbl` 后，`✕ 清补入` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色
+10px，随 `#mtdeltabar` 显隐——无补入量时 `#mtdeltabar` 隐，钮也隐，清补入通常有柱状才点）② `mtRunDeltaClear`（`#mtdeltaclear`
+onclick，载入 IIFE 绑）：`localStorage.removeItem('_mtRunDelta')` + `mtRunDeltaDraw()`（空 → `#mtdeltabar` `display:none`）
++ `_toast`「补入量历史已清空 · 重新计基线」③ 只清 `_mtRunDelta`（补入量），**不碰** `_mtRunHist`（耗时）/
+`_mtRunHistBase`（基线）——双指标各管各的清（`#mthistclear` 清耗时、`#mtdeltaclear` 清补入，互不影响，与 R146/R150
+耗时侧对称）④ 清空后 `#mtdeltabar` 隐（空 `_mtRunDelta` `display:none`），下次 `#mtrun` 跑维护 R152 复盘区推 `_mtRunDelta`
+重新积累、`mtRunDeltaDraw` 重画恢复 ⑤ 只清**前端展示层** `_mtRunDelta`（补入量柱状是前端 `localStorage` 趋势，不清后端
+`maintain_state.json` tick 游标/totals——真维护进度不动，只清补入量折线展示）。
+
