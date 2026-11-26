@@ -3868,3 +3868,26 @@ delta=5+2=7 + 实测 9s vs 估剩 9s）+ hasReview`（绿）；端点 **30/0**�
 改**函数级**（mock `st2.cum_trend`+`t0/N/ticks` 直接算拼接，不碰后端 tick，避免卡 + 污染游标）⑥ 复盘 toast 只在
 `!FULL_DONE && doneMsg`（非全库普通跑完）+（`_delta||_etaTxt` 非空）才发，全库完成走专属「跑到全库完成」toast（不叠复盘）。
 
+---
+
+## 第158轮（前端 R144 · goal round121）：跑维护历史 sparkline（`#mtmsg` 下小折线，近 10 次跑耗时趋势，跨维护会话粒度）
+
+**完善性（跨会话耗时趋势）**：R126「本批耗时」卡是 `dur_trend`（`maintain_state` 内近 8 tick 秒级），**跨「跑维护会话」
+粒度**（一次 `#mtrun` 连跑 N 轮的总耗时）没趋势。`#mtrun` 跑完把本次 `dur`（`Date.now()-t0`）推 `localStorage._mtRunHist`
+（近 10 次），`#mtmsg` 下挂**小折线** `#mthistspark`（`#mthistlabel` 近 N 次 + 均值 + `#mthistsvg` 折线，accent，面积渐变）
+——重开页面还在（跨会话），看维护越来越快/变慢（耗时趋势），与 R126 `dur_trend` 同 sparkline 语言但**跨「跑维护会话」
+粒度**（`dur_trend`=单 tick，`_mtRunHist`=一次连跑总耗时）。
+
+**E2E**：`写 _mtRunHist 近10次 → mtRunHistDraw: #mthistspark 显 flex + #mthistsvg 有 polyline + #mthistlabel「近 10 次跑维护
+耗时 · 均值 0.9s」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r144_hist.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 584→586`，断点 `_归档_封存\SD卡版\摇滚民谣\赵雷\吉姆.mp3`。
+
+**坑**：① `#mtrun` 跑完（`_mtUnaborted` 后）推 `localStorage._mtRunHist`（本次 `dur=Date.now()-t0` 秒，近 10 次 `slice(-10)`），
+`mtRunHistDraw()` 重画 ② `mtRunHistDraw` 自含折线（不复用维护卡 IIFE 内 `_sparkSvg`，**不挂 hover**——顶栏小折线只
+看趋势，hover 数值跟随留给维护卡 sparkline，顶栏简版免挤）③ `#mthistspark` 默认 `display:none`，`_mtRunHist` 空
+（新设备首跑前）`display:none`，有历史才 `flex`（标签「近 N 次 · 均值 Xs」）④ 折线归一化到 22px（`mx/mn/rng` 防 0，
+`pad=2`），面积渐变 `#mthistg`（`--acc` opacity 0→0.18），`polyline` accent `--acc` ⑤ 载入 IIFE（`DOMContentLoaded`）按
+`_mtRunHist` 画（跨会话，重开页面看上次跑的耗时趋势），`mtRunHistDraw` 跑完也调（新跑一次刷新折线）⑥ 历史记**总耗时**
+（一次连跑 N 轮 `t0` 起），不记每轮——顶栏粒度粗（看维护整体越来越快/慢），每轮耗时看 R126 `dur_trend` 卡。
+

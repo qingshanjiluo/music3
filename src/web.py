@@ -1067,6 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
+  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -2978,6 +2979,14 @@ async function mtRun(){
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
     _mtUnaborted(); /* 跑完恢复「跑一轮」按钮态(跑中是「取消」红) */
+    /* 跑维护历史: 本次耗时(dur)推 localStorage._mtRunHist(近10次), 顶栏 #mtmsg 下挂小 sparkline(近几次跑耗时趋势, 跨维护会话粒度看越来越快/变慢, 与 R126 dur_trend 同 sparkline 语言但跨「跑维护」粒度) */
+    try{
+      const _hDur=Math.round((Date.now()-t0)/100)/10;
+      let _h=[]; try{ _h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+      _h.push(_hDur); _h=_h.slice(-10);
+      localStorage.setItem('_mtRunHist', JSON.stringify(_h));
+      mtRunHistDraw();
+    }catch(e){}
     if(!(FULL_DONE || doneMsg)) setMsg($('#mtmsg'), (N>1?`连跑 ${N} 轮完成 · `:'') + doneMsg, 'ok');
     /* 跑完 toast 汇报本轮结果(右上角停留6s, 不遮挡卡片): 非全库普通跑完也给, 全库完成另有专属 toast */
     if(!FULL_DONE && doneMsg){ const _tm='跑完 '+(N>1?N:'1')+' 轮 · '+doneMsg; _toast(_tm, 'ok'); }
@@ -3513,6 +3522,23 @@ function mtLogLive(){
   mtLogDraw().catch(()=>{});
   _mtlogTimer=setInterval(()=>{ mtLogDraw().catch(()=>{}); }, 2000);
 }
+/* 跑维护历史 sparkline: #mtmsg 下小折线(近10次跑耗时, 跨维护会话粒度, 看越来越快/变慢; 与 R126 dur_trend 同 sparkline 语言但跨「跑维护」粒度) */
+function mtRunHistDraw(){
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  const wrap=$('#mthistspark'), svg=$('#mthistsvg'), lbl=$('#mthistlabel');
+  if(!wrap) return;
+  if(!h.length){ wrap.style.display='none'; return; }
+  wrap.style.display='flex';
+  const w=110, hgt=22, pad=2;
+  const mx=Math.max.apply(null,h), mn=Math.min.apply(null,h), rng=Math.max(1e-3, mx-mn);
+  const pts=h.map((v,i)=>{ const x=h.length>1? i/(h.length-1)*w : w/2; const y=pad+(1-(v-mn)/rng)*(hgt-2*pad); return x.toFixed(1)+','+y.toFixed(1); }).join(' ');
+  const area=pts+' '+w+','+hgt+' 0,'+hgt;
+  const avg=Math.round((h.reduce((a,c)=>a+c,0)/h.length)*10)/10;
+  lbl.textContent='近 '+h.length+' 次跑维护耗时 · 均值 '+avg+'s';
+  svg.innerHTML='<svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><defs><linearGradient id="mthistg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity="0"></stop><stop offset="1" stop-color="var(--acc)" stop-opacity="0.18"></stop></linearGradient></defs><polygon points="'+area+'" fill="url(#mthistg)"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+}
+/* 载入: 按 _mtRunHist 画跑维护历史 sparkline(跨会话, 重开还在) */
+(function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunHistDraw(); }); } else { mtRunHistDraw(); } })();
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 /* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */
