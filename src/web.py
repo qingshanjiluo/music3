@@ -4002,9 +4002,17 @@ function mtMetSumDraw(){
   const hAvg=h.length? (h.reduce((a,c)=>a+c,0)/h.length).toFixed(1) : '—';
   const dAvg=d.length? Math.round(d.reduce((a,c)=>a+c,0)/d.length) : null;
   const dSum=d.length? d.reduce((a,c)=>a+c,0) : null;
-  let txt='近 '+n+' 次 · 耗时均值 '+(h.length?hAvg+'s':'—');
+  /* 取消/暂停同态(R183): 读 window._mtAborted(Esc 取消)/window._mtPaused(Space 暂停), 取消红前缀「已取消 ·」/暂停黄前缀「已暂停 ·」, 汇总值保留(已跑轮耗时/补入不丢), 续跑/非取消回无前缀; 跑维护状态看汇总也知道挂起/取消, 与 R182 #mtlivebadge 徽标暂停同态双处同步 */
+  let _sumPrefix='';
+  if(typeof window._mtAborted!=='undefined' && window._mtAborted){ _sumPrefix='已取消 · '; }
+  else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ _sumPrefix='已暂停 · '; }
+  let txt=_sumPrefix+'近 '+n+' 次 · 耗时均值 '+(h.length?hAvg+'s':'—');
   if(d.length){ txt+=' · 补入均值 +'+dAvg+'/次 · 合计 +'+dSum; }
   el.textContent=txt;
+  /* 同态色(R183): 取消红 --bad / 暂停黄 --warn / 续跑·跑中默认色(继承) */
+  if(typeof window._mtAborted!=='undefined' && window._mtAborted){ el.style.color='var(--bad)'; }
+  else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ el.style.color='var(--warn)'; }
+  else{ el.style.color=''; } /* 默认色继承, 续跑/非取消清 */
   el.style.display='inline-block';
 }
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */

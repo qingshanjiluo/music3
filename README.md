@@ -4930,3 +4930,39 @@ false 跑中态）⑦ 验收**函数级**（`window._mtPaused=true` 模拟暂停
 _mtPaused=false` 续跑 + `mtLiveBadge` 刷新验回绿「跑中 ·」，不真跑 `mtRun` 免 tick 污染 `runs`；`getComputedStyle` 色 `--warn`/`--ok`
 验暂停 / 续跑色同态，文案前缀「已暂停 ·」/「跑中 ·」验同态）。
 
+---
+
+## 第197轮（前端 R183 · goal round160）：`#mtmetsum` 双指标汇总标签取消 / 暂停同态（`mtMetSumDraw` 读 `window._mtAborted` / `window._mtPaused`，取消红 `--bad` + 前缀「已取消 ·」/ 暂停黄 `--warn` + 前缀「已暂停 ·」，汇总值保留（已跑轮耗时 / 补入不丢），跑维护状态看汇总也知道挂起 / 取消）
+
+**连贯性（取消 / 暂停时看汇总也知道挂起 / 取消）**：R182 `#mtlivebadge` 徽标暂停 / 续跑同态，`#mtmetsum` 双指标汇总（R158「近 N
+次 · 耗时均值 Xs · 补入均值 +Y/次 · 合计 +Z」）取消 / 暂停时没同态（`#mtmetsum` 每跑完刷新一次绿跑中态，跑中取消 / 暂停时汇总还
+绿，看汇总不知道挂起 / 取消）。`mtMetSumDraw`（R158 汇总函数）读 `window._mtAborted`（R178 `Esc` 取消）/ `window._mtPaused`（R180
+`Space` 暂停）：取消红 `--bad` + 前缀「已取消 ·」（`已取消 · 近 N 次 · 耗时均值 Xs …`）/ 暂停黄 `--warn` + 前缀「已暂停 ·」（`已
+暂停 · 近 N 次 …`）/ 续跑 · 非取消回默认色 + 无前缀，**汇总值保留**（已跑轮耗时 / 补入不丢，前缀只标状态不丢值）——跑维护状态看
+汇总也知道挂起 / 取消，与 R182 `#mtlivebadge` 徽标暂停同态**双处同步**（暂停 / 取消时 `#mtrun` 红 / 黄 + `#mtlivebadge` 黄 / 绿 +
+`#mtmetsum` 黄 / 红，看维护区任一处都知道跑维护状态）。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(4)+window._mtPaused=true → mtMetSumDraw → #mtmetsum 黄 --warn rgb(150,101,10) + 前缀
+「已暂停 · 近 4 次 · 耗时均值 1.1s · 补入均值 +6/次 · 合计 +25」；window._mtAborted=true → 红 --bad rgb(163,38,26) + 前缀「已取消 ·
+近 4 次 …」；复位 → 默认色 rgb(119,112,106) + 无前缀「近 4 次 …」（汇总值保留）`（绿）；端点 **30/0**、JS undefined NONE、CSS
+320/320、node 0、console 0、截图 r183_metsumstate.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 662→664`，断点 `_整理后分类\华语经典\陈奕迅\淘汰.mp3`。
+
+**坑**：① `mtMetSumDraw`（R158 双指标汇总函数）`txt` 区（`_sumPrefix` 前缀）：`window._mtAborted` 取消红前缀「已取消 · 」/ `window.
+_mtPaused` 暂停黄前缀「已暂停 · 」/ 都非前缀空，`txt=_sumPrefix+'近 N 次 · 耗时均值 …'`（前缀拼汇总值前，汇总值照算不丢，已跑轮
+耗时 / 补入保留——取消 / 暂停只标状态不改已跑数据）② **色同态**（`el.style.color` 取消 `var(--bad)` rgb(163,38,26) / 暂停 `var(--warn)`
+rgb(150,101,10) / 复位 `el.style.color=''` 默认继承 `--dim` rgb(119,112,106)，`#mtmetsum` 是 `#mtdeltabar` 内 span，色跟状态同态
+——取消红 / 暂停黄 / 默认灰，看色知道跑维护状态，与 R182 `#mtlivebadge` 色同态对称）③ **优先级**（`_sumPrefix` 取消 > 暂停——
+`if(window._mtAborted) 已取消 else if(window._mtPaused) 已暂停`，取消态优先于暂停态，`Esc` 取消时 `Space` 暂停不并存（取消跳出
+循环暂停无意义，`_mtAborted` 优先显「已取消」，同色同判 `window._mtAborted` 先）④ `mtMetSumDraw` 每跑完 / 取消 / 暂停时刷新（R158
+`mtRun` 跑完调 + `mtMetSumDraw` 每 tick 调，取消 / 暂停挂起 `mtRun` 循环不 tick `mtMetSumDraw` 不刷，但 `mtRun` 跑完 / 取消区调
+`mtMetSumDraw` 带 `window._mtAborted` 前缀——取消时汇总前缀「已取消 ·」，`mtLiveBadge` 同（R182 暂停挂起不刷，取消 / 跑完刷带
+前缀））⑤ **与 R182 `#mtlivebadge` 双处同步**（暂停 `#mtrun` 黄「暂停中」 + `#mtlivebadge` 黄「已暂停 ·」 + `#mtmetsum` 黄「已暂停 ·
+近 N 次」，取消 `#mtrun` 红「取消」 + `#mtlivebadgeHide` 隐 + `#mtmetsum` 红「已取消 · 近 N 次」，看维护区顶栏 `#mtrun` / `#mtlivebadge`
+徽标 / `#mtmetsum` 汇总任一处都知道跑维护状态，三处同步）⑥ 复位默认色（`el.style.color=''` 清内联继承 `--dim`，`#mtmetsum` 默认
+`--dim` 灰，续跑 / 非取消清前缀清色回默认——取消 / 暂停前缀 + 色只在挂起 / 取消态带，跑完 / 续跑清）⑦ 验收**函数级**（写
+`_mtRunHist`/`_mtRunDelta` 4 条 + `window._mtPaused=true` / `window._mtAborted=true` / 复位三态 `mtMetSumDraw` 直调刷新验 `#mtmetsum`
+前缀「已暂停 ·」/「已取消 ·」/ 无前缀 + 色 `--warn`/`--bad`/默认，不真跑 `mtRun` 免 tick 污染 `runs`；`getComputedStyle` 色验三态
+同态，汇总值「近 4 次 · 耗时均值 1.1s · 补入均值 +6/次 · 合计 +25」三态保留验前缀只标状态不丢值）。
+
