@@ -4088,3 +4088,29 @@ tick 补入）**互补**：R152 跑前快照 → 跑后全量差（整个连跑 
 R143 复盘照发）⑤ 验收**函数级**（mock `_mtBefore`+`st2` 直接算拼接，不真跑 `mtRun` 免 tick 污染 `runs` + 全库补完态
 `cum_trend` 常数 delta=0 看不出增量）。
 
+---
+
+## 第167轮（前端 R153 · goal round130）：跑维护历史条 mini 条形图（`#mtdeltabar`，近 N 次每次跑补入量柱状，横评哪次跑高效）
+
+**完善性（同区双指标）**：R144 `#mthistspark` 耗时折线（`_mtRunHist` 近 10 次跑耗时），**每次跑补了多少**
+（补入量）没趋势。R152 `_mtBefore`/`st2` 算每次跑补入增量，推 `localStorage._mtRunDelta`（近 10 次补入量）；`#mthistspark`
+下方加**`#mtdeltabar` mini 条形图**（`#mtdeltaSvg` 小柱状，近 N 次每次跑补入量柱状，绿柱 `--ok` 高按补入量比例，
+空补 0 矮柱）+ 标签「近 N 次跑维护补入 · 合计 +X（绿=补入, 空=没补到）」——看横评哪次跑高效（补入量高柱=高效跑，
+矮柱=没补到/miss 多），与 R144 耗时折线**同区双指标**（耗时 + 补入量，维护区顶栏两小图）。
+
+**E2E**：`写 _mtRunDelta=[8,5,12,0,3,2] → mtRunDeltaDraw: #mtdeltabar 显 flex + #mtdeltaSvg 6 个 rect 柱（近 6 次补入量）+
+标签「近 6 次跑维护补入 · 合计 +30（绿=补入, 空=没补到）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r153_bar.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 602→604`，断点 `_归档_封存\SD卡版\亚细亚旷世奇才\漂泊.mp3`。
+
+**坑**：① `#mtdeltabar` 挂 `#mthistspark` 下（顶栏 `#mtmsg` 区，`#mtdeltaLabel` 近 N 次补入 + `#mtdeltaSvg` 110px 柱状 +
+默认 `display:none`，有 `_mtRunDelta` 才 `flex`）② `mtRun` 跑完复盘区（R152 `_snap` toast 后）推 `_mtRunDelta`（本次补入
+`_dL+_dC` 歌词+封面增量，近 10 次 `slice(-10)`）+ `mtRunDeltaDraw()` 重画 ③ `mtRunDeltaDraw`：读 `_mtRunDelta`（近 N 次补入量
+数组），空 `display:none`；非空 → `#mtdeltabar` 显 `flex` + `#mtdeltaSvg` 画柱状（`mx=max(d)`，每柱高 `round(v/mx*18)` 最低
+2px 底，宽 `90/n`，绿 `--ok` `opacity` 补入 `0.85` / 空补 `0.3`，基线 `--line` y=20）+ `#mtdeltaLabel`「近 N 次跑维护补入 · 合计
++X（绿=补入, 空=没补到）」④ 与 R144 `#mthistspark` 耗时折线**同区双指标**（`#mthistspark` 上 / `#mtdeltabar` 下，维护区
+顶栏两小图：耗时趋势 + 补入量柱状，扫一眼维护跑得快不快 + 补得多不多）⑤ 载入 IIFE（`DOMContentLoaded`）按 `_mtRunDelta`
+画（跨会话重开还在），跑完 `mtRunDeltaDraw` 刷新（新跑一次补入量重画）⑥ 柱状 `preserveAspectRatio=none`（`viewBox 0 0 100 22`，
+`width:110px` 拉伸，柱宽按 `90/n` 归一化，n 多时柱密，n=10 满时 9px 柱）。
+

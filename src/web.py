@@ -1068,6 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3030,6 +3031,8 @@ async function mtRun(){
           const _dR=(st2.runs||0)-(_mtBefore.runs||0);
           const _snap='本次跑: 补 +' + _dL + ' 歌词 / +' + _dC + ' 封面（跑前 ' + (_mtBefore.lyr||0) + '/' + (_mtBefore.cov||0) + '）· runs ' + (_mtBefore.runs||0) + '→' + (st2.runs||0) + (_dR>0?'（'+_dR+' 轮）':'');
           _toast(_snap, 'ok');
+          /* 推 _mtRunDelta(近10次每次跑补入增量), R153 mini 条形图看横评哪次跑高效 */
+          try{ let _dd=[]; try{ _dd=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){} _dd.push(_dL+_dC); _dd=_dd.slice(-10); localStorage.setItem('_mtRunDelta', JSON.stringify(_dd)); mtRunDeltaDraw(); }catch(_){}
         }
       }
     }catch(e){}
@@ -3585,6 +3588,22 @@ document.addEventListener('mouseout', function(e){
 }, true);
 /* 载入: 按 _mtRunHist 画跑维护历史 sparkline(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunHistDraw(); }); } else { mtRunHistDraw(); } })();
+/* 补入量 mini 条形图: #mtdeltabar 小柱状(近10次每次跑补入量, 横评哪次跑高效, 与 R144 耗时折线同区双指标); 跑完推 _mtRunDelta, 载入也画 */
+function mtRunDeltaDraw(){
+  let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+  const wrap=$('#mtdeltabar'), svg=$('#mtdeltaSvg'), lbl=$('#mtdeltaLabel');
+  if(!wrap) return;
+  if(!d.length){ wrap.style.display='none'; return; }
+  wrap.style.display='flex';
+  const mx=Math.max.apply(null,d)||1;
+  const n=d.length;
+  const bars=d.map((v,i)=>{ const bh=Math.max(2, Math.round(v/mx*18)); const bw=Math.floor(90/n)-1; return '<rect x="'+(i*(Math.floor(90/n)))+1+'" y="'+(20-bh)+'" width="'+bw+'" height="'+bh+'" rx="1" fill="var(--ok)" opacity="'+(v>0?0.85:0.3)+'"/>'; }).join('');
+  const total=d.reduce((a,c)=>a+c,0);
+  lbl.textContent='近 '+n+' 次跑维护补入 · 合计 +'+total+'（绿=补入, 空=没补到）';
+  svg.innerHTML='<svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><line x1="0" y1="20" x2="100" y2="20" stroke="var(--line)" stroke-width="1"/>'+bars+'</svg>';
+}
+/* 载入: 按 _mtRunDelta 画补入量 mini 条形图(跨会话, 重开还在) */
+(function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunDeltaDraw(); }); } else { mtRunDeltaDraw(); } })();
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */
 function mtRunHistClear(){
   try{ localStorage.removeItem('_mtRunHist'); }catch(e){}
