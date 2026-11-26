@@ -5557,3 +5557,41 @@ base64,'` → `onload` `canvas`（`#f7f5f0` 浅色底 fillRect，透明底贴工
 降级「已复制维护守护区总览 SVG」，`canvas` / `toBlob` 下载 headless 验 toast 出口，真 PNG 文件下载不验，不真跑 `mtRun` 免 tick 污染
 `runs`）。
 
+---
+
+## 第215轮（前端 R201 · goal round178）：维护守护区总览面板补复制出口（`#mtguardpanelcopy` 小钮，点 `#mtguardpanel` 总览面板后 `#mtguardpanelcopy` 复制总览面板文本（能力 / 出口分块 + 各出口标位 + 三键状态 / 四段数据当前值）到剪贴板，维护守护区总览可文本留存 / 贴工单）
+
+**完善性（总览文本留存 / 贴工单免手抄）**：R200 `#mtguardpanelpng` 总览 PNG 导出是图片存档 / 分享，但**没文本复制**（总览面板
+能力 / 出口分块 + 各出口标位文本要贴工单得手动抄，`#mtguardpanelcopy` 复制总览面板文本到剪贴板，维护守护区总览可文本留存 / 贴工单，
+PNG 图片 + 文本复制双路）。`#mtguardpanelpng` 旁加**`#mtguardpanelcopy`** 小钮（`⧉ 总览复制`，`#mtguardpanelpng` 后常驻位），点
+`#mtguardpanelcopy` → **`mtGuardPanelCopy`**（读当前态拼总览文本：`[三键状态灯 + 触发记录]`（`Space`/`Esc`/`Enter` 可触 / 不可触
+实时 + `window._mtKeyLog` 最近时间戳 + `window._mtKeyLogOrder` 触发顺序）+ `[四段数据源]`（双指标逐轮 `localStorage._mtRunHist` +
+状态三标志 + `window._mtLiveDoneInfo` + 键盘流 `window._mtKeyLogOrder`）+ `[复制出口]`（R189/R191/R192/R195/R196 五出口标位）+
+`[快照 / PNG 出口]`（R197/R198/R199/R200/R201 五出口标位）+ `[键盘三操作 + 状态同态]`（R178/R179/R180/R182/R183/R184 标位）+
+`[全库 ∞ + 完成态]`（R166/R187 标位），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制维护守护区总览文本」）
+——总览文本复制贴工单 / 记录，维护守护区总览可文本留存，与 R169/R189/R191/R192/R195/R196 复制出口同语言。
+
+**E2E**：`写各数据源 → 点 #mtguardpanelcopy → mtGuardPanelCopy 读当前态拼总览文本 → toast「已复制维护守护区总览文本」`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r201_panelcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 698→700`，断点 `_整理后分类\林俊杰\加油.mp3`。
+
+**坑**：① `#mtguardpanelcopy` 小钮挂 `#mtguardpanelpng` 旁常驻位（`#mtguardpanelpng` 后 `inline-block`，维护守护区总览文本复制常驻
+入口，非 hover 态控——`#mtguardpanel` 总览面板 + `#mtguardpanelpng` 总览 PNG + `#mtguardpanelcopy` 总览文本复制三入口并排，总览看全
+貌 + 总览 PNG 存档 + 总览文本复制贴工单三出口，维护守护区总览可看可存可贴）② `mtGuardPanelCopy` 读当前态拼总览文本（`#music3 维护
+守护区总览 · <new Date().toLocaleString()>` 头 + `[三键状态灯 + 触发记录]`（`Space`/`Esc`/`Enter` 各「可触 / 不可触」实时读
+`window._mtRunning`/`_mtPaused`/`_mtAborted` 判 + `window._mtKeyLog` 最近时间戳 + `window._mtKeyLogOrder` 触发顺序串）+ `[四段数据
+源]`（双指标逐轮 `localStorage._mtRunHist` 近 N 次 + 状态三标志「已取消 / 已暂停 / 跑中 / 维护完成 · 未跑」+ `window._mtLiveDoneInfo`
+全库完成「共 N 轮 · 耗时 Xs」/ 无 + 键盘流 `window._mtKeyLogOrder` 最近 N 次）+ `[复制出口]`（R189/R191/R192/R195/R196 五出口标位）
++ `[快照 / PNG 出口]`（R197/R198/R199/R200/R201 五出口标位）+ `[键盘三操作 + 状态同态]`（R178/R179/R180/R182/R183/R184 六标位）+
+`[全库 ∞ + 完成态]`（R166/R187 三标位），`navigator.clipboard.writeText`（`_copyFallback` `textarea` `execCommand` 降级）+ toast
+「已复制维护守护区总览文本」，读当前态非缓存旧态（点 `#mtguardpanelcopy` 即拼当前总览，与 R196 `mtGuardCopy` 读当前态同纪律）③
+总览文本 vs 总览 PNG（R200 `#mtguardpanelpng` PNG 是图片存档 / 分享，R201 `#mtguardpanelcopy` 文本是贴工单 / 记录——PNG 图 + 文本
+复制双路，总览可图片存 + 可文本贴工单，两类留存方式）④ 各出口标位含自身（`[复制出口]` R196 全复制 / `[快照 / PNG 出口]` R201 总览
+复制 + R199 总览 + R198 快照PNG + R197 四段快照，`mtGuardPanelCopy` 标位全量含 R189/R191/R192/R195/R196/R197/R198/R199/R200/R201
+十出口，总览文本自含全出口标位，复制总览文本即全出口清单留存）⑤ 与 R200 `#mtguardpanelpng` 总览 PNG**分工**（R200 总览 PNG 图片
+存档 / 分享，R201 总览文本复制贴工单 / 记录，图片 + 文本双路总览留存，`#mtguardpanelpng` 旁 `#mtguardpanelcopy` 并排）⑥ 验收**函数
+级**（写各数据源（`localStorage._mtRunHist`/`_mtRunDelta` + `window._mtRunning`/`_mtLiveDoneInfo`/`_mtKeyLog`/`_mtKeyLogOrder`）
++ 点 `#mtguardpanelcopy` 验 toast「已复制维护守护区总览文本」，剪贴板 / 降级只验 toast 出口，真剪贴板内容 headless 不验，不真跑
+`mtRun` 免 tick 污染 `runs`；`mtGuardPanelCopy` 总览文本拼逻辑验 toast 出口，各段当前值读逻辑同 R196 `mtGuardCopy`）。
+
