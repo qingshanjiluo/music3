@@ -6859,3 +6859,36 @@ R235/R234/R240 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控�
 `innerHTML` 清（`innerCleared=true`，免全复位后残留旧 SVG）+ 6 键全复位 `'0'`（`k6.every(v=>v==='0')`）+ toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstatd` `innerHTML` 清
 拼逻辑验全复位后 `innerHTML` 空（`_afsD.innerHTML=''` 清），非真渲染像素）。
 
+---
+
+## 第255轮（前端 R241 · goal round218）：维护守护区全折叠域 5 域折叠态总控浮层折叠记忆初始同步 IIFE 验全复位后 6 键复位态刷新恢复（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的初始同步 IIFE 全复位后刷新 `#mtallfoldstat` 折叠记忆自含 6 键复位态）
+
+**完善性（全复位后刷新 `#mtallfoldstat` 折叠记忆自含 6 键复位态）**：R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG），但**`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的初始同步 IIFE
+（`#mtallfoldstat` 文案 / `#mtallfoldstatd` `display` 随初始折叠态刷新恢复折叠 / 展开态）验全复位后 6 键复位态刷新恢复**（全复位后 `localStorage._mtGuardAllFoldStat` 已 `'0'`，刷新后 `#mtallfoldstat` 折叠记忆
+初始同步 IIFE 读 `'0'` → `window._mtGuardAllFoldStat` 惰性初始化 `false` → 展开态文案「▣ 全折叠域浮层」+ `#mtallfoldstatd` 不隐，`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的初始同步 IIFE 已
+自含全复位后 6 键复位态刷新恢复（读 `localStorage._mtGuardAllFoldStat` `'0'` → 展开态），R241 验全复位后刷新 `#mtallfoldstat` 折叠记忆初始同步 IIFE 自含 6 键复位态 + 全折叠记忆一键复位后全折叠域 6 键全复位 +
+刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态（验收：`mtGuardFoldReset` 全复位 → 刷新页面 → 验 `#mtallfoldstat` 文案「▣ 全折叠域浮层」展开态 + `localStorage._mtGuardAllFoldStat` `'0'` + `window._mtGuardAllFoldStat`
+`false`，全复位后 6 键全复位 + 刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态，与 R234/R240 全折叠域 5 域折叠态总控浮层折叠记忆 / 重置详情同域）。
+
+**E2E**：`设 6 键全 '1' → 点 #mtguardfoldreset 全复位（localStorage._mtGuardAllFoldStat → '0'）→ 刷新页面 → 验 #mtallfoldstat 文案「▣ 全折叠域浮层」展开态 + localStorage._mtGuardAllFoldStat '0' + window.
+_mtGuardAllFoldStat false（全复位后刷新 #mtallfoldstat 折叠记忆自含 6 键复位态）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r241_refresh6keyreset.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 780→782`，断点 `_陈粒\空空.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234，`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` 浮层 `innerHTML` 拼内联 SVG + 8s 自动隐 +
+`#mtallfoldstat` 折叠记忆切 IIFE（`document` click 委托 `#mtallfoldstat` 点切折叠记忆态，折叠态 `#mtallfoldstatd` 隐常驻省高 + 文案「▸ 展开全折叠域浮层」/ 展开态 `mtAllFoldStat()` 拼面板显 + 文案「▣ 全折叠域
+浮层」+ 8s 自动隐）+ `#mtallfoldstat` 初始同步 IIFE（`#mtallfoldstat` 文案 / `#mtallfoldstatd` `display` 随初始折叠态刷新恢复折叠 / 展开态））的初始同步 IIFE 全复位后 6 键复位态刷新恢复（R241，全复位后
+`localStorage._mtGuardAllFoldStat` 已 `'0'`（R240 `mtGuardFoldReset` 全复位清 `'0'`），刷新后 `#mtallfoldstat` 初始同步 IIFE 读 `localStorage._mtGuardAllFoldStat` `'0'` → `window._mtGuardAllFoldStat` 惰性初始化 `false`
+→ 展开态文案「▣ 全折叠域浮层」+ `#mtallfoldstatd` 不隐（`display` 复位 `none` 但 `innerHTML` 清（R240），重新展开才拼新 SVG），全复位后 6 键全复位 + 刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态，与 R234
+全折叠域 5 域折叠态总控浮层折叠记忆 / R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清同域，`#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复）② 与 R240 `#mtallfoldstatd` `innerHTML` 清（全复位
+后免残留旧 SVG）/ R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位 / R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆 / R239 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制补第 6 键
+**分工**（R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG），R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`localStorage` 清 `'0'` + `window` 标志 `false` + 文案复位 + `display` 复位 +
+`clearTimeout`），R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 拼 SVG + 8s 自动隐），R239
+`#mtallfoldcopy` 全折叠域 5 域折叠态一键复制补第 6 键 `_mtGuardAllFoldStat` 当前态段，R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复（刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态）——R234/
+R235/R239/R240/R241 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层折叠记忆 / 重置详情 / 刷新自含 6 键复位态，`#mtallfoldstat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 清 + 刷新初始同步 IIFE 三路自含全折叠域 6
+键复位态）③ 与 R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆 / R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R239 `#mtallfoldcopy` 全折叠域
+5 域折叠态一键复制补第 6 键**语言同**（各全折叠域 5 域折叠态总控浮层折叠记忆 / 全折叠记忆重置 / 重置详情 / 一键复制读 6 键 `localStorage` 复位值 / 当前态 + `innerHTML` 清 + 刷新初始同步 IIFE，全折叠域 6 键复位态
+同语言，各出口自含全折叠域出口标位）④ 验收**函数级**（设 6 键全 `'1'` + 点 `#mtguardfoldreset` 全复位（`localStorage._mtGuardAllFoldStat` → `'0'`）+ 刷新页面 + 验 `#mtallfoldstat` 文案「▣ 全折叠域浮层」展开态
+（`expandOk=true`）+ `localStorage._mtGuardAllFoldStat` `'0'`（`ls0=true`）+ `window._mtGuardAllFoldStat` `false`（`wFalse=true`），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstat` 初始同步 IIFE 拼逻辑验全复位
+后刷新 `#mtallfoldstat` 折叠记忆自含 6 键复位态（`localStorage` 读 `'0'` → `false` 展开态），非真渲染像素）。
+
