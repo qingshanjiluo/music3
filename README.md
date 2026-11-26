@@ -4410,3 +4410,29 @@ R140 取消跑到第 i 轮时**已跑 i 轮的补入量没记**（循环后推�
 （`localStorage` 满 / `mtRunDeltaDraw` 未定义不阻循环，补入量推失败 tick 照跑）⑥ 全库跑（`FULL_DONE`）/ 非全库跑完（`break`）
 也逐轮推（循环每轮都推，跑完自然累计 10 轮，`FULL_DONE` 时 `r.done` 跳出循环但前 i 轮已推）。
 
+---
+
+## 第179轮（前端 R165 · goal round142）：`#mtrun` 跑维护中每轮 tick 后推 `_mtRunHist` 本轮耗时（`_t1` 逐轮实时耗时趋势，与 R164 每轮推补入量对称，双指标跑中实时）
+
+**连贯性（双指标跑中实时趋势）**：R164 把补入量 `_mtRunDelta` 改成**每轮 tick 后推**（逐轮实时 + 取消保留），但**耗时
+`_mtRunHist` 仍跑完才推**（R144 `mtRun` 循环后 `_hDur` 本次总耗时），跑中 / 取消看耗时逐轮趋势没数据。`mtRun` 循环**每轮
+tick 后**（`_t1` 记 tick 起点，本轮耗时 `(Date.now()-_t1)/100`）推 `_mtRunHist`（本轮耗时逐轮累计 `slice(-10)` + `mtRunHistDraw`
+/ `mtMetSumDraw` 重画）——与 R164 每轮推补入量**对称**（双指标跑中实时：耗时逐轮 + 补入逐轮，`#mthistspark`/`#mtdeltabar`
+跑中双图长），取消时已推轮保留（不回滚）。
+
+**E2E**（函数级验每轮推逻辑，不真跑 tick）：`mock 3 轮 tick（各耗时 0.3/1.2/0.7s）→ 逐轮推 _mtRunHist=[0.3,1.2,0.7]
+（len=3）+ 取消时已推轮保留（preserved=3，不清空）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r165_histround.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 626→628`，断点 `_整理后分类\thisistruemusic\英文歌\Before You Go.mp3`。
+
+**坑**：① `mtRun` 循环每轮 tick 后（`_t1` 记 tick 起点 2979 区，`r` 返回后）推 `_mtRunHist`：`_rdur=Math.round((Date.now()-
+_t1)/100)/10`（本轮 tick 耗时，1dp），读 `_mtRunHist` 推 `_rdur` 末 10（`slice(-10)`），`mtRunHistDraw()`/`mtMetSumDraw()`
+重画（耗时折线 + 汇总随每轮 tick 更新，跑中实时看耗时趋势）② **与 R164 每轮推补入量对称**（R164 推 `_mtRunDelta` 本轮补入
+量 / R165 推 `_mtRunHist` 本轮耗时，双指标各逐轮推，`#mthistspark`/`#mtdeltabar` 跑中双图同步长，不用等跑完）③ **取消（R140
+`break`）时已推轮保留**（`_mtRunHist`/`_mtRunDelta` 每轮已推，取消不回滚已推的，跑到第 5 轮取消 → 前 5 轮耗时 + 补入量都
+在，不虚），与 R140「已跑的轮不回滚」同直觉 ④ **双粒度**（逐轮 1dp 耗时 + R144 跑完推本次总耗时 `_hDur`——逐轮看每轮快慢，
+总耗时看整次跑多久，两粒度并存不冲突：逐轮推 `slice(-10)` 末 10 轮，跑完推总耗时也 `slice(-10)` 并入，近 10 条里逐轮 + 总
+混排，折线看逐轮尖峰 + 末位总耗时）⑤ `try/catch`（`localStorage` 满 / `mtRunHistDraw` 未定义不阻循环，耗时推失败 tick 照
+跑）⑥ 验收**函数级**（mock 3 轮各耗时直接推 `_mtRunHist` 验逐轮累计 + 取消保留，不真跑 `mtRun` 免 tick 污染 `runs`）。
+
