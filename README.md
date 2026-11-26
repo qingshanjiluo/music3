@@ -5367,3 +5367,41 @@ _ko.length`（三键最近时间戳任一或触发顺序串非空）copy 显 `in
 触发记录」，清 `window._mtKeyLog`/`_mtKeyLogOrder` + `#mtkeyhint` `mouseenter` 验 `#mtkeyhintcopy` 隐，不真跑 `mtRun` 免 tick 污染
 `runs`；copy 复制只验 toast 出口，真剪贴板内容 headless 不验）。
 
+---
+
+## 第210轮（前端 R196 · goal round173）：维护守护区加一键全复制（`#mtguardcopy` 小钮，一键复制维护守护区全部可复制内容：`#mtmetsum` 双指标逐轮明细 + `#mtstatebar` 状态详情 + `#mtlivebadge` 全库完成详情 + `#mtkeyhint` 键盘流触发记录，维护守护区数据一键全留存 / 全贴工单）
+
+**简洁性（维护守护区数据一键全留存免逐个点）**：R188-R195 各数据点各有复制出口（双指标逐轮明细 / 状态详情 / 全库完成详情 / 键盘流触发
+记录），但**维护守护区数据要全量留存 / 贴工单得逐个点各复制钮**（点 `#mtmetsumdetailcopy` 双指标 + `#mtstatebardtlcopy` 状态详情 +
+`#mtlivebadgedonecopy` 全库完成 + `#mtkeyhintcopy` 键盘流，四个复制钮逐个点全复制）。`#mtkeyhintcopy` 旁加**`#mtguardcopy`** 小钮
+（`⧉ 全复制`，`#mtkeyhintcopy` 后常驻位），点 `#mtguardcopy` → **`mtGuardCopy`**（拼「#music3 维护守护全记录 · <ts>」+ 四段：`[双指标逐
+轮明细]`（读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼近 N 次）+ `[状态详情]`（读 `window._mtLiveInfo` + `window._mtAborted`/
+`_mtPaused`/`_mtRunning` 拼取消 / 暂停 / 跑中 / 完成未跑）+ `[全库完成详情]`（读 `window._mtLiveDoneInfo` 拼共 N 轮 · 耗时 Xs / 无）+
+`[键盘流触发记录]`（读 `window._mtKeyLog`/`_mtKeyLogOrder` 拼三键最近时间戳 + 触发顺序串），`navigator.clipboard.writeText`（`_copyFallback`
+降级）+ toast「已复制维护守护全记录（四段）」）——维护守护区数据一键全留存 / 全贴工单，免逐个点四个复制钮，与 R189/R191/R192/R195 单点
+复制同「复制出口」语言但全量。
+
+**E2E**：`写各数据源（localStorage._mtRunHist/_mtRunDelta + window._mtLiveInfo + window._mtLiveDoneInfo + window._mtKeyLog/_mtKeyLogOrder）
+→ 点 #mtguardcopy → mtGuardCopy 拼四段 → toast「已复制维护守护全记录（四段）」（剪贴板 / 降级出口验 toast，四段出口）`（绿）；端点
+**30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r196_guardcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 688→690`，断点 `_整理后分类\洛天依\洛天依\心印 (Step on your heart) - 29163136.mp3`。
+
+**坑**：① `#mtguardcopy` 挂 `#mtkeyhintcopy` 旁常驻位（`#mtkeyhintcopy` 后 `inline-block`，维护守护区数据全复制常驻入口，非 hover 态
+控——四个单点复制钮（`#mtmetsumdetailcopy`/`#mtstatebardtlcopy`/`#mtlivebadgedonecopy`/`#mtkeyhintcopy`）各跟自身数据 / hover 态显隐，
+`#mtguardcopy` 全复制常驻显（点即拼四段，不跟各段数据态——维护守护区全量入口常驻，点复制全量，各段空拼「无」不挡全复制）②
+`mtGuardCopy` 拼四段（`#music3 维护守护全记录 · <ts>` 头 + `[双指标逐轮明细]`（`localStorage._mtRunHist`/`_mtRunDelta` 逐条近 N 次，
+同 R189 `mtMetSumDetailCopy` 拼法倒序最新在上）+ `[状态详情]`（`window._mtLiveInfo` + 三标志拼取消 / 暂停 / 跑中 / 完成未跑，同 R191
+`mtStateBarCopy` 拼法）+ `[全库完成详情]`（`window._mtLiveDoneInfo` 拼共 N 轮 · 耗时 Xs / 无（未全库跑完 / 已复位），同 R192
+`mtLiveBadgeDoneCopy` 拼法）+ `[键盘流触发记录]`（`window._mtKeyLog`/`_mtKeyLogOrder` 拼三键最近时间戳 + 触发顺序串，同 R195
+`mtKeyHintCopy` 拼法），四段各读各数据源，段标题 `[...]` 分隔，空段拼「无」不挡全复制）③ 与 R189/R191/R192/R195 单点复制**全量分工**
+（R189 双指标逐轮明细单点 / R191 状态详情单点 / R192 全库完成详情单点 / R195 键盘流触发记录单点，R196 `#mtguardcopy` 全量一键复制四段
+——单点复制看某段 + 全量复制维护守护区全留存 / 全贴工单，免逐个点四个单点钮）④ 各段空拼「无」（双指标无 `localStorage._mtRunHist`/
+`_mtRunDelta` 空拼「近 0 次」段标题保留，状态无 `window._mtLiveInfo` 空 + 三标志全非拼「维护完成 / 未跑」，全库完成 `window._mtLiveDoneInfo`
+空拼「无（未全库跑完 / 已复位）」，键盘流 `window._mtKeyLog`/`_mtKeyLogOrder` 空拼三键「未用过」+「无触发顺序（未用过）」——各段空不挡
+全复制，`#mtguardcopy` 点即复制全量含空段，维护守护区全量结构完整）⑤ `#mtguardcopy` IIFE 绑（`mtKeyHintCopy` IIFE 后，`e.stopPropagation()`
++ `mtGuardCopy()`，同 R189/R191/R192/R195 复制钮 IIFE 绑纪律）⑥ 验收**函数级**（写各数据源（`localStorage._mtRunHist`/`_mtRunDelta` +
+`window._mtLiveInfo`/`_mtLiveDoneInfo`/`_mtKeyLog`/`_mtKeyLogOrder`）+ 点 `#mtguardcopy` 验 toast「已复制维护守护全记录（四段）」，不真跑
+`mtRun` 免 tick 污染 `runs`；`mtGuardCopy` 拼四段验 toast 出口，真剪贴板内容 headless 不验，各段拼逻辑同 R189/R191/R192/R195 单点复制
+函数拼法）。
+

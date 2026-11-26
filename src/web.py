@@ -1056,6 +1056,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtkeyhint" title="键盘快捷: Space 暂停/续跑 · Esc 取消 · Enter 跳双图(维护 tab 激活 + 焦点非输入框时生效)" style="padding:2px 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:help;line-height:16px;position:relative">⌨ 键</button>
     <div id="mtkeyhintdetail" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--ink);line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button type="button" id="mtkeyhintcopy" title="复制键盘流触发记录(三键最近触发时间戳+触发顺序串, 贴工单/记录使用习惯, 与R169/R189/R191/R192复制出口同语言)" style="display:none;padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制触发记录</button>
+    <button type="button" id="mtguardcopy" title="一键全复制维护守护区(双指标逐轮明细+状态详情+全库完成详情+键盘流触发记录四段, 维护守护区数据一键全留存/全贴工单, 与R189/R191/R192/R195单点复制同语言但全量)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全复制</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
@@ -4033,6 +4034,42 @@ function mtKeyHintCopy(){
   } else { _copyFallback(_lines); }
 }
 (function(){ const c=$('#mtkeyhintcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtKeyHintCopy(); }); } })();
+/* 维护守护区一键全复制(R196): #mtguardcopy 点 -> 拼「#music3 维护守护全记录·<ts>」+双指标逐轮明细段(localStorage._mtRunHist/_mtRunDelta)+状态详情段(window._mtLiveInfo+三标志)+全库完成段(window._mtLiveDoneInfo)+键盘流触发段(window._mtKeyLog/_mtKeyLogOrder)四段拼到剪贴板(navigator.clipboard,_copyFallback降级), 维护守护区数据一键全留存/全贴工单, 与R189/R191/R192/R195单点复制同语言但全量 */
+function mtGuardCopy(){
+  let _all='#music3 维护守护全记录 · '+new Date().toLocaleString()+'\n';
+  /* 段1: 双指标逐轮明细(读 localStorage._mtRunHist/_mtRunDelta, 同 R189) */
+  let _h=[]; try{ _h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  let _b=[]; try{ _b=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+  const _n=Math.max(_h.length, _b.length);
+  _all+='[双指标逐轮明细] '+( _n?('近 '+_n+' 次'):'无')+'\n';
+  if(_n){
+    for(let _k=0; _k<_n; _k++){
+      const _hv=_h.length?_h[_k]:'-', _bv=_b.length?_b[_k]:'-';
+      _all+='第 '+(_n-1-_k)+' 次 '+(typeof _hv==='number'?_hv+'s':'—')+' · 补入 '+(typeof _bv==='number'?('+'+_bv):'—')+'\n';
+    }
+  }
+  /* 段2: 状态详情(读 window._mtLiveInfo + 三标志, 同 R191) */
+  const _li=window._mtLiveInfo;
+  let _st='维护完成 / 未跑';
+  if(typeof window._mtAborted!=='undefined' && window._mtAborted){ _st='已取消 · '+( _li?('第 '+_li.i+'/'+( _li.N>100000?'∞':_li.N)+' 轮 · 本轮回 +'+_li.back+' · 本轮耗 '+_li.dur+'s'):'跑到断点'); }
+  else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ _st='已暂停 · '+( _li?('第 '+_li.i+'/'+( _li.N>100000?'∞':_li.N)+' 轮 · 本轮回 +'+_li.back+' · 本轮耗 '+_li.dur+'s'):''); }
+  else if(typeof window._mtRunning!=='undefined' && window._mtRunning){ _st='跑中 · '+( _li?('第 '+_li.i+'/'+( _li.N>100000?'∞':_li.N)+' 轮 · 本轮回 +'+_li.back+' · 本轮耗 '+_li.dur+'s'):''); }
+  _all+='\n[状态详情] '+_st+'\n';
+  /* 段3: 全库完成详情(读 window._mtLiveDoneInfo, 同 R192) */
+  const _done=window._mtLiveDoneInfo;
+  _all+='[全库完成详情] '+( _done?('共 '+_done.N+' 轮 · 耗时 '+_done.totalDur+'s'):'无（未全库跑完 / 已复位）')+'\n';
+  /* 段4: 键盘流触发记录(读 window._mtKeyLog/_mtKeyLogOrder, 同 R195) */
+  const _kl=window._mtKeyLog||{}, _ko=window._mtKeyLogOrder||[];
+  _all+='[键盘流触发记录]\n';
+  _all+='Space 暂停/续跑 · '+(_kl.space?('最近 '+_kl.space):'未用过')+'\n';
+  _all+='Esc 取消 · '+(_kl.esc?('最近 '+_kl.esc):'未用过')+'\n';
+  _all+='Enter 跳双图 + 聚焦最新轮 · '+(_kl.enter?('最近 '+_kl.enter):'未用过')+'\n';
+  _all+=_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）';
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_all).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护守护全记录（四段）', 'ok'); } }).catch(function(){ _copyFallback(_all); });
+  } else { _copyFallback(_all); }
+}
+(function(){ const c=$('#mtguardcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardCopy(); }); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
