@@ -5033,3 +5033,38 @@ hover 色带本体触，离即隐）③ **`window._mtLiveInfo` 存跑中实时�
 验 `#mtstatebardtl` 文案前缀「跑中 ·」/「已暂停 ·」/「已取消 ·」+ 「第 2/5 轮」+ `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染
 `runs`；`window._mtLiveInfo` 直置验 hover 详情拼文案，`mtRun` 每轮 tick 真存 `window._mtLiveInfo` 不验（循环内行为））。
 
+---
+
+## 第200轮（前端 R186 · goal round163）：`#mtkeyhint` 三键提示浮层补 `Space`/`Esc`/`Enter` 快捷键实际状态灯（`#mtkeyhintdetail` 浮层三键各带一小色点：可触绿 / 不可触灰 / 暂停黄，三键可触状态随跑维护态实时显，hover 看三键当前可触 / 不可触）
+
+**完善性（三键可触 / 不可触实时显免试错）**：R181 `#mtkeyhint` 三键提示浮层只列三键分工文案（「Space 暂停 / 续跑（需跑维护中）
+· Esc 取消（已跑的轮不回滚）· Enter 跳双图区 + 聚焦最新轮」），**没显三键当前可触 / 不可触**（非跑维护中按 `Space` 不可触（需
+跑维护中）、`Esc` 取消需跑中、`Enter` 跳双图非跑中也触但无跑中详情，要试错才知道当前哪键能按）。`#mtkeyhintdetail`（R181 hover
+委托区）改三键各带一小**色点**（`_keyDot` 内联 span `6px` 圆点）：`Space` 可触（`_run && !_ab`）绿 / 暂停态（`_ps`）黄（可续跑）/
+非跑中灰；`Esc` 可触（`_run && !_ab`）绿 / 非跑中灰；`Enter` 可触（`!_ab`）绿 / 取消灰——hover `#mtkeyhint` 看三键当前可触 / 不可
+触 / 暂停（色点随 `window._mtRunning`/`_mtPaused`/`_mtAborted` 实时显），免试错，三键可触状态一目了然。
+
+**E2E**：`跑中非暂停（window._mtRunning=true,_mtPaused=false,_mtAborted=false）→ hover #mtkeyhint → #mtkeyhintdetail 三键色点
+（Space 绿 + Esc 绿 + Enter 绿）；暂停（_mtPaused=true）→ Space 黄 + Esc 绿 + Enter 绿；非跑中（_mtRunning=false）→ Space 灰 +
+Esc 灰 + Enter 绿（Enter 非跑中也触跳双图）+ mouseleave → 隐`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r186_keydots.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 668→670`，断点 `_整理后分类\摇滚民谣\万能青年旅店\收藏.mp3`。
+
+**坑**：① `_keyDot(_on, _warn)` 色点（内联 `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:
+var(--warn|var(--ok)|var(--line));margin-right:2px"></span>`，6px 圆点：`_warn` 黄 `--warn`（暂停可续跑）/ `_on` 绿 `--ok`（可触）
+/ 灰 `--line`（不可触），`#mtkeyhintdetail` 内联 span 色点跟三键文案前缀，色点小不挡文案，`margin-right:2px` 隔开）② 三键可触判
+（`_spCan=_run&&!_ab` Space 暂停 / 续跑需跑维护中且未取消，暂停态 `_ps&&_spCan` 显黄（可续跑）；`_esCan=_run&&!_ab` Esc 取消需
+跑中未取消；`_enCan=!_ab` Enter 跳双图非取消即触（非跑中也触但跳双图无跑中详情，可触绿），三键可触读 `window._mtRunning`/
+`_mtPaused`/`_mtAborted` 实时判，hover 时算当前态）③ `#mtkeyhintdetail` 改 `innerHTML`（R181 `textContent` → `innerHTML`，色点
+内联 span 需 `innerHTML` 拼 `<span>`，`mouseleave` 清 `innerHTML=''` 不 `textContent=''`，`d.innerHTML` 含色点 span + 三键文案，
+headless 验 `innerHTML` 含 `var(--ok)`/`var(--warn)`/`var(--line)` 色点）④ **`Enter` 非跑中也可触绿**（`_enCan=!_ab`，`Enter` 跳
+双图 + 聚焦最新轮非跑维护中也能跳（跳双图区看趋势，非跑中也有效），非取消即绿——区别于 `Space`/`Esc` 需跑维护中（`_run`），
+`Enter` 跳双图双指标趋势非跑中也可看，三键可触判不同）⑤ 与 R181 三键提示**分工**（R181 文案列三键分工，R186 色点显三键当前可
+触 / 不可触 / 暂停，文案 + 色点双路：看文案知三键做什么 + 看色点知当前哪键能按，免试错）⑥ `mouseenter` 实时算（`#mtkeyhint`
+hover 时 `mouseenter` 读 `window._mtRunning`/`_mtPaused`/`_mtAborted` 算三键可触，非跑中 hover 显 `Space`/`Esc` 灰 + `Enter` 绿，
+跑中 hover 显三键绿，暂停 hover 显 `Space` 黄，hover 每次重算当前态，非缓存旧态）⑦ 验收**函数级**（`window._mtRunning`/`_mtPaused`/
+`_mtAborted` 三态置值 + `#mtkeyhint` `dispatchEvent` `mouseenter` 验 `#mtkeyhintdetail` `innerHTML` 色点 `var(--ok)`/`var(--warn)`/
+`var(--line)` + 三键文案 + `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染 `runs`；`_keyDot` 色点 headless 验 `innerHTML` 含色点
+`var()` 色，非真渲染圆点像素）。
+

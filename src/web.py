@@ -3944,9 +3944,25 @@ function _mtUnpausedBtn(){
 (function(){
   const k=$('#mtkeyhint'), d=$('#mtkeyhintdetail');
   if(!k || !d) return;
-  const _hint='Space 暂停 / 续跑（需跑维护中）· Esc 取消（已跑的轮不回滚）· Enter 跳双图区 + 聚焦最新轮 —— 维护 tab 激活 + 焦点不在输入框时生效';
+  /* 三键状态灯(R186): 读 window._mtRunning/_mtPaused 实时显三键当前可触/不可触/暂停色点, hover 看三键可触状态随跑维护态变 */
+  function _keyDot(_on, _warn){
+    /* 色点: 可触绿 / 暂停黄 / 不可触灰, 内联 span */
+    if(_warn){ return '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-right:2px"></span>'; }
+    if(_on){ return '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:2px"></span>'; }
+    return '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--line);margin-right:2px"></span>';
+  }
   k.addEventListener('mouseenter', function(){
-    d.textContent=_hint; d.style.display='block';
+    const _run=(typeof window._mtRunning!=='undefined' && window._mtRunning);
+    const _ps=(typeof window._mtPaused!=='undefined' && window._mtPaused);
+    const _ab=(typeof window._mtAborted!=='undefined' && window._mtAborted);
+    /* 三键可触: Space 需跑维护中且未取消(_run&&!_ab); 暂停态 Space 可续跑(黄); Esc 需跑中未取消(_run&&!_ab); Enter 非取消即触(跳双图, 非跑中也触但无跑中详情=可触) */
+    const _spCan=_run&&!_ab;                 /* Space 可触(暂停或续跑), 暂停态显黄(续跑) */
+    const _esCan=_run&&!_ab;                 /* Esc 可触(取消跑维护中) */
+    const _enCan=!_ab;                       /* Enter 可触(跳双图, 非取消即触) */
+    const _html=_keyDot(_spCan, _ps&&_spCan)+'Space 暂停/续跑 · '
+      +_keyDot(_esCan, false)+'Esc 取消 · '
+      +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮';
+    d.innerHTML=_html; d.style.display='block';
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtkeyhint 下方浮层, 靠右/靠底不溢出 */
     const r=k.getBoundingClientRect();
     d.style.position='absolute';
@@ -3958,7 +3974,7 @@ function _mtUnpausedBtn(){
     if(ty+dh>window.innerHeight-8){ ty=Math.max(8, r.top-dh-2); }
     d.style.top=ty+'px';
   });
-  k.addEventListener('mouseleave', function(){ d.style.display='none'; d.textContent=''; });
+  k.addEventListener('mouseleave', function(){ d.style.display='none'; d.innerHTML=''; });
 })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
