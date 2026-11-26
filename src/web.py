@@ -3842,6 +3842,19 @@ function mtLiveBadgeJump(){
   setTimeout(function(){ if(typeof mtFocusLatest==='function'){ mtFocusLatest(); } }, 400);
 }
 (function(){ const j=$('#mtlivebadge'); if(j){ j.addEventListener('click', mtLiveBadgeJump); } })();
+/* 徽标右键快捷取消跑维护(R176): #mtlivebadge contextmenu -> _mtAborted=true + #mtrun 取消红态同步 + toast, 跑中看徽标双指标时右键即取消免手点 #mtrun, 与 R140 取消「已跑的轮不回滚」同直觉 */
+(function(){
+  const j=$('#mtlivebadge'); if(!j){ return; }
+  j.addEventListener('contextmenu', function(ev){
+    ev.preventDefault(); /* 不弹系统右键菜单 */
+    if(typeof _mtAborted!=='undefined'){ _mtAborted=true; } /* 跳出 mtRun 循环下一轮 abort 检查 */
+    const run=$('#mtrun');
+    if(run){ /* 取消红态同步: 跑中是「取消」红, 右键取消同红态 */ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
+    if(typeof _toast==='function'){ _toast('已发取消 · 跑到下一轮生效（已跑的轮不回滚）', 'ok'); }
+  });
+  /* 右键取消提示 */
+  j.title=(j.title?j.title+' · 右键取消跑维护':'右键取消跑维护');
+})();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');

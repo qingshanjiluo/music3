@@ -4725,3 +4725,33 @@ node 0、console 0、截图 r175_toastjump.png。
 `r.done` 才到，headless 验 `outerHTML` 含「点双图区汇总」引导文案 + `mtMetSumJump` 函数在 + `#mtmetsum` 元素在，链路通即
 证；全库 toast 引导同 grep 区（`_toast('跑到全库完成…点双图区汇总跳双图看趋势')` 源码在））。
 
+---
+
+## 第190轮（前端 R176 · goal round153）：`#mtlivebadge` 右键快捷取消跑维护（`contextmenu` → `_mtAborted=true` + `#mtrun` 取消红态同步 + toast，跑中看徽标时右键即取消免手点 `#mtrun`）
+
+**流畅性（跑中看徽标时右键取消免移开）**：R171 `#mtlivebadge` 点击 = 跳双图（`onclick`），跑中看徽标双指标时**想取消跑维护要移开点
+`#mtrun` 取消红态**（`#mtrun` 跑中变「取消」红 `--bad`，要移开视线点），徽标右键快捷取消没入口。`#mtlivebadge` 加**`contextmenu`**
+（`preventDefault` 不弹系统菜单 + `_mtAborted=true` + `#mtrun` 取消红态同步（`textContent=取消` + `--bad`）+ toast「已发取消 ·
+跑到下一轮生效（已跑的轮不回滚）」）——跑中看徽标双指标时**右键即取消**（不弹系统菜单，`_mtAborted` 设后跑中下一轮 abort 检查
+跳出循环），与 R140 取消「已跑的轮不回滚」同直觉，免手点 `#mtrun`。
+
+**E2E**：`右键 #mtlivebadge（contextmenu）→ preventDefault + #mtrun 取消红态（textContent=取消 + --bad rgb(196,56,31)）+
+toast「已发取消 · 跑到下一轮生效（已跑的轮不回滚）」+ _mtAborted=true（跑中下一轮 abort 生效）`（绿）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r176_ctxcancel.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 648→650`，断点 `_整理后分类\华语经典\周杰伦\轨迹.mp3`。
+
+**坑**：① `#mtlivebadge` `contextmenu`（`addEventListener('contextmenu')`，R171 `click` 绑的 IIFE 后）：`ev.preventDefault()`
+（不弹系统右键菜单，徽标右键只做取消）② `_mtAborted=true`（`typeof _mtAborted!=='undefined'` 判，`mtRun` 循环顶 abort 检查
+跳出，跑中下一轮生效——`_mtAborted` 是 `mtRun` 函数作用域 `let`，IIFE 挂 `contextmenu` 访问要 `typeof` 判不直接读（作用域外
+读 `let` 块级变量会 `ReferenceError`，`typeof` 安全））③ `#mtrun` 取消红态同步（`textContent='取消'` + `background/borderColor`
+`var(--bad)` + `color=#fff`，跑中 `#mtrun` 本来红「取消」态，右键取消同红态视觉同步——看 `#mtrun` 红知道已发取消，非跑中右键
+也置红态提示「取消已发」，`#mtrun` 跑中本来红，非跑中点取消无效但视觉同步提示）④ toast「已发取消 · 跑到下一轮生效（已跑的轮
+不回滚）」（`_mtAborted` 设后跑中下一轮 `mtRun` 循环顶检查跳出，已跑轮不回滚——与 R140 同「不回滚」直觉，toast 文案点明已跑的
+轮保留）⑤ `j.title` 追加「· 右键取消跑维护」（`#mtlivebadge` hover 提示右键可取消，`title` 已有 `cursor:help` 提示（R167），追加
+右键取消提示，hover 看提示知道右键能取消）⑥ `contextmenu` 不 `stopPropagation`（`#mtlivebadge` 在维护区，右键取消是维护区局部
+交互，不挡外层 `contextmenu`——维护区没外层右键交互，`preventDefault` 只挡系统菜单）⑦ 验收**函数级**（`#mtlivebadge` `dispatchEvent`
+`contextmenu` 验 `#mtrun` 红态 + toast，`_mtAborted` 作用域外读不验——`_mtAborted` 是 `mtRun` 块级 `let`，IIFE 外读不到，验
+`#mtrun` 视觉同步 + toast 出口证明取消已发，`_mtAborted` 真取消跑中下一轮生效是 `mtRun` 内部行为不真跑 `mtRun` 免 tick 污染
+`runs`）。
+
