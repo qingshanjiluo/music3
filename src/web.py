@@ -3814,6 +3814,26 @@ function mtLiveBadgeJump(){
   const wrap=$('#mtmetfoldwrap');
   if(wrap && wrap.style.display==='none'){ wrap.style.display='block'; try{ localStorage.setItem('_mtMetFold','0'); }catch(e){} const bf=$('#mtmetfold'); if(bf){ bf.textContent='▾ 折趋势'; } }
   const tgt=$('#mthistspark'); if(tgt){ tgt.scrollIntoView({behavior:'smooth', block:'center'}); }
+  /* 跳双图后自动聚焦最新轮(R172): 滚入双图区后 #mtdeltabar 末柱点亮 #mtdelthover + #mtpairlbl 显配对(第N次·耗时Xs·补入+Y), 免手 hover 看最新, 与 R155 双图 hover 联动同「双指标配对」但跳双图后自动聚焦最新轮 */
+  setTimeout(function(){
+    try{
+      let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+      let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+      if(!h.length && !d.length){ return; }
+      const n=Math.max(h.length, d.length);
+      const lastIdx=n-1;
+      const dEl=$('#mtdelthover'), dLbl=$('#mtdelthovlbl'), pair=$('#mtpairlbl');
+      const dSvg=$('#mtdeltaSvg');
+      /* 末柱位置: #mtdeltabar data-hd 解补入, x 按 frac=1(末柱) */
+      if(dSvg && pair){
+        const dh=pair.getAttribute('data-hd'); /* R156 挂 data-hd */
+      }
+      /* 高亮末柱: #mtdelthover(绿点)放到末柱顶 + #mtpairlbl 配对文案 */
+      const hv=h[lastIdx], dv=d.length?(d[d.length-1]):null;
+      if(pair){ pair.textContent='第 '+(lastIdx+1)+' 次 · 耗时 '+(hv!==undefined?hv:'-')+'s · 补入 '+(dv!==null?'+'+dv:'-'); pair.style.display='inline-block'; }
+      if(dEl){ dEl.style.display='block'; /* top 末柱顶: viewBox 100x22 末柱 frac=1, 补入值 dv 高 round(dv/mx*18)+2 底 */ const mx=Math.max.apply(null,d.concat([1])); const top=(20-Math.round((dv&&dv>0?dv:0)/mx*18))-1; dEl.style.top=top+'px'; dEl.style.left='100%'; }
+    }catch(e){}
+  }, 400); /* scrollIntoView smooth 滚完再聚焦(400ms 滚势停), 滚到双图区时末柱已高亮 */
 }
 (function(){ const j=$('#mtlivebadge'); if(j){ j.addEventListener('click', mtLiveBadgeJump); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */

@@ -4598,3 +4598,33 @@ console 0、截图 r171_jump.png。
 `#mtmetfoldwrap` `display:none` + 点 `#mtlivebadge` 验展开 `block` + `_mtMetFold=0` + 钮复位，`scrollIntoView` headless 不验
 实际滚动只验双图区展开可访问，不真跑 `mtRun` 免 tick 污染 `runs`）。
 
+---
+
+## 第186轮（前端 R172 · goal round149）：`#mtlivebadge` 点击跳双图区后自动定位最近一柱（`#mtdeltabar` 末柱高亮 + `#mtpairlbl` 配对「第 N 次·耗时 Xs·补入 +Y」，聚焦最新一轮双指标）
+
+**连贯性（跳双图后聚焦最新轮免手 hover）**：R171 点 `#mtlivebadge` 跳双图区（`scrollIntoView` 滚到 `#mthistspark`），但
+**滚到双图区后没聚焦最新一轮**（双图 hover 联动要手动 hover 某柱才显 `#mtpairlbl` 配对，滚到双图区后自动高亮最近一柱 + 显
+配对「第 N 次·耗时 Xs·补入 +Y」没做）。`mtLiveBadgeJump` 跳双图后（`scrollIntoView` `smooth` 滚完）自动：`#mtdeltabar`
+**末柱**（`idx=n-1`）点亮 `#mtdelthover`（绿点）+ `#mtpairlbl` 显配对「第 N 次·耗时 Xs·补入 +Y」（读 `_mtRunHist` 末位耗时
++ `_mtRunDelta` 末位补入量，与 R155 hover 联动同「双指标配对」但跳双图后**自动聚焦最新轮**免手 hover）。
+
+**E2E**：`写 _mtRunHist(5)+_mtRunDelta(5) → 点 #mtlivebadge 跳双图 → 400ms 后 #mtpairlbl 显「第 5 次 · 耗时 0.6s · 补入 +3」
+（末柱高亮 + 配对最新轮，_mtRunHist 末 0.6 / _mtRunDelta 末 3）+ #mtdelthover 点亮`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r172_focus.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 640→642`，断点 `_整理后分类\华语经典\周传雄\异世界.mp3`。
+
+**坑**：① `mtLiveBadgeJump`（R171 跳双图）加 `setTimeout(400)` 滚完再聚焦：`scrollIntoView({behavior:'smooth'})` 平滑滚约
+400ms，`setTimeout` 400ms 后聚焦（滚到双图区时末柱已高亮，`scrollIntoView` 滚势停时聚焦落定，不在滚中抖）② 聚焦逻辑（`setTimeout`
+内）：读 `_mtRunHist`（`h`）+ `_mtRunDelta`（`d`），`n=max(h.length,d.length)`，`lastIdx=n-1`，`hv=h[lastIdx]`（末位耗时）/
+`dv=d[d.length-1]`（末位补入），`#mtpairlbl` 文案 `'第 (lastIdx+1) 次 · 耗时 hv+s · 补入 +dv'`（`hv`/`dv` 缺显 `-`，`pair`
+`display:inline-block`）③ 末柱高亮 `#mtdelthover`（绿点，`display:block`）：`top` 末柱顶（viewBox 100×22，`mx=max(d 各值,1)`，
+`top=20-round(dv/mx*18)-1`，柱顶 y），`left=100%`（末柱 `frac=1` 最右），`#mtdelthover` 是 `#mtdeltabar` 内绝对定位绿点（R154
+定义），聚焦最新直接放到末柱顶 ④ **`_mtRunDelta` 空但 `_mtRunHist` 有**（只补入没跑/清补入）：`dv=null`，`#mtpairlbl` 补入
+显 `-`（耗时末位照显），`#mtdelthover` 不显（无补入柱状可点亮），降级不阻 ⑤ 与 R155 hover 联动**分工**（R155 手 hover 某柱
+显该柱配对 / R172 跳双图后自动聚焦末柱显最新轮配对——R172 是「跳双图后免手 hover 看最新」，R155 仍是「手 hover 看任意一轮」，
+自动聚焦最新 + 手 hover 任意轮并存，`#mtpairlbl`/`#mtdelthover` 同元素两触发源：跳双图自动末柱 / hover 手定位某柱，后触者
+覆盖——跳双图后手 hover 某柱 R155 联动接管 `#mtpairlbl` 改该柱，`#mtdelthover` 改某柱顶，不冲突）⑥ 验收**函数级**（写
+`_mtRunHist`/`_mtRunDelta` 5 条 + 点 `#mtlivebadge` 验 400ms 后 `#mtpairlbl` 末位配对 + `#mtdelthover` 点亮，不真跑 `mtRun`
+免 tick 污染 `runs`；`setTimeout` 400ms 验证 `await 600ms` 后读，不真滚 `scrollIntoView` 只验双图区展开 + 聚焦落定）。
+
