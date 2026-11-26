@@ -1074,6 +1074,8 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardfoldresetcopy" title="全折叠记忆重置详情复制(4键localStorage复位值+4window标志复位值+4折叠钮文案复位+6浮层display复位+重置时间戳到剪贴板, 全折叠记忆重置详情可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 重置复制</button>
     <button type="button" id="mtguardfoldresetpng" title="全折叠记忆重置详情PNG导出(4键+4标志+4折叠钮+6浮层复位状态SVG转canvas下载music3_全折叠记忆重置详情_ts.png, 全折叠记忆重置详情PNG存档/贴工单, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 重置PNG</button>
     <button type="button" id="mtguardalldomain" title="维护守护区全折叠域总控面板(四折叠记忆localStorage键+四折叠出口+全折叠重置/详情复制/详情PNG+全浮层复位出口一张全折叠域总控图, 全折叠域能力/出口全景图免分散找, 与R209折叠全链路总控同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 全折叠域</button>
+    <button type="button" id="mtguardalldomainpng" title="全折叠域总控面板PNG导出(#mtguardalldomains内联SVG转canvas下载music3_全折叠域总控_ts.png, 全折叠域总控面板PNG存档/可分享, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 全折叠PNG</button>
+    <button type="button" id="mtguardalldomaincopy" title="全折叠域总控文本复制(六块分块+各折叠出口标位文本到剪贴板, 全折叠域总控可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全折叠复制</button>
     <div id="mtguardfoldctld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardalldomains" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardfoldstatd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
@@ -4676,6 +4678,65 @@ function mtGuardAllDomain(){
   window._mtGuardAllDomainT=setTimeout(function(){ _d.style.display='none'; }, 8000);
 }
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomain'){ e.stopPropagation(); mtGuardAllDomain(); } }); })();
+/* R217 全折叠域总控面板PNG导出: #mtguardalldomainpng 点->读#mtguardalldomains内联SVG(无则先mtGuardAllDomain生成)canvas转PNG下载「music3_全折叠域总控_<ts>.png」, toBlob不可用降级复制SVG源码, 与R158/R198/R200/R208PNG导出同语言 */
+function mtGuardAllDomainPng(){
+  const _d=document.getElementById('mtguardalldomains'); if(!_d) return;
+  if(!_d.innerHTML || _d.innerHTML.indexOf('<svg')<0){ if(typeof mtGuardAllDomain==='function'){ mtGuardAllDomain(); } }
+  const _svg=_d.querySelector('svg');
+  if(!_svg){ if(typeof _toast==='function'){ _toast('无全折叠域总控面板可导出（全折叠域面板空）', 'bad'); } return; }
+  const _W=Number(_svg.getAttribute('width'))||460, _H=Number(_svg.getAttribute('height'))||200;
+  const _svgStr=new XMLSerializer().serializeToString(_svg);
+  const _b64=btoa(unescape(encodeURIComponent(_svgStr)));
+  const _img=new Image();
+  _img.onload=function(){
+    const _cv=document.createElement('canvas'); _cv.width=_W; _cv.height=_H;
+    const _cx=_cv.getContext('2d');
+    _cx.fillStyle='#f7f5f0'; _cx.fillRect(0,0,_cv.width,_cv.height);
+    _cx.drawImage(_img,0,0);
+    try{
+      _cv.toBlob(function(blob){
+        if(!blob){ _fallbackCopy(); return; }
+        const _url=URL.createObjectURL(blob);
+        const _a=document.createElement('a');
+        _a.href=_url; _a.download='music3_全折叠域总控_'+new Date().toISOString().replace(/[:.]/g,'-')+'.png';
+        document.body.appendChild(_a); _a.click(); document.body.removeChild(_a);
+        setTimeout(function(){ URL.revokeObjectURL(_url); }, 4000);
+        if(typeof _toast==='function'){ _toast('已下载全折叠域总控 PNG', 'ok'); }
+      },'image/png');
+    }catch(_){ _fallbackCopy(); }
+    function _fallbackCopy(){
+      const _txt='#music3 全折叠域总控 SVG\n'+_svgStr;
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(_txt).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠域总控 SVG（PNG 导出不可用降级）', 'ok'); } }).catch(function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败且复制降级失败', 'bad'); } }); }
+      else { if(typeof _toast==='function'){ _toast('PNG 导出失败（canvas 不可用）', 'bad'); } }
+    }
+  };
+  _img.onerror=function(){ if(typeof _toast==='function'){ _toast('PNG 导出失败（SVG 渲染不可用）', 'bad'); } };
+  _img.src='data:image/svg+xml;base64,'+_b64;
+}
+/* R217 全折叠域总控文本复制: #mtguardalldomaincopy 点->读全折叠域总控六块(四折叠记忆+四折叠出口+全折叠重置+重置详情复制/PNG+全浮层复位+三域折叠态总览)拼总控文本到剪贴板, 全折叠域总控可文本留存/贴工单, 与R201/R208复制出口同语言 */
+function mtGuardAllDomainCopy(){
+  let _lines='#music3 全折叠域总控 · '+new Date().toLocaleString()+'\n';
+  _lines+='[四折叠记忆 localStorage 键]\n';
+  const _ls=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0'];
+  _lines+=('_mtMetFold='+_ls[0]+' · _mtGuardPanelFold='+_ls[1]+' · _mtGuardFoldAll='+_ls[2]+' · _mtGuardFoldCtl='+_ls[3])+'\n';
+  _lines+='\n[四折叠出口]\n';
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
+  for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); _lines+=_btns[_i]+'='+(_b?_b.textContent:'无')+'\n'; }
+  _lines+='\n[全折叠重置]\n';
+  _lines+='↺ #mtguardfoldreset 全折叠记忆一键复位(清4键+4标志+4折叠钮+全浮层)\n';
+  _lines+='\n[重置详情复制 / PNG]\n';
+  _lines+='⧉ #mtguardfoldresetcopy 重置详情复制 · ⬇ #mtguardfoldresetpng 重置详情PNG\n';
+  _lines+='\n[全浮层复位]\n';
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  for(let _i=0;_i<6;_i++){ const _f=document.getElementById(_floors[_i]); _lines+=_floors[_i]+'='+(_f?_f.style.display:'无')+'\n'; }
+  _lines+='\n[三域折叠态总览 (R207)]\n';
+  _lines+='▣ #mtguardfoldstat 三域折叠态SVG · ⬇ #mtguardfoldstatpng · ⧉ #mtguardfoldstatcopy\n';
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制全折叠域总控文本', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
+  } else { _copyFallback(_lines); }
+}
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomainpng'){ e.stopPropagation(); mtGuardAllDomainPng(); } }); })();
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomaincopy'){ e.stopPropagation(); mtGuardAllDomainCopy(); } }); })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){

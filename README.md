@@ -6123,3 +6123,40 @@ SVG 分块标位 / 色带 + `#...d` 浮层 + `getBoundingClientRect` 下沿定�
 `[重置详情复制`/`[全浮层复位]`/`[三域折叠态总览`）+ `display=block`，`localStorage` 4 键 / 4 折叠钮 / 6 浮层读值验 SVG 拼逻辑，不真跑 `mtRun` 免 tick 污染 `runs`；8s 自动隐验
 `clearTimeout(window._mtGuardAllDomainT)` + `setTimeout` 重置，非真等 8s）。
 
+---
+
+## 第231轮（前端 R217 · goal round194）：维护守护区全折叠域总控面板补 PNG 导出 + 复制出口（`#mtguardalldomainpng` 小钮，点 `#mtguardalldomain` 全折叠域总控面板后 `#mtguardalldomainpng` 把全折叠域总控面板 SVG `canvas` 转 PNG 下载「music3_全折叠域总控_<ts>.png」+ `#mtguardalldomaincopy` 复制全折叠域总控文本，全折叠域总控面板 PNG 存档 / 文本贴工单，与 R198/R200/R208 PNG 导出 + R196/R201/R208 复制出口同语言）
+
+**完善性（全折叠域总控面板 PNG 存档 / 文本贴工单免手截 / 手抄）**：R216 `#mtguardalldomain` 全折叠域总控面板内联 SVG 只看，**没 PNG 导出 / 文本复制**（全折叠域总控面板要存档 / 分享得手动截屏 / 抄，
+`#mtguardalldomainpng` 转 PNG 下载 + `#mtguardalldomaincopy` 文本复制，全折叠域总控面板 PNG 存档 + 文本贴工单双出口，与 R198/R200/R208 PNG 导出 + R196/R201/R208 复制出口语言同）。
+`#mtguardalldomain` 旁加**`#mtguardalldomainpng`**（`⬇ 全折叠PNG`）+ **`#mtguardalldomaincopy`**（`⧉ 全折叠复制`）小钮，点 `#mtguardalldomainpng` → **`mtGuardAllDomainPng`**（读
+`#mtguardalldomains` 内联 SVG（无则先 `mtGuardAllDomain()` 生成），`canvas` 转 PNG 下载「music3_全折叠域总控_<ts>.png」，`toBlob` 不可用降级复制 SVG 源码 + toast「已下载全折叠域总控 PNG」），
+点 `#mtguardalldomaincopy` → **`mtGuardAllDomainCopy`**（读全折叠域总控六块（`[四折叠记忆 localStorage 键]`/`[四折叠出口]`/`[全折叠重置]`/`[重置详情复制/PNG]`/`[全浮层复位]`/
+`[三域折叠态总览]` 各块标位）拼总控文本到剪贴板，`navigator.clipboard.writeText` 降级 + toast「已复制全折叠域总控文本」）——全折叠域总控面板 PNG 存档 / 文本贴工单双出口，
+与 R198/R200/R208 PNG 导出 + R196/R201/R208 复制出口同语言。
+
+**E2E**：`点 #mtguardalldomain（生成 #mtguardalldomains 内联 SVG）→ 点 #mtguardalldomainpng → toast「已下载全折叠域总控 PNG」；点 #mtguardalldomaincopy → toast「已复制全折叠域总控文本」`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r217_alldompngcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 732→734`，断点 `_英文歌\Lose You to Love Me.mp3`。
+
+**坑**：① `#mtguardalldomainpng`/`#mtguardalldomaincopy` 小钮挂 `#mtguardalldomain` 旁常驻位（`#mtguardalldomain` 后 `#mtguardalldomainpng` 再后 `#mtguardalldomaincopy`，全折叠域
+总控面板 PNG 导出 + 文本复制常驻入口，非 hover 态控——`#mtguardalldomain` 全折叠域总控看全貌 + `#mtguardalldomainpng` 全折叠域 PNG 存档 + `#mtguardalldomaincopy` 全折叠域文本贴
+工单三入口并排，全折叠域总控可看可存可贴）② `mtGuardAllDomainPng` 读 `#mtguardalldomains` 内联 SVG（`#mtguardalldomains` 无 SVG（未点过 `#mtguardalldomain`）则先 `mtGuardAllDomain()`
+生成，`_d.querySelector('svg')` 取 SVG，无 `svg` toast「无全折叠域总控面板可导出（全折叠域面板空）」`bad`，同 R198/R200/R208 PNG 导出读各内联 SVG 无则先生成纪律）③ SVG 转 PNG
+（`new XMLSerializer().serializeToString(svg)` → `btoa(unescape(encodeURIComponent(svgStr)))` base64 → `Image` `onload` `canvas`（`#f7f5f0` 浅色底 fillRect，透明底贴工单看不清同 R158）
+`drawImage` → `toBlob('image/png')` → `a[download]='music3_全折叠域总控_<ts>.png'`（`ts` `new Date().toISOString().replace(/[:.]/g,'-')` 文件名安全，与 R198 `music3_维护守护全记录_快照_<ts>.png` /
+R200 `music3_维护守护总览_<ts>.png` / R208 `music3_维护守护三域折叠态_<ts>.png` 区分——全折叠域总控 PNG 命名「全折叠域总控」）④ `toBlob` 不可用降级（`_fallbackCopy` 复制 SVG 源码到剪贴板 +
+toast「已复制全折叠域总控 SVG（PNG 导出不可用降级）」，`canvas` / `toBlob` 沙箱不可用时 SVG 源码降级留存，同 R158/R198/R200/R208 PNG 降级复制 SVG 源码纪律）⑤ `mtGuardAllDomainCopy`
+读全折叠域总控六块拼文本（`#music3 全折叠域总控 · <new Date().toLocaleString()>` 头 + `[四折叠记忆 localStorage 键]`（4 键值实时读）+ `[四折叠出口]`（4 折叠钮 `textContent`）+
+`[全折叠重置]`（`#mtguardfoldreset` 复位标位）+ `[重置详情复制/PNG]`（`#mtguardfoldresetcopy`/`#mtguardfoldresetpng` 双出口标位）+ `[全浮层复位]`（6 浮层 `display`）+ `[三域折叠态总览
+(R207)]`（`#mtguardfoldstat` 三域折叠态 SVG + `#mtguardfoldstatpng`/`#mtguardfoldstatcopy` 双出口标位），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制全折叠域
+总控文本」，全折叠域总控文本自含全折叠域出口标位（R159/R202/R203/R204/R205/R206/R207/R208/R209/R210/R211/R212/R213/R214/R215/R216 十六出口），复制全折叠域总控文本即全折叠域出口清单
+留存）⑥ 与 R216 `#mtguardalldomain` 全折叠域总控面板**分工**（R216 内联 SVG 全折叠域总控面板看全貌（`#mtguardalldomains` 8s 自动隐），R217 全折叠域 PNG 导出 + 文本复制双出口
+（`#mtguardalldomainpng` 下载 PNG 存档 / 分享 + `#mtguardalldomaincopy` 文本贴工单），看全貌 + 全貌 PNG / 文本留存双路，全折叠域总控可看可存可贴）⑦ 与 R198 `#mtguardsnappng` /
+R200 `#mtguardpanelpng` / R208 `#mtguardfoldstatpng` PNG 导出**语言同**（各 PNG 导出读各内联 SVG `canvas` 转 PNG 下载，`toBlob` 不可用降级复制 SVG 源码，全折叠域总控 PNG 同语言）⑧
+与 R201 `#mtguardpanelcopy` / R208 `#mtguardfoldstatcopy` 复制出口**语言同**（各文本复制读各数据源拼文本到剪贴板，`navigator.clipboard.writeText` 降级，全折叠域总控文本复制同语言，
+全折叠域总控文本自含全出口标位）⑨ 验收**函数级**（点 `#mtguardalldomain` 生成 `#mtguardalldomains` 内联 SVG + 点 `#mtguardalldomainpng` 验 toast「已下载全折叠域总控 PNG」/ 降级「已复制
+全折叠域总控 SVG」+ 点 `#mtguardalldomaincopy` 验 toast「已复制全折叠域总控文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，真 PNG / 剪贴板内容不验，不真跑 `mtRun`
+免 tick 污染 `runs`）。
+
