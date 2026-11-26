@@ -6265,3 +6265,34 @@ R215 `#mtguardfoldresetpng` 重置详情**分工**（R214/R215 重置详情 4 �
 `mtRun` 免 tick 污染 `runs`；重置详情 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼逻辑验 toast 出口，`_mtGuardAllDomain` 字段进重置详情文本 / PNG，复制 / 下载 headless 验 toast 出口，真剪贴板 /
 PNG 内容不验）。
 
+---
+
+## 第235轮（前端 R221 · goal round198）：维护守护区全折叠域总控面板补当前态完整（`#mtguardalldomaincopy` 全折叠域总控文本 + `#mtguardalldomainpng` 全折叠域总控 PNG 补全折叠域总控面板六块中各 `localStorage` 键 / `window` 标志 / 折叠钮 / 浮层 `display` 实时值，全折叠域总控面板 PNG / 文本自含全折叠域当前态完整）
+
+**完善性（全折叠域总控面板 PNG / 文本自含全折叠域当前态完整）**：R217 `#mtguardalldomaincopy` / `#mtguardalldomainpng` 全折叠域总控面板 PNG / 文本已含六块，但**各块
+`localStorage` 键 / `window` 标志 / 折叠钮 / 浮层 `display` 实时值要全折叠域当前态完整**（`mtGuardAllDomain`（R216 区）六块 `_ls` 已 5 键 / `_btns` 已 5 折叠钮 / `_floors` 已 7 浮层，
+但色带 / 文案 / 浮层循环只拼前 4/4/6 项，第 5 键 / 第 5 折叠钮 / 第 7 浮层没拼进 SVG；`mtGuardAllDomainCopy`（R217 区）`_ls` 缺第 5 元素（`_ls[4]` 引用但只定义 4 元素 =
+`undefined`），`_btns` / `_floors` 缺全折叠域字段），`mtGuardAllDomain`（R216 区）六块补 5 键 / 5 折叠钮 / 7 浮层当前态完整（循环 4→5 / 6→7 + `_key` 数组加 `_mtGuardAllDomain`），
+`mtGuardAllDomainCopy`（R217 区）补 5 键 / 5 折叠钮 / 7 浮层（`_ls` 加第 5 元素 + `_btns` / `_floors` 加全折叠域字段 + 循环 4→5 / 6→7），全折叠域总控面板 PNG / 文本自含全折叠域
+当前态完整，与 R217 全折叠域总控面板 PNG / 文本同域。
+
+**E2E**：`设 5 键全 '1' → 点 #mtguardalldomain 生成面板 → #mtguardalldomains SVG 含 5 键（_mtGuardAllDomain）+ 5 折叠钮（mtguardalldomain）+ 7 浮层（mtguardalldomains）当前态`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r221_alldomaincurstate.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 740→742`，断点 `_草东没有派对\模样.mp3`。
+
+**坑**：① `mtGuardAllDomain`（R216 区）六块补 5 键 / 5 折叠钮 / 7 浮层当前态完整（`_ls` 已 5 键 `[' _mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl','_mtGuardAllDomain']`、
+`_btns` 已 5 折叠钮 `['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain']`、`_floors` 已 7 浮层 `['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd',
+'mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains']`，但色带 / 文案 / 浮层循环只拼前 4/4/6 项（`for(let _i=0;_i<4;_i++)`），第 5 键 / 第 5 折叠钮 / 第 7 浮层没拼进
+SVG——修循环 4→5 / 6→7（`for(let _i=0;_i<5;_i++)` 色带 / 文案 / `for(let _i=0;_i<7;_i++)` 浮层）+ `_key` 数组加 `_mtGuardAllDomain`（`[' _mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll',
+'_mtGuardFoldCtl','_mtGuardAllDomain']`），全折叠域总控面板 SVG 拼 5 键 / 5 折叠钮 / 7 浮层当前态完整）② `mtGuardAllDomainCopy`（R217 区）补 5 键 / 5 折叠钮 / 7 浮层（`_ls` 原只 4 元素但
+`_lines` 引用 `_ls[4]`（`_mtGuardAllDomain`）= `undefined`（`· _mtGuardAllDomain=undefined`），修 `_ls` 加第 5 元素 `localStorage.getItem('_mtGuardAllDomain')||'0'`（5 键）+ `_btns` 加
+`mtguardalldomain`（5 折叠钮）+ 循环 4→5 + `_floors` 加 `mtguardalldomains`（7 浮层）+ 循环 6→7，全折叠域总控文本拼 5 键 / 5 折叠钮 / 7 浮层当前态完整，免 `undefined` 字段）③
+`mtGuardAllDomainPng`（R217 区）读 `#mtguardalldomains` 内联 SVG（`mtGuardAllDomain` 拼），`mtGuardAllDomain` 六块补 5 键 / 5 折叠钮 / 7 浮层当前态完整后，全折叠域总控 PNG 自动含 5 键 /
+5 折叠钮 / 7 浮层当前态，无需 `mtGuardAllDomainPng` 改（PNG 读 SVG 当前态自动完整）④ 与 R217 `#mtguardalldomaincopy` / `#mtguardalldomainpng` 全折叠域总控面板 PNG / 文本**分工**
+（R217 六块各数据源，R221 补 5 键 / 5 折叠钮 / 7 浮层当前态完整——全折叠域总控面板 PNG / 文本自含全折叠域当前态完整，`#mtguardalldomaincopy` 文本 + `#mtguardalldomainpng` PNG 双出口
+当前态完整）⑤ 与 R214/R215 重置详情 / R220 重置详情补全折叠域字段**语言同**（各重置详情 / 全折叠域总控读各数据源拼文本 / 色带，`navigator.clipboard.writeText` 降级 / `canvas` 转
+PNG 下载，全折叠域总控面板当前态完整同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 点 `#mtguardalldomain` 生成面板 + 验 `#mtguardalldomains` `innerHTML` 含
+`<svg` + 5 键（`_mtGuardAllDomain=`）+ 5 折叠钮（`mtguardalldomain=`）+ 7 浮层（`mtguardalldomains=`）当前态，不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验 5 键 / 5 折叠钮 / 7
+浮层字段进 SVG，非真渲染像素）。
+
