@@ -4167,3 +4167,27 @@ hover，只联动失败降级为单图）⑤ 验收坑：`#mtdelthover`（补入
 圆点 `top=dy` 设了但 8px 圆点渲染位置在柱顶可能 `display` 设 block 后被 CSS 覆盖，**判定放宽**：双图联动以**标签**（
 `#mtdelthovlbl` `+12` / `#mthisthovlbl` `0.9s`）稳证，圆点为辅助视觉，标签亮即联动生效。
 
+---
+
+## 第170轮（前端 R156 · goal round133）：双图联动 hover 配对值合并标签（`#mtpairlbl` 显「第 N 次跑 · 耗时 Xs · 补入 +Y」，两指标一行汇总）
+
+**简洁性（两指标一行看）**：R155 双图 hover 联动各自亮（`#mthisthovlbl` 耗时 + `#mtdelthovlbl` 补入，分两个标签看），
+**一行汇总「这次跑耗时 Xs + 补 +Y」**没出口。`#mtdeltabar` 旁加**`#mtpairlbl`**（`mousemove` 命中任一图同 `frac` 时，
+`#mtpairlbl` 显「第 N 次跑 · 耗时 Xs · 补入 +Y」——两指标合并一行，扫一眼这次跑整体（耗时 + 补入量配对），与 R155 双 hover
+分指标看互补：双 hover 点看单指标值，`#mtpairlbl` 一行看配对汇总）。
+
+**E2E**：`hover #mthistbox 中部 → #mtpairlbl 显「第 3 次跑 · 耗时 0.9s · 补入 +12」（两指标一行，on）+ mouseout 隐（off）`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r156_pair.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 608→610`，断点 `_归档_封存\SD卡版\周杰伦\女儿殿下.mp3`。
+
+**坑**：① `#mtpairlbl` 挂 `#mtdeltabar` 内（`#mtdeltaSvg` 后，`accent` 色 `--acc` `font-weight:600` 10px，`display:none` 默认，
+hover 命中才 `inline-block`）② `mousemove` 命中 `#mthistbox`（耗时折线）算完本图 `frac`/`val` 后，同 `frac` 读 `#mtdeltabox`
+的 `data-hd`（补入量），`_pi=round(frac*(n-1))`，`#mtpairlbl` 显「第 `(_pi+1)` 次跑 · 耗时 `val+'s'` · 补入 `+'+ '+_pdd`」
+（耗时本图值 + 补入柱状同 `frac` 值，一行配对）③ 对称：命中 `#mtdeltabox`（补入柱状）同 `frac` 读 `#mthistbox` 的
+`data-hh`（耗时），`_hi=round(frac*(n-1))`，`#mtpairlbl` 显「第 `(_hi+1)` 次跑 · 耗时 `_'s'` · 补入 `+'+ '+_pvd`」
+（耗时折线同 `frac` 值 + 补入本图值，一行配对）④ `mouseout`（两图委托，命中 `#mthistbox`/`#mtdeltabox` 离开时）
+隐 `#mtpairlbl`（`display:none`，与双 hover 点/标签同隐）⑤ 与 R155 双 hover（分指标点/标签）**互补**：`#mtpairlbl` 一行
+配对汇总（扫一眼「这次跑耗时多少 + 补多少」），双 hover 点/标签分指标细看，两视图（一行汇总 / 分指标点）⑥ node 重启
+瞬断（服务重启后 2s 抓 JS `URLError 10061`/`Cannot find module`，`Start-Sleep 3` 重抓配平 node 0）。
+

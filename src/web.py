@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3587,10 +3587,15 @@ document.addEventListener('mousemove', function(e){
       const ddot=document.getElementById('mtdelthover'), dlbl=document.getElementById('mtdelthovlbl');
       if(ddot){ ddot.style.display='block'; ddot.style.left=(frac*100)+'%'; ddot.style.top=dy+'px'; }
       if(dlbl){ dlbl.style.display='block'; dlbl.style.left=(frac*100)+'%'; dlbl.style.top=(dy-10)+'px'; dlbl.textContent='+'+dd[didx]; } } } }catch(_){}
+  /* 配对值合并标签(R156): 命中耗时折线同frac, #mtpairlbl 显「第N次跑·耗时Xs·补入+Y」(两指标一行汇总, 扫一眼这次跑整体) */
+  try{ const _pb=document.querySelector('#mtdeltabar .mtdeltabox'); if(_pb && _pb.getAttribute('data-hd')){ let _pd=[]; try{ _pd=JSON.parse(decodeURIComponent(_pb.getAttribute('data-hd'))); }catch(_){}
+    if(_pd.length){ const _pi=Math.round(frac*(_pd.length-1)); const _pmx=Math.max.apply(null,_pd)||1; const _pdd=_pd[_pi];
+      const pl=document.getElementById('mtpairlbl'); if(pl){ pl.style.display='inline-block'; pl.textContent='第 '+(_pi+1)+' 次跑 · 耗时 '+val+'s · 补入 +'+_pdd; } } } }catch(_){}
 }, true);
 document.addEventListener('mouseout', function(e){
   const box=e.target.closest && e.target.closest('#mthistspark .mthistbox');
-  if(box){ const d1=document.getElementById('mthisthover'), l1=document.getElementById('mthisthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; }
+  if(box){ const d1=document.getElementById('mthisthover'), l1=document.getElementById('mthisthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none';
+    const pl=document.getElementById('mtpairlbl'); if(pl) pl.style.display='none'; }
 }, true);
 /* 载入: 按 _mtRunHist 画跑维护历史 sparkline(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunHistDraw(); }); } else { mtRunHistDraw(); } })();
@@ -3628,10 +3633,15 @@ document.addEventListener('mousemove', function(e){
       const hdot=document.getElementById('mthisthover'), hlbl=document.getElementById('mthisthovlbl');
       if(hdot){ hdot.style.display='block'; hdot.style.left=(frac*100)+'%'; hdot.style.top=hy+'px'; }
       if(hlbl){ hlbl.style.display='block'; hlbl.style.left=(frac*100)+'%'; hlbl.style.top=(hy-10)+'px'; hlbl.textContent=hh[hidx]+'s'; } } } }catch(_){}
+  /* 配对值合并标签(R156): 命中补入柱状同frac, #mtpairlbl 显「第N次跑·耗时Xs·补入+Y」(两指标一行汇总, 扫一眼这次跑整体) */
+  try{ const _hb=document.querySelector('#mthistspark .mthistbox'); if(_hb && _hb.getAttribute('data-hh')){ let _hh=[]; try{ _hh=JSON.parse(decodeURIComponent(_hb.getAttribute('data-hh'))); }catch(_){}
+    if(_hh.length){ const _hi=Math.round(frac*(_hh.length-1)); const _hv=_hh[_hi]; const _pvd=d[idx];
+      const pl=document.getElementById('mtpairlbl'); if(pl){ pl.style.display='inline-block'; pl.textContent='第 '+(_hi+1)+' 次跑 · 耗时 '+_hv+'s · 补入 +'+_pvd; } } } }catch(_){}
 }, true);
 document.addEventListener('mouseout', function(e){
   const box=e.target.closest && e.target.closest('#mtdeltabar .mtdeltabox');
-  if(box){ const d1=document.getElementById('mtdelthover'), l1=document.getElementById('mtdelthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; }
+  if(box){ const d1=document.getElementById('mtdelthover'), l1=document.getElementById('mtdelthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none';
+    const pl=document.getElementById('mtpairlbl'); if(pl) pl.style.display='none'; }
 }, true);
 /* 载入: 按 _mtRunDelta 画补入量 mini 条形图(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunDeltaDraw(); }); } else { mtRunDeltaDraw(); } })();
