@@ -5478,3 +5478,45 @@ SVG\n'+svgStr)` + toast「已复制维护守护区四段快照 SVG（PNG 导出�
 PNG」/ 降级「已复制维护守护区四段快照 SVG」，`canvas` / `toBlob` 下载 headless 验 toast 出口，真 PNG 文件下载不验，不真跑 `mtRun`
 免 tick 污染 `runs`）。
 
+---
+
+## 第213轮（前端 R199 · goal round176）：维护 tab「维护守护」区加维护守护区能力 / 出口总览（`#mtguardpanel` 小钮，点显 `#mtguardpaneld` 浮层内联 SVG 总览面板——三键状态灯 / 触发记录 + 四段数据 + 各复制出口 + 快照 / PNG 出口 + 键盘三操作 / 状态同态 + 全库 ∞ / 完成态分块标位，维护守护区能力 / 出口全景图）
+
+**简洁性（维护守护区能力 / 出口全景图免分散找）**：R198 `#mtguardsnappng` 四段快照 PNG 导出，但**维护守护区各能力 / 出口分散各
+入口**（三键三操作 R178-R180 / 状态同态 R182-R184 / 双指标 R158 / 完成态 R187 / 键盘流 R193-R195 / 各复制钮 R189/R191/R192/R195 / 快照
+R197 / PNG R198 分散各处，要全知维护守护区有哪些能力 / 出口得逐个找各入口，`#mtguardpanel` 点显总览面板浮层内联 SVG（各能力 / 出口
+分块标位 + 简短说明），维护守护区能力 / 出口全景图，一眼知有哪些入口 / 能力，免分散找）。`#mtguardsnappng` 旁加**`#mtguardpanel`**
+小钮（`▤ 总览`，`#mtguardsnappng` 后常驻位）+ **`#mtguardpaneld`** SVG 浮层（`#mtguardpanel` 下沿，`z-index:70`），点 `#mtguardpanel`
+→ **`mtGuardPanel`**（拼内联 SVG 总览面板：`[三键状态灯 + 触发记录]`（R186 三键色点 + R193/R194 触发记录，实时读 `window._mtRunning`/
+`_mtPaused`/`_mtAborted` + `window._mtKeyLog`/`_mtKeyLogOrder`）+ `[四段数据源]`（双指标逐轮 / 状态 / 全库完成 / 键盘流，实时读
+`localStorage._mtRunHist` + 三标志 + `window._mtLiveDoneInfo` + `window._mtKeyLogOrder`）+ `[复制出口]`（R189/R191/R192/R195/R196
+五个复制钮标位）+ `[快照/PNG出口]`（R197/R198/R199 三个标位）+ `[键盘三操作 + 状态同态]`（R178/R179/R180/R182/R183/R184 标位）+
+`[全库 ∞ + 完成态]`（R166/R187 标位），显 `#mtguardpaneld` 浮层，8s 自动隐）——维护守护区能力 / 出口全景图，一眼知有哪些入口 /
+能力，免分散找。
+
+**E2E**：`点 #mtguardpanel → #mtguardpaneld 显内联 SVG 总览面板（svg 含六块：维护守护区能力 / 出口总览标题 + [三键状态灯 + 触发记录]
++ [四段数据源] + [复制出口] + [快照/PNG出口] + [键盘三操作 + 状态同态] + [全库∞+完成态]）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r199_guardpanel.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 694→696`，断点 `_整理后分类\洛天依\洛天依\黑凤梨 - 000qPXNS3XF7fw.mp3`。
+
+**坑**：① `#mtguardpanel` 小钮挂 `#mtguardsnappng` 旁常驻位（`#mtguardsnappng` 后 `inline-block`，维护守护区能力 / 出口总览常驻入口，
+非 hover 态控——`#mtguardcopy`/`#mtguardsnap`/`#mtguardsnappng`/`#mtguardpanel` 四钮并排，全复制 + 快照 + 快照PNG + 总览四入口，
+点 `#mtguardpanel` 即显总览面板全貌，免分散找各能力 / 出口）② `mtGuardPanel` 拼内联 SVG 总览六块（`<svg width="400" height="210">`，
+`[三键状态灯 + 触发记录]` 块（`_dots` 三键色点实时读 `window._mtRunning`/`_mtPaused`/`_mtAborted` 判可触 / 不可触 / 暂停 + `window.
+_mtKeyLogOrder` 触发记录最近 N 次）+ `[四段数据源]` 块（`_segs` 四段实时读 `localStorage._mtRunHist` 双指标 / 三标志状态 /
+`window._mtLiveDoneInfo` 全库完成 / `window._mtKeyLogOrder` 键盘流）+ `[复制出口]` 块（`_copies` 五个复制钮标位 R189/R191/R192/
+R195/R196）+ `[快照/PNG出口]` 块（`_snaps` 三个标位 R197/R198/R199）+ `[键盘三操作 + 状态同态]` 块（`_ops` 六个标位 R178/R179/
+R180/R182/R183/R184）+ `[全库∞+完成态]` 块（`_full` 三个标位 R166/R187），`d.innerHTML=_svg` 拼，`d.style.display='block'`）③
+`#mtguardpaneld` 挂 `#mtguardpanel` 下沿（`#mtguardpanel` `getBoundingClientRect` + `position:absolute` 定位，`top:r.bottom+2`，
+`z-index:70` 高于 `#mtstatebar`/`#mtmetsumdetail`/`#mtguardsnapd` 浮层，`--bg2` 底 + `--line` 描边 + `box-shadow` 微浮，`white-space:
+nowrap` 内联 SVG 不折，`pointer-events:none` 不挡下层，8s 自动隐 `clearTimeout(window._mtGuardPanelT)` 重置——总览面板临时看全貌不
+常驻，`setTimeout` 8s 后隐，再点重计 8s）④ 各块实时读当前态（`[三键状态灯]` 色点随 `window._mtRunning`/`_mtPaused`/`_mtAborted` 实
+时显可触 / 不可触 / 暂停，`[四段数据源]` 随 `localStorage._mtRunHist` + 三标志 + `window._mtLiveDoneInfo` + `window._mtKeyLogOrder`
+实时显各段当前值，总览面板点即拼当前全貌非缓存旧态，与 R197 `mtGuardSnap` 实时读四段数据源同纪律）⑤ 与 R196 `#mtguardcopy` 全复制
+/ R197 `#mtguardsnap` 快照 / R198 `#mtguardsnappng` 快照PNG**分工**（R196 文本全量复制贴工单 / R197 内联 SVG 快照看四段数据全貌 /
+R198 PNG 导出存档 / R199 总览面板看能力 / 出口全景——复制 + 数据快照 + 快照PNG + 能力总览四入口，维护守护区全貌 / 全景 / 留存 /
+分享全链路）⑥ 验收**函数级**（点 `#mtguardpanel` 验 `#mtguardpaneld` 显 + `innerHTML` 含 `<svg` + 六块标题（「维护守护区能力 / 出口
+总览」/「三键状态灯 + 触发记录」/「四段数据源」/「复制出口」/「快照 / PNG 出口」/「键盘三操作 + 状态同态」/「全库 ∞ + 完成态」），
+不真跑 `mtRun` 免 tick 污染 `runs`；`mtGuardPanel` 内联 SVG 六块 headless 验 `innerHTML` 含 `<svg` + 各块标题，非真渲染 SVG 像素）。
+

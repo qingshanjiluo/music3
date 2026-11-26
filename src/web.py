@@ -1059,6 +1059,8 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardcopy" title="一键全复制维护守护区(双指标逐轮明细+状态详情+全库完成详情+键盘流触发记录四段, 维护守护区数据一键全留存/全贴工单, 与R189/R191/R192/R195单点复制同语言但全量)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 全复制</button>
     <button type="button" id="mtguardsnap" title="维护守护区四段数据快照可视化(双指标逐轮柱状+状态色带+完成徽标+键盘流顺序条内联SVG, 一眼看维护守护区四段当前全貌, 与R158双图区快照语言同)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 快照</button>
     <button type="button" id="mtguardsnappng" title="维护守护区四段快照PNG导出(#mtguardsnapd内联SVG转canvas下载music3_维护守护全记录_快照_ts.png, 四段全貌快照可存档/可分享, 与R158双图区PNG快照同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 快照PNG</button>
+    <button type="button" id="mtguardpanel" title="维护守护区能力/出口总览(三键状态灯+四段数据+各复制出口+快照/PNG出口内联SVG总览面板, 维护守护区能力/出口全景图, 一眼知有哪些入口/能力免分散找)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▤ 总览</button>
+    <div id="mtguardpaneld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
@@ -4166,6 +4168,81 @@ function mtGuardSnapPng(){
   _img.src='data:image/svg+xml;base64,'+_b64;
 }
 (function(){ const c=$('#mtguardsnappng'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardSnapPng(); }); } })();
+/* 维护守护区能力/出口总览(R199): #mtguardpanel 点 -> 拼内联SVG总览面板(三键状态灯+四段数据源+各复制出口+快照/PNG出口分块标位), 显#mtguardpaneld浮层, 维护守护区能力/出口全景图一眼知有哪些入口/能力免分散找 */
+function mtGuardPanel(){
+  const d=$('#mtguardpaneld'); if(!d) return;
+  const _W=400, _H=210, _p=10;
+  const _run=(typeof window._mtRunning!=='undefined' && window._mtRunning);
+  const _ps=(typeof window._mtPaused!=='undefined' && window._mtPaused);
+  const _ab=(typeof window._mtAborted!=='undefined' && window._mtAborted);
+  let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
+  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区能力 / 出口总览</text>';
+  /* 块1: 三键状态灯(R186) + 触发记录(R193/R194) */
+  _svg+='<rect x="'+_p+'" y="22" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="36" font-size="9" fill="var(--dim)">三键状态灯 + 触发记录</text>';
+  const _dots=[['Space',_run&&!_ab,_ps],['Esc',_run&&!_ab,false],['Enter',!_ab,false]];
+  let _di=0;
+  for(let _i=0;_i<3;_i++){
+    const _dn=_dots[_i][0], _can=_dots[_i][1], _warn=_dots[_i][2];
+    const _x=_p+8+_i*60, _y=44;
+    const _col=_warn?'var(--warn)':(_can?'var(--ok)':'var(--line)');
+    _svg+='<circle cx="'+(_x+4)+'" cy="'+(_y+4)+'" r="4" fill="'+_col+'"/>';
+    _svg+='<text x="'+(_x+12)+'" y="'+(_y+8)+'" font-size="9" fill="var(--ink)">'+_dn+'</text>';
+    _di++;
+  }
+  const _kl=window._mtKeyLog||{}, _ko=window._mtKeyLogOrder||[];
+  _svg+='<text x="'+(_p+6)+'" y="70" font-size="8" fill="var(--dim)">'+(_ko.length?('触发记录·最近'+_ko.length+'次'):'无触发记录')+'</text>';
+  /* 块2: 四段数据源(R188/R184/R187/R194) */
+  _svg+='<rect x="'+(_p+190)+'" y="22" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="36" font-size="9" fill="var(--dim)">四段数据源</text>';
+  let _h=[]; try{ _h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  const _segs=[
+    ['双指标逐轮', _h.length?('近'+_h.length+'次'):'无', 'var(--ok)'],
+    ['状态', _ab?'取消':(_ps?'暂停':(_run?'跑中':'完成/未跑')), _ab?'var(--bad)':(_ps?'var(--warn)':(_run?'var(--ok)':'var(--line)'))],
+    ['全库完成', window._mtLiveDoneInfo?('共'+window._mtLiveDoneInfo.N+'轮'):'无', 'var(--ok)'],
+    ['键盘流', _ko.length?('最近'+_ko.length+'次'):'无', 'var(--ink)']
+  ];
+  for(let _i=0;_i<4;_i++){
+    const _sy=44+_i*9;
+    _svg+='<text x="'+(_p+196)+'" y="'+(_sy+4)+'" font-size="8" fill="var(--dim)">'+_segs[_i][0]+'：'+_segs[_i][1]+'</text>';
+  }
+  /* 块3: 复制出口(R189/R191/R192/R195/R196) */
+  _svg+='<rect x="'+_p+'" y="84" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="98" font-size="9" fill="var(--dim)">复制出口</text>';
+  const _copies=['⧉ 双指标逐轮明细','⧉ 状态详情','⧉ 全库完成详情','⧉ 键盘流触发记录','⧉ 全复制(四段)'];
+  for(let _i=0;_i<5;_i++){
+    _svg+='<text x="'+(_p+8)+'" y="'+(108+_i*8)+'" font-size="8" fill="var(--ink)">'+_copies[_i]+'</text>';
+  }
+  /* 块4: 快照/PNG出口(R197/R198) */
+  _svg+='<rect x="'+(_p+190)+'" y="84" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="98" font-size="9" fill="var(--dim)">快照 / PNG 出口</text>';
+  const _snaps=['▣ 四段快照(内联SVG)','⬇ 快照PNG(下载)','▤ 总览(本面板)'];
+  for(let _i=0;_i<3;_i++){
+    _svg+='<text x="'+(_p+198)+'" y="'+(108+_i*8)+'" font-size="8" fill="var(--ink)">'+_snaps[_i]+'</text>';
+  }
+  /* 块5: 键盘三操作(R178/R179/R180) + 状态同态(R182-R184) */
+  _svg+='<rect x="'+_p+'" y="146" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="160" font-size="9" fill="var(--dim)">键盘三操作 + 状态同态</text>';
+  const _ops=['Space 暂停/续跑(R180)','Esc 取消(R178)','Enter 跳双图(R179)','徽标暂停同态(R182)','汇总同态(R183)','指示条同态(R184)'];
+  for(let _i=0;_i<6;_i++){
+    _svg+='<text x="'+(_p+8)+'" y="'+(170+_i*7)+'" font-size="7" fill="var(--dim)">'+_ops[_i]+'</text>';
+  }
+  /* 块6: 全库 ∞ + 完成态(R166/R187) */
+  _svg+='<rect x="'+(_p+190)+'" y="146" width="180" height="54" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="160" font-size="9" fill="var(--dim)">全库 ∞ + 完成态</text>';
+  const _full=['全库∞(R166, N>100000)','完成态徽标(R187)','全库完成详情(R187)'];
+  for(let _i=0;_i<3;_i++){
+    _svg+='<text x="'+(_p+198)+'" y="'+(170+_i*7)+'" font-size="7" fill="var(--dim)">'+_full[_i]+'</text>';
+  }
+  _svg+='<text x="'+_p+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
+  _svg+='</svg>';
+  d.innerHTML=_svg; d.style.display='block';
+  const r=document.getElementById('mtguardpanel').getBoundingClientRect();
+  d.style.position='absolute'; d.style.left=r.left+'px'; d.style.top=(r.bottom+2)+'px';
+  clearTimeout(window._mtGuardPanelT);
+  window._mtGuardPanelT=setTimeout(function(){ d.style.display='none'; }, 8000);
+}
+(function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
