@@ -5987,3 +5987,41 @@ _mtGuardFoldCtlT); window._mtGuardFoldCtlT=setTimeout(function(){ d.style.displa
 `localStorage._mtGuardFoldCtl` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验 `localStorage` 读值非
 真刷新 headless，初始同步 IIFE 验 `#mtguardfoldctl` 文案 + `#mtguardfoldctld` `display` 随初始折叠态）。
 
+---
+
+## 第226轮（前端 R212 · goal round189）：维护守护区全折叠记忆一键重置（`#mtguardfoldreset` 小钮，点 `#mtguardfoldreset` 重置维护守护区全折叠记忆（`localStorage._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 全清 `'0'`）+ 全折叠出口（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/`#mtguardfoldctl`）文案 / `display` 恢复展开态，维护守护区全折叠记忆一键复位）
+
+**简洁性（全折叠记忆一键复位免逐键清）**：R204/R205/R211 各折叠记忆 `localStorage` 键（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/
+`_mtGuardFoldCtl`）要全复位得逐个清 `localStorage` 键，`#mtguardfoldreset` 一键清全折叠记忆（全 `localStorage` 折叠键 `'0'`）+ 全折叠出口
+文案 / `display` 恢复展开态，维护守护区全折叠记忆一键复位。`#mtguardfoldctcopy` 旁加**`#mtguardfoldreset`** 小钮（`↺ 重置折叠`，`#mtguardfoldctcopy`
+后常驻位），点 `#mtguardfoldreset` → **`mtGuardFoldReset`**（清 `localStorage._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`
+全 `'0'` + `window._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 全 `false` + `#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/
+`#mtguardfoldctl` 文案恢复展开态（`▾ 折叠双图区`/`▾ 折叠总览`/`⊘ 折叠全浮层`/`▤ 折叠全链路`）+ `#mtguardpaneld`/`#mtguardfoldctld` `display:none`
++ `clearTimeout` 清 8s 定时 + toast「已重置维护守护区全折叠记忆」）——全折叠记忆一键复位，与 R159 双图区折叠 / R204/R205 折叠记忆 / R211 折叠全
+链路折叠记忆同域。
+
+**E2E**：`设 localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll/_mtGuardFoldCtl 全 '1'（全折叠态）→ 点 #mtguardfoldreset → 4 键全清 '0' + 4
+标志全 false + 全折叠出口文案恢复展开态 + toast「已重置维护守护区全折叠记忆」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r212_foldreset.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 722→724`，断点 `_纯音乐\Sadness and Sorrow.mp3`。
+
+**坑**：① `#mtguardfoldreset` 小钮挂 `#mtguardfoldctcopy` 旁常驻位（`#mtguardfoldctcopy` 后 `inline-block`，维护守护区全折叠记忆一键重置常驻
+入口，非 hover 态控——`#mtguardfoldctl` 全链路总控 + `#mtguardfoldctlpng` 全链路 PNG + `#mtguardfoldctcopy` 全链路复制 + `#mtguardfoldreset`
+全折叠记忆重置四入口并排，全链路看全貌 / 存 PNG / 贴文本 / 复位记忆）② `mtGuardFoldReset` 清全折叠记忆（`localStorage._mtMetFold`/`_mtGuardPanelFold`/
+`_mtGuardFoldAll`/`_mtGuardFoldCtl` 全 `setItem('0')` + `window._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 全 `false`，
+`try/catch` `localStorage` 不可用降级不记——当前会话 `window` 标志仍复位，跨会话不留存，同 R204/R205 `localStorage` 惰性读降级纪律）③ 全折叠出口
+文案 / `display` 恢复展开态（`_resetBtns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl']` + `_expandTxt` 各钮展开态文案
+（`▾ 折叠双图区`/`▾ 折叠总览`/`⊘ 折叠全浮层`/`▤ 折叠全链路`，各钮文案随 R159/R202/R203/R211 各折叠钮展开态默认文案），`#mtguardpaneld`/
+`#mtguardfoldctld` `display:none`（总览面板 / 折叠全链路面板折叠态隐，展开态由各触发点显，重置不强制显）+ `clearTimeout(window._mtGuardPanelT)`/
+`clearTimeout(window._mtGuardFoldCtlT)` 清 8s 自动隐定时（不残留自动显））④ `#mtguardfoldreset` IIFE 用 **`document` click 委托**（`document.
+addEventListener('click', function(e){ if(e.target.id==='mtguardfoldreset'){ e.stopPropagation(); mtGuardFoldReset(); } })`，非 IIFE 顶层 `c=
+$('#mtguardfoldreset')` 直绑——`#mtguardfoldreset` 在维护 tab 懒加载区，IIFE 顶层跑时维护 tab 未激活小钮 DOM 未渲染 `c=null` 不绑（维护 tab 懒
+加载坑，同 R181 `#mtkeyhint` 维护 tab 委托 / R195 `#mtkeyhintcopy` 维护 tab 委托纪律），`document` click 委托维护 tab 激活后点小钮才触发，
+委托 `e.target.id==='mtguardfoldreset'` 精确匹配 + `stopPropagation` 防冒泡）⑤ 与 R204 `#mtguardfoldall` 全浮层折叠记忆 / R205 `#mtguardpanelfold`
+总览面板折叠记忆 / R211 `#mtguardfoldctl` 折叠全链路面板折叠记忆**分工**（R204/R205/R211 各单域折叠记忆 `localStorage` 跨会话留存，R212 全折叠
+记忆一键重置（清全 4 键 `localStorage` + 4 `window` 标志 + 4 折叠钮文案 / 显示恢复展开态），各单域记忆 + 全记忆一键复位，`#mtguardfoldreset`
+全折叠域复位总控）⑥ 验收**函数级**（设 4 键全 `'1'` + 4 标志全 `true`（全折叠态）+ 点 `#mtguardfoldreset` 验 4 键全清 `'0'` + 4 标志全 `false` +
+全折叠出口文案恢复展开态 + toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；`document` click 委托验 `e.target.id` 精确
+匹配 `#mtguardfoldreset`，维护 tab 激活后点才触发）。
+
