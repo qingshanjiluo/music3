@@ -3937,3 +3937,28 @@ totals 是后端真数据，历史折线只是前端展示层 `localStorage`，�
 `display:none`），下次 `#mtrun` 跑维护 `_mtRunHist` 重新积累、`mtRunHistDraw` 重画恢复 ⑤ 钮随 `#mthistspark` 容器
 `align-items:center` 排（标签 + 折线 + 清钮一行），不占额外高度。
 
+---
+
+## 第161轮（前端 R147 · goal round124）：跑维护历史导出 CSV（`#mthistexport`，`_mtRunHist` 近 10 次耗时导 CSV 下载，换设备带历史走）
+
+**完善性（导出留档）**：R144 跑维护历史 `#mthistspark`（`localStorage._mtRunHist`）+ R146 清空钮，**看趋势存档 / 换设备带
+历史走**没出口。`#mthistclear` 旁加**`#mthistexport`** 小钮（`↓ 导出`，`_mtRunHist` 近 10 次耗时 → `序号,耗时(s)` CSV（BOM
++ 头注释 + 导出时间戳）Blob 下载 `music3_run_hist_<ts>.csv` + toast「已导出 N 次」；空时 toast「无跑维护历史可导出（先跑
+一次维护）」）——历史留档 / 换设备迁移 / 离线复盘，与 R113 日志导出、R129 复制日志同「导出留档」直觉。
+
+**E2E**：`有历史 → 点 #mthistexport → toast「已导出跑维护历史 4 次（CSV）」（a.download 触发）+ 空 → toast「无跑维护历史可
+导出（先跑一次维护）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r147_export.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 590→592`，断点 `_归档_封存\SD卡版\洛天依\洛天依\大哉乾元 - 000xsTr20iPzYA.mp3`。
+
+**坑**：① `#mthistexport` 挂 `#mthistclear` 前（`#mthistspark` 内，`↓ 导出` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色
+10px，随 `#mthistspark` 显隐——无历史时钮也隐，但导出钮对空历史点给「无历史可导出」toast 提示先跑，`#mthistspark` 隐时
+钮也隐所以空历史时点不到——实际导出/清空钮都在 `#mthistspark` 内，无历史整行隐，提示走「先跑一次维护」文案）② `mtRunHistExport`
+（`#mthistexport` onclick，载入 IIFE 绑）：读 `_mtRunHist`，空（`h.length==0`）→ `_toast`「无跑维护历史可导出（先跑一次
+维护）」`bad` 不导；非空 → CSV（BOM `\ufeff` + 头注释 `#music3 跑维护耗时历史（近 N 次 · 导出 <ts>）` + `序号,耗时(s)` +
+每行 `i,v`）Blob 下载 `music3_run_hist_<Date.now()>.csv` + `revokeObjectURL` 3s 后 + toast「已导出 N 次（CSV）」③ CSV 带 BOM
+（Excel 中文不乱码），头注释行 `#` 开（CSV 工具识别注释），数据行 `序号,耗时(s)`（耗时 `1dp`，与 `#mtRunHist` 存的一致）
+④ 导出**不改 `_mtRunHist`**（只读导，区别于 R146 清空——清历史 `removeItem`，导出保留 localStorage，导完历史还在，可反复
+导）⑤ 下载用 `a.download`（浏览器本地触发，不依赖后端），headless 验只查 toast 文案（下载动作 headless 无文件，toast 为
+出口证明）。
+

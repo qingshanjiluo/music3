@@ -1067,7 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
-  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
+  <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3565,7 +3565,23 @@ function mtRunHistClear(){
   mtRunHistDraw();
   _toast('跑维护耗时历史已清空 · 重新计基线', 'ok');
 }
-(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } })();
+/* 导出跑维护历史 CSV: _mtRunHist 近10次耗时(序号/秒/导出时间) -> Blob 下载; 换设备带历史走/存档复盘(与 R113 日志导出同「导出留档」直觉) */
+function mtRunHistExport(){
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  if(!h.length){ _toast('无跑维护历史可导出（先跑一次维护）', 'bad'); return; }
+  const ts=new Date().toISOString().replace('T',' ').slice(0,19);
+  const lines=['#music3 跑维护耗时历史（近 '+h.length+' 次 · 导出 '+ts+'）','序号,耗时(s)'];
+  h.forEach((v,i)=>{ lines.push((i+1)+','+v); });
+  const csv='\ufeff'+lines.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='music3_run_hist_'+Date.now()+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  _toast('已导出跑维护历史 '+h.length+' 次（CSV）', 'ok');
+}
+(function(){ const c=$('#mthistclear'); if(c){ c.onclick=mtRunHistClear; } const x=$('#mthistexport'); if(x){ x.onclick=mtRunHistExport; } })();
 $('#mtrun').onclick = mtRun;
 $('#mtstat').onclick = mtStat;
 /* 刷新: 只重拉 8 卡(保留已跳日志容器, 不重铺整区) */
