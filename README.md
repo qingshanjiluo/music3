@@ -6892,3 +6892,36 @@ R235/R239/R240/R241 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总
 （`expandOk=true`）+ `localStorage._mtGuardAllFoldStat` `'0'`（`ls0=true`）+ `window._mtGuardAllFoldStat` `false`（`wFalse=true`），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstat` 初始同步 IIFE 拼逻辑验全复位
 后刷新 `#mtallfoldstat` 折叠记忆自含 6 键复位态（`localStorage` 读 `'0'` → `false` 展开态），非真渲染像素）。
 
+---
+
+## 第256轮（前端 R242 · goal round219）：维护守护区全折叠域 5 域折叠态总控浮层 8s 自动隐定时全复位后清（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的 8s 自动隐定时 `window._mtGuardAllFoldStatT` 全复位后清（`mtAllFoldStat`（R234 区）8s 自动隐定时触发前验 `#mtallfoldstatd` `innerHTML` 非空（免全复位后 `innerHTML` 空的 8s 自动隐定时触发无副作用隐 `display`），全折叠记忆一键复位后全折叠域 6 键全复位 + `#mtallfoldstat` 8s 自动隐定时全复位后清无副作用）
+
+**完善性（全复位后 `#mtallfoldstat` 8s 自动隐定时全复位后清无副作用）**：R240 `mtGuardFoldReset` 全复位后 `clearTimeout(window._mtGuardAllFoldStatT)` 已清 8s 自动隐定时（R240 补 `#mtallfoldstatd` `innerHTML` 清后
+4673 行 `clearTimeout`），但**`mtAllFoldStat`（R234 区）8s 自动隐定时触发前没验 `#mtallfoldstatd` `innerHTML` 非空**（全复位后 `#mtallfoldstatd` `innerHTML` 已清（R240），若直接调 `mtAllFoldStat()`（如 R241 验收
+段）重新拼 SVG + 设 8s 自动隐定时，8s 自动隐定时触发时 `#mtallfoldstatd` `innerHTML` 可能空（全复位后 `innerHTML` 清），8s 自动隐定时触发无意义隐 `display`（`innerHTML` 空浮层隐无副作用但 `display` 切换多余），
+`mtAllFoldStat`（R234 区 4936 行）8s 自动隐定时 `setTimeout` 回调加 `innerHTML` 非空校验（`if(_d.innerHTML){ _d.style.display='none'; }`），全复位后 `#mtallfoldstatd` `innerHTML` 空时 8s 自动隐定时不隐 `display`
+（免无副作用触发），全折叠记忆一键复位后全折叠域 6 键全复位 + `#mtallfoldstat` 8s 自动隐定时全复位后清无副作用，与 R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清同域）。
+
+**E2E**：`全复位 → 直接调 mtAllFoldStat() 拼面板（#mtallfoldstatd innerHTML 非空）→ 等 8.5s → #mtallfoldstatd display 隐（8s 自动隐，innerHTML 非空校验 R242 通过后触发）`（绿）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r242_8sautohide_guard.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 782→784`，断点 `_陶喆\黑色柳丁.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234，`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` 浮层 `innerHTML` 拼内联 SVG + 8s 自动隐 +
+`#mtallfoldstat` 折叠记忆切 IIFE（`document` click 委托 `#mtallfoldstat` 点切折叠记忆态，折叠态 `#mtallfoldstatd` 隐常驻省高 + 文案「▸ 展开全折叠域浮层」/ 展开态 `mtAllFoldStat()` 拼面板显 + 文案「▣ 全折叠域
+浮层」+ 8s 自动隐）+ `#mtallfoldstat` 初始同步 IIFE（`#mtallfoldstat` 文案 / `#mtallfoldstatd` `display` 随初始折叠态刷新恢复折叠 / 展开态）+ `mtAllFoldStat`（R234 区 4936 行）8s 自动隐定时（`_d.style.display='none';
+clearTimeout(window._mtGuardAllFoldStatT); window._mtGuardAllFoldStatT=setTimeout(function(){ _d.style.display='none'; }, 8000)`））的 8s 自动隐定时全复位后清无副作用（R242，`mtAllFoldStat`（R234 区 4936 行）8s 自动
+隐定时 `setTimeout` 回调加 `innerHTML` 非空校验（`if(_d.innerHTML){ _d.style.display='none'; }`），全复位后 `#mtallfoldstatd` `innerHTML` 清（R240）时 8s 自动隐定时不隐 `display`（`innerHTML` 空浮层隐无副作用但
+`display` 切换多余，`innerHTML` 非空校验免无副作用触发），全折叠记忆一键复位后全折叠域 6 键全复位 + `#mtallfoldstat` 8s 自动隐定时全复位后清无副作用，与 R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清同域，
+`#mtallfoldstat` 8s 自动隐定时全复位后清无副作用）② 与 R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG）/ R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位 / R234 `#mtallfoldstat`
+全折叠域 5 域折叠态总控浮层折叠记忆 / R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复**分工**（R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG），R235 全折叠记忆重置补第 6 键
+`_mtGuardAllFoldStat` 复位（`localStorage` 清 `'0'` + `window` 标志 `false` + 文案复位 + `display` 复位 + `clearTimeout`），R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（`window._mtGuardAllFoldStat` +
+`localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 拼 SVG + 8s 自动隐），R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6 键复位态刷新恢复（刷新后 `#mtallfoldstat` 折叠记忆自含 6 键复位态），
+R242 `#mtallfoldstat` 8s 自动隐定时全复位后清无副作用（`mtAllFoldStat` 8s 自动隐定时触发前验 `#mtallfoldstatd` `innerHTML` 非空，免全复位后 `innerHTML` 空的 8s 自动隐定时触发无意义隐 `display`）——R234/R235/R240/
+R241/R242 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层折叠记忆 / 重置详情 / 刷新 / 8s 自动隐定时全复位后清无副作用，`#mtallfoldstat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 清 + 刷新初始同步 IIFE + 8s 自动隐
+定时无副作用四路自含全折叠域 6 键复位态）③ 与 R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆 / R240 全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清 / R241 `#mtallfoldstat` 初始同步 IIFE 验全复位后 6
+键复位态刷新恢复 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键**语言同**（各全折叠域 5 域折叠态总控浮层折叠记忆 / 全折叠记忆重置 / 重置详情 / 刷新初始同步 IIFE / 8s 自动隐定时读 6 键 `localStorage` 复位值 /
+当前态 + `innerHTML` 清 + 刷新初始同步 IIFE + 8s 自动隐定时 `innerHTML` 非空校验，全折叠域 6 键复位态同语言，各出口自含全折叠域出口标位）④ 验收**函数级**（全复位（`#mtguardfoldreset` 点 `mtGuardFoldReset` 全复位）+
+直接调 `mtAllFoldStat()` 拼面板（`#mtallfoldstatd` `innerHTML` 非空）+ 等 8.5s 验 `#mtallfoldstatd` `display` 隐（8s 自动隐，`innerHTML` 非空校验 R242 通过后触发），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstat`
+8s 自动隐定时拼逻辑验全复位后 8s 自动隐定时无副作用（`setTimeout` 回调 `if(_d.innerHTML){ _d.style.display='none'; }` `innerHTML` 非空校验），非真渲染像素）。
+
