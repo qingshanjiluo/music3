@@ -4966,3 +4966,39 @@ rgb(150,101,10) / 复位 `el.style.color=''` 默认继承 `--dim` rgb(119,112,10
 前缀「已暂停 ·」/「已取消 ·」/ 无前缀 + 色 `--warn`/`--bad`/默认，不真跑 `mtRun` 免 tick 污染 `runs`；`getComputedStyle` 色验三态
 同态，汇总值「近 4 次 · 耗时均值 1.1s · 补入均值 +6/次 · 合计 +25」三态保留验前缀只标状态不丢值）。
 
+---
+
+## 第198轮（前端 R184 · goal round161）：维护状态三处（`#mtrun` 钮 / `#mtlivebadge` 徽标 / `#mtmetsum` 汇总）同态指示条（`#mtstatebar` 顶栏细色条：跑中绿 `--ok` / 暂停黄 `--warn` / 取消红 `--bad` / 完成默认 `--line`，读 `window._mtRunning`/`_mtPaused`/`_mtAborted` 同态，跑维护状态看顶栏一条色带全知）
+
+**简洁性（三处同态收敛到一条带全知）**：R182/R183 三处同态（`#mtrun` 黄「暂停中」/ `#mtlivebadge` 黄「已暂停 ·」/ `#mtmetsum`
+黄「已暂停 · 近 N 次」，取消红），但**没顶栏统一指示条**（三处色散在维护区各元素，看状态要逐个找）。`#mtmetfold` 上沿加
+**`#mtstatebar`**（3px 细色带）+ **`mtStateBarDraw`**（读 `window._mtAborted`/`window._mtPaused`/`window._mtRunning` 同态显色：
+取消红 `--bad` / 暂停黄 `--warn` / 跑中绿 `--ok` / 完成灰 `--line`）——跑维护状态看顶栏**一条色带全知**（三处同态 `#mtrun` /
+`#mtlivebadge` / `#mtmetsum` 收敛到 `#mtstatebar` 一条带，扫顶栏色带即知跑维护状态，免逐个找三处色）。
+
+**E2E**：`取消 → #mtstatebar 红 --bad rgb(163,38,26)；暂停 → 黄 --warn rgb(150,101,10)；跑中 → 绿 --ok rgb(47,125,85)；
+复位 → 灰 --line rgb(226,221,211)（四态同态，去 transition 立即改色）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、
+node 0、console 0、截图 r184_statebar.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 664→666`，断点 `_整理后分类\华语经典\陶喆\Don't Worry.mp3`。
+
+**坑**：① `#mtstatebar` 挂 `#mtmetfold` 上沿（3px 细色带 `height:3px width:100% background:var(--line) border-radius:2px`，
+维护 tab 顶栏 `#mtmetfold` 折叠钮上沿，扫顶栏一条色带即知跑维护状态，`title` 提示「绿跑中 / 黄暂停 / 红取消 / 灰完成」）②
+`mtStateBarDraw`（读 `window._mtAborted`/`window._mtPaused`/`window._mtRunning` 同态显色，**优先级 取消 > 暂停 > 跑中 > 完成**——
+`if(window._mtAborted) 红 else if(window._mtPaused) 黄 else if(window._mtRunning) 绿 else 灰`，取消态优先，同 R183 `#mtmetsum`
+汇总优先级）③ **`window._mtAborted` 挂全局坑**（R178 `Esc` 区设**块级 `_mtAborted=true`**（`mtRun` 函数内 `let`），`mtStateBarDraw`
+读 `window._mtAborted` 从没挂 → 四态都走 else `--line` 灰（`getComputedStyle` 验四态都 `rgb(226,221,211)`，`mtStateBarDraw` 没改色
+——`window._mtAborted` 永远 `undefined`）。Fix：R178 `Esc` 区 `_mtAborted=true` 后加 `window._mtAborted=true`，`mtRun` 顶
+`_mtAborted=false` 后加 `window._mtAborted=false`，`let _mtAborted` 声明后挂 `window._mtAborted=_mtAborted` 同步初值——`mtStateBarDraw`
+读 `window._mtAborted` 真取到，四态同态改色真生效）④ **`transition:background .3s` 坑**（`#mtstatebar` 初版带 `transition`，
+`getComputedStyle` 改色瞬间取 `transition` 起点 `--line`（中 `background` 从 `--line` 过渡到 `--bad`，立即取起点 `rgb(226,221,211)`），
+四态都验 `--line`。Fix：去 `transition`（指示条状态色不需过渡，立即改色——`mtStateBarDraw` 设 `bar.style.background='var(--bad)'`
+后立即 `getComputedStyle` 取 `rgb(163,38,26)`，去 `transition` 状态色即时同态）⑤ 各态调 `mtStateBarDraw`（`Esc` 取消区 / `Space`
+暂停续跑区 / `mtRun` 跑中每轮 tick 后 / `mtRun` 跑完复位区，`document` 键盘操作 + `mtRun` 循环各态都调 `mtStateBarDraw` 同步指示
+条——`Esc` 取消 `mtStateBarDraw` 红，`Space` 暂停 / 续跑 `mtStateBarDraw` 黄 / 回绿，`mtRun` 每轮 tick `mtStateBarDraw` 绿，跑完
+复位 `mtStateBarDraw` 灰，全路径同态）⑥ 与 R182 `#mtlivebadge` / R183 `#mtmetsum` 三处同态**对称**（`#mtrun` 钮 / `#mtlivebadge`
+徽标 / `#mtmetsum` 汇总 / `#mtstatebar` 指示条四处同态，`#mtstatebar` 顶栏一条带全知 + 三处各元素同态，扫顶栏 + 看元素双路知
+跑维护状态）⑦ 验收**函数级**（`window._mtAborted`/`_mtPaused`/`_mtRunning` 四态置值 + `mtStateBarDraw` 直调刷新验 `#mtstatebar`
+`getComputedStyle` 色 `--bad`/`--warn`/`--ok`/`--line`，不真跑 `mtRun` 免 tick 污染 `runs`；`window._mtAborted` 挂全局验取消同态
+真生效，`transition` 去除验立即改色）。
+
