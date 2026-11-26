@@ -5333,3 +5333,37 @@ join('→')):'无触发顺序（未用过）'`，三键色点文案后补 `<br>`
 含「触发顺序：Esc→Space→Enter」，`window._mtKeyLogOrder=null` + `#mtkeyhint` `mouseenter` 验含「无触发顺序（未用过）」，不真跑
 `mtRun` 免 tick 污染 `runs`；`#mtkeyhintdetail` 触发顺序串 headless 验 `innerHTML` 含「触发顺序：Esc→Space→Enter」/「无触发顺序」）。
 
+---
+
+## 第209轮（前端 R195 · goal round172）：`#mtkeyhint` 三键提示浮层补触发顺序复制出口（`#mtkeyhintcopy` 小钮，hover `#mtkeyhintdetail` 显三键触发记录时同步显复制小钮，复制「#music3 键盘流触发记录 · <ts>」+ 三键最近触发时间戳 + 触发顺序串到剪贴板，贴工单 / 记录键盘流使用习惯，与 R169/R189/R191/R192 复制出口同语言）
+
+**完善性（键盘流使用习惯留存 / 分享免手抄）**：R194 `#mtkeyhintdetail` 逐键时间戳 + 触发顺序串，但**没复制出口**（触发记录文本要
+留存 / 贴工单得手动抄，`#mtkeyhintcopy` hover 三键触发记录时顺手复制免手抄，键盘流使用习惯可留存 / 可分享）。`#mtkeyhint` 旁加
+**`#mtkeyhintcopy`** 小钮（`⧉ 复制触发记录`，挂 `#mtkeyhint` 旁独立位，非 `#mtkeyhintdetail` 内防 `d.innerHTML` 冲掉——R189/R191 同坑
+纪律），`#mtkeyhint` hover 委托（R194 区）`mouseenter` 显 `#mtkeyhintdetail` 时 copy 同步显（有触发记录：`window._mtKeyLog` 三键任一
+或 `window._mtKeyLogOrder` 非空）/ `mouseleave` 隐，点 `#mtkeyhintcopy` → **`mtKeyHintCopy`**（读 `window._mtKeyLog` +
+`window._mtKeyLogOrder` 拼「#music3 键盘流触发记录 · <ts>」+ 三键最近触发时间戳（Space/Esc/Enter 各「最近 <ts>」/未用过）+ 触发顺序
+串（最近 10 次 `join('→')`），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制键盘流触发记录」）——键盘流使用
+习惯复制贴工单 / 记录，使用习惯可留存 / 可分享，与 R169/R189/R191/R192 复制出口同语言。
+
+**E2E**：`document 按 Esc→Space→Enter（更新 window._mtKeyLog/_mtKeyLogOrder）→ #mtkeyhint hover → #mtkeyhintdetail 显 + #mtkeyhintcopy
+显（有触发记录）+ 点 copy → toast「已复制键盘流触发记录」；清 window._mtKeyLog/_mtKeyLogOrder → #mtkeyhint hover → #mtkeyhintcopy 隐
+（无触发记录）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r195_keycopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 686→688`，断点 `_整理后分类\洛天依\洛天依\勾指起誓.mp3`。
+
+**坑**：① `#mtkeyhintcopy` 挂 `#mtkeyhint` 旁独立位（`#mtkeyhint` 后 `inline-block`，非 `#mtkeyhintdetail` 内——R194 `#mtkeyhint` hover
+委托 `d.innerHTML=_html` 重写 `#mtkeyhintdetail` 全 innerHTML，copy 钮若挂 `#mtkeyhintdetail` 内会被 `d.innerHTML` 冲掉，同 R189/R191
+copy 挂旁独立位纪律）② copy 跟**触发记录**（`#mtkeyhint` `mouseenter` 显 `#mtkeyhintdetail` 时，`_hasRec=_kl.space||_kl.esc||_kl.enter||
+_ko.length`（三键最近时间戳任一或触发顺序串非空）copy 显 `inline-block` / 无触发记录（`window._mtKeyLog` 三键全空 + `window._mtKeyLogOrder`
+空）copy 隐 `none`——copy 显跟「有触发记录」，`mouseleave` 浮层 + copy 隐）③ `mtKeyHintCopy`（读 `window._mtKeyLog` + `window._mtKeyLogOrder`
+拼触发记录，`#music3 键盘流触发记录 · <new Date().toLocaleString()>` 头 + 三键最近时间戳（Space/Esc/Enter 各「最近 <ts>」/「未用过」）
++ 触发顺序串（`_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）'`），`navigator.clipboard.writeText`（`_copyFallback` `textarea`
+`execCommand` 降级）+ toast「已复制键盘流触发记录」，无触发记录（三键全空 + 顺序串空）toast「无键盘流触发记录可复制（未用过三键）」
+`bad`，同 R169/R189/R191/R192 复制函数空记录 toast 纪律）④ 与 R193 逐键时间戳 / R194 触发顺序串**分工**（R193 hover 逐键显最近时间戳
+看，R194 hover 显触发顺序串看，R195 copy 复制触发记录文本留存 / 分享，看 + 复制双出口，键盘流使用习惯可看可留存）⑤ 验收**函数级**
+（`document` `dispatchEvent` `keydown`（`key:'Escape'`/`' '`/`'Enter'` 维护 tab 激活 + 焦点非输入框）验 `window._mtKeyLog`/`_mtKeyLogOrder`
+更新 + `#mtkeyhint` `dispatchEvent` `mouseenter` 验 `#mtkeyhintdetail` 显 + `#mtkeyhintcopy` hover 态显 + 点 copy 验 toast「已复制键盘流
+触发记录」，清 `window._mtKeyLog`/`_mtKeyLogOrder` + `#mtkeyhint` `mouseenter` 验 `#mtkeyhintcopy` 隐，不真跑 `mtRun` 免 tick 污染
+`runs`；copy 复制只验 toast 出口，真剪贴板内容 headless 不验）。
+

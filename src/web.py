@@ -1055,6 +1055,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <button class="ghost sm" id="mtautoref" title="每 5s 自动重拉 9 卡(跑维护/跑到全库时挂着, 实时看累计/delta/本轮补变化)" onclick="mtAutoRef()">自动刷 5s</button>
     <button type="button" id="mtkeyhint" title="键盘快捷: Space 暂停/续跑 · Esc 取消 · Enter 跳双图(维护 tab 激活 + 焦点非输入框时生效)" style="padding:2px 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:help;line-height:16px;position:relative">⌨ 键</button>
     <div id="mtkeyhintdetail" style="display:none;position:absolute;z-index:60;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--ink);line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
+    <button type="button" id="mtkeyhintcopy" title="复制键盘流触发记录(三键最近触发时间戳+触发顺序串, 贴工单/记录使用习惯, 与R169/R189/R191/R192复制出口同语言)" style="display:none;padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制触发记录</button>
     <button class="ghost sm" id="mtlogexport" title="导出当前日志(maintain.log 全量)">导出日志</button>
     <button class="ghost sm" id="mtlogcopy" title="复制当前日志到剪贴板(含行号, 贴 issue/分享方便)" onclick="mtLogCopy()">复制日志</button>
     <input type="text" id="mtlogfilter" placeholder="过滤日志：歌词 / 封面 / 异常…" title="本地过滤(实时刷新也生效), 命中行高亮" style="width:220px;flex:0 0 auto;padding:6px 8px">
@@ -3973,7 +3974,7 @@ function _mtUnpausedBtn(){
 }
 /* 键盘三键提示浮层(R181): #mtkeyhint hover -> #mtkeyhintdetail 显「Space 暂停/续跑 · Esc 取消 · Enter 跳双图+聚焦最新轮」(维护 tab 激活+焦点非输入框时生效), 键盘流三操作可发现性(免记/免试错), 与 R178/R179/R180 三键盘操作对称 */
 (function(){
-  const k=$('#mtkeyhint'), d=$('#mtkeyhintdetail');
+  const k=$('#mtkeyhint'), d=$('#mtkeyhintdetail'), cp=$('#mtkeyhintcopy');
   if(!k || !d) return;
   /* 三键状态灯(R186): 读 window._mtRunning/_mtPaused 实时显三键当前可触/不可触/暂停色点, hover 看三键可触状态随跑维护态变 */
   function _keyDot(_on, _warn){
@@ -4003,6 +4004,7 @@ function _mtUnpausedBtn(){
       +_keyDot(_enCan, false)+'Enter 跳双图 + 聚焦最新轮 · '+_enT+'<br>'
       +'<span style="color:var(--dim)">'+_order+'</span>';
     d.innerHTML=_html; d.style.display='block';
+    if(cp){ const _hasRec=_kl.space||_kl.esc||_kl.enter||_ko.length; cp.style.display=_hasRec?'inline-block':'none'; } /* R195 copy 跟触发记录: 有触发记录才显 */
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtkeyhint 下方浮层, 靠右/靠底不溢出 */
     const r=k.getBoundingClientRect();
     d.style.position='absolute';
@@ -4014,8 +4016,23 @@ function _mtUnpausedBtn(){
     if(ty+dh>window.innerHeight-8){ ty=Math.max(8, r.top-dh-2); }
     d.style.top=ty+'px';
   });
-  k.addEventListener('mouseleave', function(){ d.style.display='none'; d.innerHTML=''; });
+  k.addEventListener('mouseleave', function(){ d.style.display='none'; d.innerHTML=''; if(cp){ cp.style.display='none'; } }); /* R195 离隐 copy, 跟浮层 hover 态 */
 })();
+/* 键盘流触发记录复制(R195): #mtkeyhintcopy 点 -> 复制「#music3 键盘流触发记录·<ts>」+三键最近触发时间戳+触发顺序串到剪贴板(navigator.clipboard,_copyFallback降级), 贴工单/记录键盘流使用习惯, 与R169/R189/R191/R192复制出口同语言 */
+function mtKeyHintCopy(){
+  const _kl=window._mtKeyLog||{};
+  const _ko=window._mtKeyLogOrder||[];
+  if(!_kl.space && !_kl.esc && !_kl.enter && !_ko.length){ if(typeof _toast==='function'){ _toast('无键盘流触发记录可复制（未用过三键）', 'bad'); } return; }
+  let _lines='#music3 键盘流触发记录 · '+new Date().toLocaleString()+'\n';
+  _lines+='Space 暂停/续跑 · '+(_kl.space?('最近 '+_kl.space):'未用过')+'\n';
+  _lines+='Esc 取消 · '+(_kl.esc?('最近 '+_kl.esc):'未用过')+'\n';
+  _lines+='Enter 跳双图 + 聚焦最新轮 · '+(_kl.enter?('最近 '+_kl.enter):'未用过')+'\n';
+  _lines+=_ko.length?('触发顺序：'+_ko.join('→')):'无触发顺序（未用过）';
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制键盘流触发记录', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
+  } else { _copyFallback(_lines); }
+}
+(function(){ const c=$('#mtkeyhintcopy'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtKeyHintCopy(); }); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
