@@ -5135,3 +5135,38 @@ hover 显逐轮明细（`#mtmetsumdetail` 多行逐条），看均值扫一眼 +
 合计 + `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtmetsumdetail` 逐条 headless 验 `textContent` 含「逐轮明细」+ 第 i 次
 + 均值合计，非真渲染多行）。
 
+---
+
+## 第203轮（前端 R189 · goal round166）：`#mtmetsum` 双指标汇总 hover 逐轮明细复制（`#mtmetsumdetailcopy` 小钮，复制「#music3 双指标逐轮明细 · <ts>」+ 逐轮明细文本到剪贴板，贴工单 / 记录维护日志，与 R169 详情复制同「复制出口」语言）
+
+**完善性（逐轮明细留存 / 分享免手抄）**：R188 `#mtmetsumdetail` hover 逐轮明细浮层只显逐轮明细看，**没复制出口**（逐轮
+明细文本要留存 / 贴工单 / 记录维护日志得手动抄，剪贴板复制没做）。`#mtmetsum` 旁加**`#mtmetsumdetailcopy`** 小钮（`⧉ 复制`，
+`#mtdeltabar` 内 `#mtmetsum` 后独立位，`mtMetSumDraw` 显 `#mtmetsum` 时 copy 显 / 无数据隐），点 `#mtmetsumdetailcopy` →
+**`mtMetSumDetailCopy`**（读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼「#music3 双指标逐轮明细 · <ts>」+ 逐轮明细文本
+（第 i 次 Xs · 补入 +Y / …）+ 均值 / 合计，`navigator.clipboard.writeText`（`_copyFallback` `textarea` `execCommand` 降级）
++ toast「已复制双指标逐轮明细（N 次）」）——逐轮明细复制贴工单 / 记录维护日志，双指标逐轮趋势可留存 / 可分享，与 R169
+`#mtlivedetailcopy` 详情复制同「复制出口」语言。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(4) → mtMetSumDraw（显 #mtmetsum + copy）→ 点 #mtmetsumdetailcopy → toast「已复制双指标
+逐轮明细（4 次）」（剪贴板 / 降级出口验 toast 文案）；清 localStorage → mtMetSumDraw（隐 #mtmetsum + copy）→ 点 copy →
+toast「无双指标逐轮明细可复制」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r189_metsumcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 674→676`，断点 `_整理后分类\摇滚民谣\朴树\达尼亚.mp3`。
+
+**坑**：① `#mtmetsumdetailcopy` 挂 `#mtmetsum` 旁独立位（`#mtdeltabar` 内 `#mtmetsum` 后 `inline-block`，非 `#mtmetsumdetail` 内——
+R188 `#mtmetsum` hover 委托 `d.innerHTML=_lines.replace(...)` 重写 `#mtmetsumdetail` 全 innerHTML，copy 钮若挂 `#mtmetsumdetail` 内
+会被 `d.innerHTML` 冲掉（headless 验 `cp` 取 `null`，`Cannot read properties of null`），改挂 `#mtmetsum` 旁独立位，`d.innerHTML`
+不碰 copy，`#mtmetsumdetail` 只显逐轮明细文本，copy 独立）② copy 跟 `#mtmetsum` 数据显隐（`mtMetSumDraw` 显 `#mtmetsum`（有数据）
+时 `#mtmetsumdetailcopy` `display='inline-block'` 显 / 无数据（`!h.length && !d.length` `#mtmetsum` `display:none`）时 copy `display='none'`
+隐——copy 跟 `#mtmetsum` 数据，非 hover 态控，`mtMetSumDraw` 每跑完 / tick 调同步 copy 显隐，`#mtmetsum` 隐 copy 也隐）③
+`mtMetSumDetailCopy`（读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼，倒序第 `n-1-_k` 次最新在上，`#music3 双指标逐轮明细 ·
+<new Date().toLocaleString()>` 头 + 逐轮明细 + 均值 / 合计，`navigator.clipboard.writeText`（`_copyFallback` `textarea`
+`execCommand('copy')` 降级，`clipboard` 无权限 / 非 secure context 降级）+ toast「已复制双指标逐轮明细（N 次）」，空历史
+（`n=0`）toast「无双指标逐轮明细可复制」`bad`，同 R169 `mtLiveDetailCopy` 空详情 toast 纪律）④ 与 R188 `#mtmetsumdetail` hover
+逐轮明细**分工**（R188 hover 显逐轮明细看（`#mtmetsumdetail` 浮层），R189 copy 复制逐轮明细文本留存 / 分享（`#mtmetsumdetailcopy`
+贴工单 / 记录维护日志），看 + 复制双出口，逐轮明细可看可留存）⑤ 验收**函数级**（写 `_mtRunHist`/`_mtRunDelta` 4 条 + `mtMetSumDraw`
+显 `#mtmetsum`/copy + 点 `#mtmetsumdetailcopy` 验 toast「已复制双指标逐轮明细（4 次）」，清 `localStorage` + `mtMetSumDraw` 隐
+`#mtmetsum`/copy + 点 copy 验 toast「无双指标逐轮明细可复制」，剪贴板 / 降级只验 toast 出口（真剪贴板内容 headless 不验，`copy` 文本
+拼逻辑验 `mtMetSumDetailCopy` 出口 toast），不真跑 `mtRun` 免 tick 污染 `runs`）。
+
