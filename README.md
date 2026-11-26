@@ -6393,3 +6393,26 @@ R222 `mtGuardSnapPng` / R223 `mtGuardPanelPng` 读各内联 SVG 自动含全折�
 
 **坑**：① `mtGuardFoldCtl`（R209 区）六块内联 SVG（块 1 三域折叠钮 / 块 2 折叠联动 R206 / 块 3 折叠记忆 R204/R205 / 块 4 三域折叠态总览 R207 / 块 5 折叠态 PNG 文本 R208 / 块 6 折叠全链路 R209/R210，`_H=180`）补全折叠域 5 域（块 1 三域折叠钮 → 全折叠域 5 域折叠钮（`_fbtns` 3→5 加 `#mtguardfoldctl 折叠全链路(R209)` + `#mtguardalldomain 全折叠域(R216)`，循环 3→5，块 1 高度 48→66），块 3 折叠记忆补 2 键（`localStorage _mtGuardFoldCtl(全链路)` + `localStorage _mtGuardAllDomain(全折叠域)`，块 3 高度 48→66），块 4 三域折叠态总览 → 全折叠域 5 域折叠态总览（R207/R224，块 4 高度 48→66），块 5 全折叠域 5 键当前态色带（`_fl5c` 5 键 `localStorage` + `_kn5c` 5 键名缩写（`Met`/`Pan`/`All`/`Ctl`/`Dom`）+ 循环拼 5 色带 `rect`（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 值），块 6 折叠态 PNG / 文本（`#mtguardfoldstatpng` / `#mtguardfoldstatcopy` / `#mtguardfoldctlpng` / `#mtguardfoldctlcopy`），`_H=180`→`236` 加高容全折叠域 5 域，折叠全链路总控自含全折叠域当前态，与 R222/R223/R224 补全折叠域字段同域）② `mtGuardFoldCtlCopy`（R210 区）全链路文本六段（三域折叠钮 / 折叠联动 / 折叠记忆 / 三域折叠态总览 / 折叠态 PNG 文本 / 折叠全链路）补全折叠域 5 域（`[三域折叠钮]` → `[全折叠域5域折叠钮]`（5 域：双图区 R159 / 总览面板 R202 / 全浮层 R203 / 折叠全链路 R209 / 全折叠域 R216），`[折叠记忆]` 补 2 键（`_g4` `localStorage._mtGuardFoldCtl` + `_g5` `localStorage._mtGuardAllDomain`，`try/catch` 降级 `'0'`），`[三域折叠态总览]` → `[全折叠域5域折叠态总览]`（R207/R224），补 `[全折叠域当前态]` 5 键段（`localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`），全链路文本自含全折叠域 5 域 + 5 键当前态，与 R222/R223/R224 补全折叠域字段同域）③ `mtGuardFoldCtlPng`（R210 区）读 `#mtguardfoldctld` 内联 SVG（`mtGuardFoldCtl` 拼），`mtGuardFoldCtl` 补全折叠域 5 域后，全链路 PNG 自动含 5 域，无需 `mtGuardFoldCtlPng` 改（PNG 读 SVG 当前态自动完整，同 R221/R222/R223/R224 各 PNG 读内联 SVG 自动含全折叠域字段纪律）④ 与 R209 `#mtguardfoldctl` 折叠全链路总控 / R210 `#mtguardfoldctscopy` 全链路文本**分工**（R209/R210 折叠全链路六块（三域折叠钮 / 折叠联动 / 折叠记忆 / 三域折叠态总览 / 折叠态 PNG 文本 / 折叠全链路），R225 补全折叠域 5 域（块 1 → 全折叠域 5 域折叠钮 + 块 3 → 全折叠域 5 键 + 块 4 → 全折叠域 5 域折叠态总览 + 块 5 → 全折叠域 5 键当前态）——折叠全链路总控自含全折叠域当前态）⑤ 与 R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态总览补全折叠域字段**语言同**（各全折叠域 / 三域折叠态 / 全链路读 5 键 `localStorage` + 各域 `textContent` / `display` 拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 直接调 `mtGuardFoldCtl()` 拼内联 SVG（绕 R211 折叠记忆切态——设 `_mtGuardFoldCtl='1'` 后点 `#mtguardfoldctl` 走 R211 折叠记忆切（当前折叠态 → 切展开才拼面板），验收直接调 `mtGuardFoldCtl()` 免切态干扰）+ 验 `#mtguardfoldctld` `innerHTML` 含 `<svg` + 全折叠域 5 域折叠钮（`全折叠域5域折叠钮` + `#mtguardfoldctl 折叠全链路` + `#mtguardalldomain 全折叠域`）+ 全折叠域当前态 + 点 `#mtguardfoldctscopy` 验 toast「已复制折叠全链路文本」（全链路文本含全折叠域 5 域 / 5 键段），不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验 5 域进 SVG + 文本含 5 域 / 5 键段，非真渲染像素 / 剪贴板内容）。
 
+---
+
+## 第240轮（前端 R226 · goal round203）：维护守护区双图区明细面板补全折叠域字段（`#mtmetsumdetail` 双图区 hover 明细浮层 + `#mtmetsumdetailcopy` 双指标逐轮明细文本补全折叠域 5 键当前态字段，双图区明细自含全折叠域当前态）
+
+**完善性（双图区明细自含全折叠域当前态）**：R224/R225 三域折叠态总览 / 折叠全链路总控补全折叠域 5 域，但**`#mtmetsumdetail` 双图区 hover 明细浮层 / `#mtmetsumdetailcopy` 双指标逐轮明细文本（R188/R189 区）没全折叠域 5 键**（双图区明细要自含全折叠域当前态，
+`mtMetSumDetailCopy`（R189 区）双指标逐轮明细文本（近 N 次逐轮 + 均值 + 合计）补 `[全折叠域当前态]` 5 键段（`localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... · _mtGuardAllDomain=...`），`#mtmetsumdetail`
+hover 明细浮层（R188 区）同补 5 键段（与 `mtMetSumDetailCopy` 同步），双图区明细自含全折叠域当前态，与 R222/R223/R224/R225 补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' + 设双指标历史 → 点 #mtmetsumdetailcopy → toast「已复制双指标逐轮明细（3 次）」（双图区明细文本含全折叠域 5 键当前态段）；#mtmetsum mouseenter → #mtmetsumdetail hover 明细浮层 innerHTML 含全折叠域当前态段`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r226_metdetail5key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 750→752`，断点 `_郑寒木\少年锦时.mp3`。
+
+**坑**：① `mtMetSumDetailCopy`（R189 区）双指标逐轮明细文本（`#music3 双指标逐轮明细 · <ts>` + 近 N 次逐轮 + 均值 / 合计，`navigator.clipboard.writeText` 降级 `_copyFallback`）补 `[全折叠域当前态]` 5 键段（`_fl26` 5 键
+`localStorage`（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`，`||'0'` 降级），`_lines+=` 拼「[全折叠域当前态] localStorage 5键: _mtMetFold=... · _mtGuardPanelFold=... · _mtGuardFoldAll=... · _mtGuardFoldCtl=... ·
+_mtGuardAllDomain=...」，双指标逐轮明细文本自含全折叠域 5 键当前态，与 R222/R223/R224/R225 补全折叠域字段同域，`#mtmetsumdetailcopy` 复制出口补全折叠域段）② `#mtmetsumdetail` hover 明细浮层（R188 区，`#mtmetsum` `mouseenter` 显 `#mtmetsumdetail`
+逐轮明细列表 + 均值 / 合计，`mouseleave` 隐）同补 5 键段（`_fl26h` 5 键 `localStorage`，与 `mtMetSumDetailCopy` 同步拼「[全折叠域当前态]」段，`d.innerHTML=_lines.replace(\n,g,'<br>')` 含全折叠域段，hover 明细浮层自含全折叠域 5 键当前态，与
+`mtMetSumDetailCopy` 复制出口同数据源同步）③ 与 R188 `#mtmetsumdetail` hover 明细 / R189 `#mtmetsumdetailcopy` 双指标逐轮明细复制**分工**（R188/R189 双图区明细 hover / 复制（近 N 次逐轮 + 均值 / 合计），R226 补全折叠域 5 键当前态段——双图区明细
+自含全折叠域当前态，`#mtmetsumdetail` hover + `#mtmetsumdetailcopy` 复制双路同 5 键段）④ 与 R222 维护守护全记录 / R223 能力出口总览 / R224 三域折叠态总览 / R225 折叠全链路总控补全折叠域字段**语言同**（各双图区明细 / 全折叠域 / 三域 / 全链路读 5
+键 `localStorage` 拼文本，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑤ 验收**函数级**（设 5 键全 `'1'` + 设双指标历史 `localStorage._mtRunHist` / `_mtRunDelta` + 点 `#mtmetsumdetailcopy` 验 toast「已复制双指标逐轮明细（3 次）」（双图区明细
+文本含全折叠域 5 键当前态段）+ `#mtmetsum` `mouseenter` 验 `#mtmetsumdetail` `innerHTML` 含 `全折叠域当前态` 段（hover 明细浮层自含 5 键段），不真跑 `mtRun` 免 tick 污染 `runs`；双图区明细 / hover 浮层拼逻辑验 5 键段进文本 / `innerHTML`，非真剪贴板
+/ 渲染像素）。
+

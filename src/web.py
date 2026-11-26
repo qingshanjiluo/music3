@@ -4977,6 +4977,9 @@ function mtMetSumDraw(){
       const _hAvg=h.length?(h.reduce((a,c)=>a+c,0)/h.length).toFixed(1):'—';
       const _bSum=b.length?b.reduce((a,c)=>a+c,0):0;
       _lines+='\n均值 '+_hAvg+'s/次 · 合计 +'+_bSum;
+      /* R226 双图区hover明细补全折叠域5键当前态(与mtMetSumDetailCopy同步, 自含全折叠域当前态) */
+      const _fl26h=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+      _lines+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+_fl26h[0]+' · _mtGuardPanelFold='+_fl26h[1]+' · _mtGuardFoldAll='+_fl26h[2]+' · _mtGuardFoldCtl='+_fl26h[3]+' · _mtGuardAllDomain='+_fl26h[4];
       d.innerHTML=_lines.replace(/\n/g,'<br>');
       if(cp){ cp.style.display='inline-block'; } /* R190 copy 跟浮层 hover 态: 有数据 hover 显浮层时 copy 显, 点 copy 复制免移开找常驻位 */
       d.style.display='block';
@@ -5009,6 +5012,9 @@ function mtMetSumDetailCopy(){
   const _hAvg=h.length?(h.reduce((a,c)=>a+c,0)/h.length).toFixed(1):'—';
   const _bSum=b.length?b.reduce((a,c)=>a+c,0):0;
   _lines+='均值 '+_hAvg+'s/次 · 合计 +'+_bSum;
+  /* R226 双图区明细补全折叠域5键当前态(自含全折叠域当前态, 与R222/R223/R224/R225补全折叠域字段同域) */
+  const _fl26=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  _lines+='\n[全折叠域当前态] localStorage 5键: _mtMetFold='+_fl26[0]+' · _mtGuardPanelFold='+_fl26[1]+' · _mtGuardFoldAll='+_fl26[2]+' · _mtGuardFoldCtl='+_fl26[3]+' · _mtGuardAllDomain='+_fl26[4];
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制双指标逐轮明细（'+n+' 次）', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
