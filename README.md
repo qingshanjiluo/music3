@@ -6683,3 +6683,37 @@ CSS 320/320、node 0、console 0、截图 r235_reset6key.png。
 全复位 `'0'`（`k6.every(v=>v==='0')`）+ `#mtallfoldstat` 文案复位「▣ 全折叠域浮层」+ toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtguardfoldreset` 重置拼逻辑验 6 键
 `localStorage` 全清 `'0'` + 6 标志 `window` 全复位 `false` + 6 折叠钮文案复位 + 浮层 `display` 复位，非真渲染像素）。
 
+---
+
+## 第250轮（前端 R236 · goal round213）：维护守护区全折叠记忆重置详情补全折叠域 6 键（`#mtguardfoldresetcopy` 全折叠记忆重置详情复制（R214 区 `mtGuardFoldResetCopy`）+ `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG（R215 区 `mtGuardFoldResetPng`）补第 6 键 `localStorage._mtGuardAllFoldStat` 当前态字段，全折叠记忆重置详情自含全折叠域 6 键当前态）
+
+**完善性（全折叠记忆重置详情自含全折叠域 6 键当前态）**：R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（全折叠域 6 键全复位），但**`#mtguardfoldresetcopy` 全折叠记忆
+重置详情复制（R214 区，读 5 键 `localStorage` 复位值 + 5 标志 `window` 复位值 + 5 折叠钮文案复位 + 6 浮层 `display` 复位拼重置详情）/ `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG（R215 区，读 5 键
+`localStorage` 复位值拼重置详情内联 SVG）没全折叠域 6 键**（全折叠记忆重置详情要自含全折叠域 6 键当前态，`mtGuardFoldResetCopy`（R214 区）重置详情复制补第 6 键 `_mtGuardAllFoldStat` 当前态段（读 6 键
+`localStorage` 复位值 + 6 标志 `window` 复位值 + 6 折叠钮文案复位 + 7 浮层 `display` 复位，循环 5→6 / 7→8）+ `mtGuardFoldResetPng`（R215 区）重置详情 PNG 补第 6 键 `_mtGuardAllFoldStat` 当前态段（读
+6 键 `localStorage` 复位值拼 6 键色带内联 SVG，循环 5→6 / 7→8），全折叠记忆重置详情自含全折叠域 6 键当前态，与 R235 全折叠记忆一键重置补全折叠域 6 键同域）。
+
+**E2E**：`设 6 键全 '0' 已复位 → 点 #mtguardfoldresetcopy → toast「已复制全折叠记忆重置详情」（复制含 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态）+ 点 #mtguardfoldresetpng → toast「已下载全折叠记忆重置详情
+PNG」（PNG 含 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态内联 SVG 色带）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r236_reset6keycopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 770→772`，断点 `_洛天依\杠上开花.mp3`。
+
+**坑**：① `#mtguardfoldresetcopy` 全折叠记忆重置详情复制（R214 区，`mtGuardFoldResetCopy` 读全折叠记忆重置后各数据源（`localStorage` 5 键复位值 + `window` 5 标志复位值 + 5 折叠钮文案复位 + 6 浮层 `display`
+复位 + 重置时间戳）拼重置详情到剪贴板，`#music3 全折叠记忆重置详情 · <ts>` + `[localStorage 5键复位值]` + `[window 5标志复位值]` + `[5折叠钮文案复位]` + `[6浮层display复位]`）补第 6 键全折叠域 5 域折叠态
+总控浮层折叠记忆复位（R236，`_ls`/`_w` 加第 6 元素 `localStorage._mtGuardAllFoldStat` / `window._mtGuardAllFoldStat`，`_btns` 加 `mtallfoldstat`，`_floors` 加 `mtallfoldstatd`，`[localStorage 5键复位值]` →
+`[localStorage 6键复位值]` + `[window 5标志复位值]` → `[window 6标志复位值]` + `[5折叠钮文案复位]` → `[6折叠钮文案复位]` + `[6浮层display复位]` → `[8浮层display复位]`，循环 5→6 / 7→8，全折叠记忆重置详情
+自含全折叠域 6 键当前态，与 R235 全折叠记忆一键重置补全折叠域 6 键同域，`#mtguardfoldresetcopy` 重置详情复制补第 6 键）② `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG（R215 区，`mtGuardFoldResetPng`
+读 5 键 `localStorage` 复位值拼重置详情内联 SVG（`[localStorage 5键复位值]` + `[window 5标志复位值]` + `[5折叠钮文案复位]` + `[6浮层display复位]` 色带），`canvas` `toBlob` 转 PNG 下载「music3_全折叠记忆
+重置详情_<ts>.png」（`toBlob` 不可用降级复制 SVG 源码））补第 6 键全折叠域 5 域折叠态总控浮层折叠记忆复位（R236，`_ls`/`_w` 加第 6 元素 + `_btns` 加 `mtallfoldstat` + `_floors` 加 `mtallfoldstatd`，
+`[localStorage 5键复位值]` → `[localStorage 6键复位值]` + `[window 5标志复位值]` → `[window 6标志复位值]` + `[5折叠钮文案复位]` → `[6折叠钮文案复位]` + `[6浮层display复位]` → `[8浮层display复位]`，循环 5→6 /
+7→8，全折叠记忆重置详情 PNG 自含全折叠域 6 键当前态，与 R235 全折叠记忆一键重置补全折叠域 6 键同域，`#mtguardfoldresetpng` 重置详情 PNG 补第 6 键）③ 与 R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键
+`_mtGuardAllFoldStat` 复位 / R214 `#mtguardfoldresetcopy` 全折叠记忆重置详情复制 / R215 `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG**分工**（R235 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位
+（`#mtguardfoldreset` 全折叠域 6 键全复位），R236 全折叠记忆重置详情复制 / PNG 补第 6 键 `_mtGuardAllFoldStat` 当前态段（`#mtguardfoldresetcopy` 重置详情复制 + `#mtguardfoldresetpng` 重置详情 PNG 双路
+自含全折叠域 6 键当前态，R214/R215 补 6 键段同 R220 重置详情补第 5 键 `_mtGuardAllDomain` 同域），R235 重置 6 键全复位 + R236 重置详情 6 键段双路自含全折叠域 6 键当前态）④ 与 R214 `#mtguardfoldresetcopy`
+全折叠记忆重置详情复制 / R215 `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键**语言同**（各全折叠记忆重置 / 重置详情读 6 键 `localStorage` 复位值 /
+当前态 + 6 标志 `window` 复位值 + 6 折叠钮文案 + 8 浮层 `display` 拼文本 / 色带 / SVG，全折叠域 6 键当前态同语言，各出口自含全折叠域出口标位）⑤ 验收**函数级**（设 6 键全 `'0'` 已复位（`_mtMetFold`/
+`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`/`_mtGuardAllFoldStat`）+ 6 标志全 `false` + 点 `#mtguardfoldresetcopy` 验 toast「已复制全折叠记忆重置详情」（复制含 6 键 / 6 标志 / 6
+折叠钮 / 8 浮层当前态）+ 点 `#mtguardfoldresetpng` 验 toast「已下载全折叠记忆重置详情 PNG」（PNG 含 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态内联 SVG 色带），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtguardfoldresetcopy`
+重置详情复制拼逻辑验 6 键 / 6 标志 / 6 折叠钮 / 8 浮层字段进文本（`_ls`/`_w` 加第 6 元素 + `_btns` 加 `mtallfoldstat` + `_floors` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），`#mtguardfoldresetpng` 重置详情 PNG
+拼逻辑验 6 键 / 6 标志 / 6 折叠钮 / 8 浮层字段进 SVG（`_ls`/`_w` 加第 6 元素 + `_btns` 加 `mtallfoldstat` + `_floors` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），非真剪贴板 / 渲染像素）。
+
