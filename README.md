@@ -6827,3 +6827,35 @@ R237 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层补第 6 键 / R238
 + 点 `#mtallfoldcopy` 验 toast「已复制全折叠域5域折叠态」（复制含全折叠域 6 域 / 6 键 / 6 标志 / 6 折叠钮 / 8 浮层当前态），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldcopy` 复制拼逻辑验全折叠域 6 域 / 6 键 / 6
 标志 / 6 折叠钮 / 8 浮层字段进文本（`_doms` 加第 6 元素 + `_ls5`/`_w5` 加第 6 元素 + `_btns5` 加 `mtallfoldstat` + `_floors7` 加 `mtallfoldstatd` + 循环 5→6 / 7→8），非真剪贴板 / 渲染像素）。
 
+---
+
+## 第254轮（前端 R240 · goal round217）：维护守护区全折叠域 5 域折叠态总控浮层折叠记忆重置联动补全折叠域 6 键（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 清（免全复位后残留旧 SVG），全折叠记忆一键复位后全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层重置详情自含 6 键复位态）
+
+**完善性（全折叠记忆一键复位后全折叠域 5 域折叠态总控浮层重置详情自含 6 键复位态）**：R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`mtGuardFoldReset` 清 `'0'` + 标志 `false` +
+文案复位 + `display` 复位 + `clearTimeout`），但**`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的全折叠记忆重置后 `#mtallfoldstatd` `innerHTML` 没清**（全折叠记忆一键复位后全折叠域 5 域折叠态
+总控浮层重置详情自含 6 键复位态，`mtGuardFoldReset`（R235 区 4668-4673 行 R235 补第 6 键段）`#mtallfoldstatd` `display` 复位 `none` 后补 `innerHTML` 清（`_afsD.innerHTML=''`），免全复位后 `#mtallfoldstatd` 残留旧
+SVG（R234 `mtAllFoldStat` 拼内联 SVG 到 `#mtallfoldstatd`，全复位后 `display` 隐但 `innerHTML` 残留旧 SVG，重新展开 `#mtallfoldstat` 时 `mtAllFoldStat()` 重拼 SVG 覆盖，但 `display` 隐 + `innerHTML` 残留旧
+SVG 期间 hover / 复制读 `#mtallfoldstatd` 可能读到旧态），全折叠记忆一键复位后全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层重置详情自含 6 键复位态，与 R213 全浮层 `display` 复位 + R235 全折叠记忆重置补第
+6 键同域）。
+
+**E2E**：`设 6 键全 '1' + 6 标志全 true → 直接调 mtAllFoldStat() 拼面板（#mtallfoldstatd 显 SVG）→ 点 #mtguardfoldreset → #mtallfoldstatd innerHTML 清（免全复位后残留旧 SVG）+ 6 键全复位 '0' + toast「已重置维护
+守护区全折叠记忆」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r240_reset_innerhtml.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 778→780`，断点 `_草东没有派对\等.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234，`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` 浮层 `innerHTML` 拼内联 SVG）的全折叠记忆
+重置后 `#mtallfoldstatd` `innerHTML` 清（R240，`mtGuardFoldReset`（R235 区 4668-4673 行 R235 补第 6 键段）`const _afsD=document.getElementById('mtallfoldstatd'); if(_afsD){ _afsD.style.display='none'; }`（R235）
+→ 补 `_afsD.innerHTML=''`（R240，`#mtallfoldstatd` `display` 复位 `none` 后清 `innerHTML` 免全复位后残留旧 SVG）），`mtAllFoldStat`（R234）拼内联 SVG 到 `#mtallfoldstatd`（`_d.innerHTML=_svg` + `getBoundingClientRect`
+下沿定位 + `z-index:70` + 8s 自动隐），全复位后 `#mtallfoldstatd` `display` 隐 + `innerHTML` 残留旧 SVG（重新展开 `#mtallfoldstat` 时 `mtAllFoldStat()` 重拼 SVG 覆盖，但 `display` 隐 + `innerHTML` 残留旧 SVG
+期间 hover / 复制读 `#mtallfoldstatd` 可能读到旧态），R240 补 `innerHTML` 清（全复位后 `#mtallfoldstatd` `innerHTML` 空，重新展开才拼新 SVG），全折叠记忆一键复位后全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控
+浮层重置详情自含 6 键复位态，与 R213 全浮层 `display` 复位 + R235 全折叠记忆重置补第 6 键同域，`#mtallfoldstatd` 全复位后 `innerHTML` 清）② 与 R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat`
+复位（`mtGuardFoldReset` 清 `'0'` + 标志 `false` + 文案复位 + `display` 复位 + `clearTimeout`）/ R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆 / R240 `#mtallfoldstatd` `innerHTML` 清**分工**（R235
+全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位（`localStorage` 清 `'0'` + `window` 标志 `false` + 文案复位 + `display` 复位 + `clearTimeout`），R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（
+`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 拼 SVG + 8s 自动隐），R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG，重新展开才拼新 SVG）——
+R235/R234/R240 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层重置详情自含 6 键复位态，`#mtguardfoldreset` 全折叠记忆重置 + `#mtallfoldstat` 折叠记忆 + `#mtallfoldstatd` `innerHTML` 清双路自含全折叠域 6 键
+复位态）③ 与 R213 全浮层 `display` 复位 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆 / R239 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制补第 6 键
+**语言同**（各全浮层 `display` 复位 / 全折叠记忆重置 / 全折叠域 5 域折叠态总控浮层折叠记忆 / 全折叠域 5 域折叠态一键复制读 6 键 `localStorage` 复位值 / 当前态 + `innerHTML` 清，全折叠域 6 键复位态同语言，各出口
+自含全折叠域出口标位）④ 验收**函数级**（设 6 键全 `'1'` + 6 标志全 `true` + 直接调 `mtAllFoldStat()` 拼内联 SVG（`#mtallfoldstatd` 显 SVG，绕 R234 折叠记忆切态）+ 点 `#mtguardfoldreset` 验 `#mtallfoldstatd`
+`innerHTML` 清（`innerCleared=true`，免全复位后残留旧 SVG）+ 6 键全复位 `'0'`（`k6.every(v=>v==='0')`）+ toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldstatd` `innerHTML` 清
+拼逻辑验全复位后 `innerHTML` 空（`_afsD.innerHTML=''` 清），非真渲染像素）。
+

@@ -4669,7 +4669,7 @@ function mtGuardFoldReset(){
   try{ localStorage.setItem('_mtGuardAllFoldStat','0'); }catch(_){}
   window._mtGuardAllFoldStat=false;
   const _afs=document.getElementById('mtallfoldstat'); if(_afs){ _afs.textContent='▣ 全折叠域浮层'; }
-  const _afsD=document.getElementById('mtallfoldstatd'); if(_afsD){ _afsD.style.display='none'; }
+  const _afsD=document.getElementById('mtallfoldstatd'); if(_afsD){ _afsD.style.display='none'; _afsD.innerHTML=''; } /* R240 全折叠记忆重置联动全折叠域5域折叠态总控浮层重置详情innerHTML清(免全复位后残留旧SVG) */
   clearTimeout(window._mtGuardAllFoldStatT);
   clearTimeout(window._mtGuardPanelT); clearTimeout(window._mtGuardFoldCtlT);
   if(typeof _toast==='function'){ _toast('已重置维护守护区全折叠记忆', 'ok'); }
