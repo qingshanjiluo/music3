@@ -5946,3 +5946,44 @@ PNG 导出 + `#mtguardfoldstatcopy` 文本复制标位）+ `[折叠全链路 (R2
 `#mtguardfoldctcopy` 验 toast「已复制折叠全链路文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，真 PNG / 剪贴板内容不验，不真跑
 `mtRun` 免 tick 污染 `runs`）。
 
+---
+
+## 第225轮（前端 R211 · goal round188）：维护守护区折叠全链路总控面板补折叠记忆（`#mtguardfoldctl` 面板折叠态存 `localStorage._mtGuardFoldCtl`，刷新后恢复折叠 / 展开态，折叠全链路面板折叠态跨会话留存）
+
+**完善性（折叠全链路面板折叠态跨会话留存免刷新复位）**：R210 `#mtguardfoldctlpng`/`#mtguardfoldctcopy` 全链路 PNG / 文本，但**`#mtguardfoldctld` 折
+叠全链路面板 8s 自动隐**（看全貌 8s 即消失，要长看折叠全链路得反复点 `#mtguardfoldctl` 重显，`#mtguardfoldctl` 面板折叠态存 `localStorage.
+_mtGuardFoldCtl`，刷新后恢复折叠 / 展开态，折叠全链路面板折叠态跨会话留存，与 R204/R205 折叠记忆语言同）。`#mtguardfoldctl` IIFE（R209 区）改：
+`window._mtGuardFoldCtl` 惰性初始化读 `localStorage._mtGuardFoldCtl`（`'1'` 折叠态 / `'0'` 展开态 / 无默认展开态），切后存 `localStorage._mtGuardFoldCtl`，
+`#mtguardfoldctl` 文案 + `#mtguardfoldctld` `display` 随初始折叠态（初始同步 IIFE），`mtGuardFoldCtl` 8s 自动隐改 `_mtGuardFoldCtl` 折叠记忆控制（折叠
+态不 8s 自动隐常驻省高，展开态才 8s 自动隐）——折叠全链路面板折叠态跨会话留存，与 R204/R205 折叠记忆语言同。
+
+**E2E**：`清 localStorage._mtGuardFoldCtl → 点 #mtguardfoldctl（折叠，window._mtGuardFoldCtl=true + #mtguardfoldctld 隐 + 文案「▸ 展开全链路」+
+localStorage._mtGuardFoldCtl='1'）；再点（展开，window._mtGuardFoldCtl=false + #mtguardfoldctld 显 + 文案「▤ 折叠全链路」+ localStorage.
+_mtGuardFoldCtl='0'）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r211_ctlsynmmem.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 718→720`，断点 `_红心收藏\Mr. Feel.mp3`。
+
+**坑**：① `window._mtGuardFoldCtl` 惰性初始化读 `localStorage._mtGuardFoldCtl`（`#mtguardfoldctl` IIFE 顶 + 初始同步 IIFE，`if(window._mtGuardFoldCtl===
+undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){} window._mtGuardFoldCtl=_init; }`——刷新后
+`window._mtGuardFoldCtl` 未设（`undefined`）则读 `localStorage._mtGuardFoldCtl` 恢复折叠 / 展开态，`'1'` 折叠 / `'0'` / 无展开，`try/catch` `localStorage`
+不可用（隐私模式 / 沙箱）降级 `false` 展开态，同 R204 `_mtGuardFoldAll` / R205 `_mtGuardPanelFold` `localStorage` 惰性读降级纪律）② `#mtguardfoldctl`
+点切折叠记忆（非直接 `mtGuardFoldCtl()` 显面板——R209 `#mtguardfoldctl` 原 IIFE 点直接 `mtGuardFoldCtl()` 显面板 8s 自动隐，R211 改点切折叠记忆标志：
+折叠态 `window._mtGuardFoldCtl=true`（`#mtguardfoldctld` 隐常驻省高 + 文案「▸ 展开全链路」+ `clearTimeout` 清 8s 定时）/ 展开态 `window._mtGuardFoldCtl=false`
+（`mtGuardFoldCtl()` 拼面板显 + 文案「▤ 折叠全链路」+ `mtGuardFoldCtl` 内 8s 自动隐），切后 `localStorage.setItem('_mtGuardFoldCtl', window._mtGuardFoldCtl?
+'1':'0')` 存（`localStorage` 不可用降级不记，跨会话不留存当前会话 `window` 标志仍生效），`localStorage` 键族加 `_mtGuardFoldCtl`（同 `_mtMetFold`/
+`_mtGuardPanelFold`/`_mtGuardFoldAll` 维护守护区折叠记忆）③ `mtGuardFoldCtl` 8s 自动隐跟折叠记忆态（`if(!window._mtGuardFoldCtl){ clearTimeout(window.
+_mtGuardFoldCtlT); window._mtGuardFoldCtlT=setTimeout(function(){ d.style.display='none'; }, 8000); }`——折叠态 `window._mtGuardFoldCtl===true` 不 8s
+自动隐（折叠全链路面板常驻省高，用户手动点 `#mtguardfoldctl` 折叠 / 展开控制），展开态 `false` 才 8s 自动隐（临时看全貌 8s 隐，同 R202 `mtGuardPanel` 8s
+自动隐跟折叠态纪律）④ 初始折叠态同步（`#mtguardfoldctl` IIFE 后另 IIFE：`if(window._mtGuardFoldCtl===undefined)` 惰性初始化读 `localStorage._mtGuardFoldCtl`
++ `c.textContent=window._mtGuardFoldCtl?'▸ 展开全链路':'▤ 折叠全链路'`（文案随初始折叠态）+ `if(d && window._mtGuardFoldCtl){ d.style.display='none'; }`
+（刷新恢复折叠态隐 `#mtguardfoldctld`，展开态刷新不隐 `#mtguardfoldctld`）——刷新后恢复初始折叠态（文案 + `#mtguardfoldctld` `display` 随
+`localStorage._mtGuardFoldCtl`，折叠态刷新隐折叠全链路面板省高，展开态刷新不隐）⑤ 与 R210 `#mtguardfoldctl` 折叠全链路总控**分工**（R209/R210 折叠全
+链路总控 `#mtguardfoldctl` 点显面板 + PNG / 文本出口，R211 面板折叠记忆 `localStorage._mtGuardFoldCtl` 跨会话留存——当前会话折叠 / 展开 + 跨会话记忆，
+`#mtguardfoldctl` 折叠态存 `localStorage` 刷新恢复，免刷新复位展开态重折叠）⑥ 与 R204 `#mtguardfoldall` 全浮层折叠记忆 / R205 `#mtguardpanelfold` 总览面板
+折叠记忆**语言同**（R204 `_mtGuardFoldAll` 存 `localStorage._mtGuardFoldAll` 全浮层折叠记忆，R205 `_mtGuardPanelFold` 存 `localStorage._mtGuardPanelFold`
+总览面板折叠记忆，R211 `_mtGuardFoldCtl` 存 `localStorage._mtGuardFoldCtl` 折叠全链路面板折叠记忆，各面板 / 域折叠记忆 `localStorage` 各管各）⑦ 验收
+**函数级**（清 `localStorage._mtGuardFoldCtl` + 点 `#mtguardfoldctl` 验 `window._mtGuardFoldCtl` 切 `true`（折叠）+ `#mtguardfoldctld` 隐 + 文案「▸ 展开
+全链路」+ `localStorage._mtGuardFoldCtl` 存 `'1'`，再点验 `window._mtGuardFoldCtl` 切 `false`（展开）+ `#mtguardfoldctld` 显 + 文案「▤ 折叠全链路」+
+`localStorage._mtGuardFoldCtl` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验 `localStorage` 读值非
+真刷新 headless，初始同步 IIFE 验 `#mtguardfoldctl` 文案 + `#mtguardfoldctld` `display` 随初始折叠态）。
+

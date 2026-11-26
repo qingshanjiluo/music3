@@ -4457,10 +4457,45 @@ function mtGuardFoldCtl(){
   d.innerHTML=_svg; d.style.display='block';
   const r=document.getElementById('mtguardfoldctl').getBoundingClientRect();
   d.style.position='absolute'; d.style.left=r.left+'px'; d.style.top=(r.bottom+2)+'px';
-  clearTimeout(window._mtGuardFoldCtlT);
-  window._mtGuardFoldCtlT=setTimeout(function(){ d.style.display='none'; }, 8000);
+  /* R211: 折叠态(window._mtGuardFoldCtl)不8s自动隐, 展开态才8s自动隐 — 折叠全链路面板常驻省高, 展开态临时看8s隐, 与R204/R205折叠记忆语言同 */
+  if(window._mtGuardFoldCtl===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){}
+    window._mtGuardFoldCtl=_init;
+  }
+  if(!window._mtGuardFoldCtl){ clearTimeout(window._mtGuardFoldCtlT); window._mtGuardFoldCtlT=setTimeout(function(){ d.style.display='none'; }, 8000); }
 }
-(function(){ const c=$('#mtguardfoldctl'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardFoldCtl(); }); } })();
+/* R211: #mtguardfoldctl 点切折叠记忆态(window._mtGuardFoldCtl+localStorage._mtGuardFoldCtl), 折叠态常驻省高/展开态8s自动隐, 与R204/R205折叠记忆语言同 */
+(function(){ const c=$('#mtguardfoldctl'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation();
+  if(window._mtGuardFoldCtl===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){}
+    window._mtGuardFoldCtl=_init;
+  }
+  /* 折叠态点切展开(拼面板+8s自动隐), 展开态点切折叠(隐面板常驻) */
+  if(window._mtGuardFoldCtl){ /* 当前折叠态, 切展开: 拼面板显, 不常驻(展开态8s自动隐) */
+    window._mtGuardFoldCtl=false;
+    try{ localStorage.setItem('_mtGuardFoldCtl','0'); }catch(_){}
+    c.textContent='▤ 折叠全链路';
+    if(typeof mtGuardFoldCtl==='function'){ mtGuardFoldCtl(); } /* mtGuardFoldCtl展开态8s自动隐 */
+  } else { /* 当前展开态, 切折叠: 隐面板常驻 */
+    window._mtGuardFoldCtl=true;
+    try{ localStorage.setItem('_mtGuardFoldCtl','1'); }catch(_){}
+    c.textContent='▸ 展开全链路';
+    const d=$('#mtguardfoldctld'); if(d){ d.style.display='none'; }
+    clearTimeout(window._mtGuardFoldCtlT); /* 折叠态清8s定时, 不残留自动显 */
+  }
+  if(typeof _toast==='function'){ _toast(window._mtGuardFoldCtl?'已折叠维护守护区折叠全链路':'已展开维护守护区折叠全链路', 'ok'); }
+}); } })();
+/* R211: 折叠全链路面板折叠态初始同步(读localStorage._mtGuardFoldCtl惰性初始化window._mtGuardFoldCtl+文案/面板display随初始折叠态, 刷新恢复折叠/展开态) */
+(function(){
+  if(window._mtGuardFoldCtl===undefined){
+    let _init=false; try{ _init=(localStorage.getItem('_mtGuardFoldCtl')==='1'); }catch(_){}
+    window._mtGuardFoldCtl=_init;
+  }
+  const c=$('#mtguardfoldctl');
+  if(c){ c.textContent=window._mtGuardFoldCtl?'▸ 展开全链路':'▤ 折叠全链路'; }
+  const d=$('#mtguardfoldctld');
+  if(d && window._mtGuardFoldCtl){ d.style.display='none'; } /* 刷新恢复折叠态隐面板 */
+})();
 /* 折叠全链路PNG导出(R210): #mtguardfoldctlpng 点 -> 读 #mtguardfoldctld 内联SVG(若无则先 mtGuardFoldCtl 生成), canvas 转 PNG 下载「music3_维护守护折叠全链路_<ts>.png」, 折叠域全链路PNG存档/可分享, 与R158/R198/R200/R208PNG导出同语言 */
 function mtGuardFoldCtlPng(){
   const d=$('#mtguardfoldctld'); if(!d) return;
