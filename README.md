@@ -4063,3 +4063,28 @@ undefined NONE、CSS 320/320、node 0、console 0、截图 r151_base.png。
 X」（折线 + 基线标签同显）④ 基线 `<ts>` 用 `base` 的 `toISOString` `MM-dd HH:mm`（11 位，跨天看月日）⑤ 距基线 `d` 实时算（每次
 `mtRunHistDraw` 读 `Date.now()-base`），`mtStat`/自动刷重画时刷新（基线标签态随重画更新距基线时长，看维护随时间推移）。
 
+---
+
+## 第166轮（前端 R152 · goal round129）：`#mtrun` 跑维护前基线快照（记 `cum_trend` 末值 + `runs` 到 `_mtRunBefore`，跑完对比算本次增量）
+
+**连贯性（本次跑补了多少/扫了多少）**：R143 复盘 toast **跑完事后**拉 `cum_trend` 相邻差（本轮补入 delta），但**跑前**
+累计值没快照，跑完「本次到底从多少补到多少 / 扫了多少轮」要自己记。`mtRun` 开头（跑前）拉 `maintain status`（`cum_trend`
+末值 `lyr/cov` + `runs`）记 `localStorage._mtRunBefore`；跑完复盘区对比 `_mtBefore`（跑前）vs `st2`（跑后 `cum_trend` 末值 +
+`runs`），toast「本次跑: 补 +X 歌词 / +Y 封面（跑前 A/B）· runs A→B（N 轮）」——本次跑从跑前累计补到跑后、扫了 N 轮，
+与 R143 复盘（事后拉相邻差）**互补**（R143 本轮 tick 相邻差、R152 跑前快照 vs 跑后全量增量，看整个连跑补了多少）。
+
+**E2E**（函数级验对比拼接，不真跑 tick）：`snap='本次跑: 补 +8 歌词 / +5 封面（跑前 100/50）· runs 10→12（2 轮）'`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r152_snap.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 600→602`，断点 `_归档_封存\SD卡版\五月天\小护士.mp3`。
+
+**坑**：① `mtRun` 开头（`t0` 后，跑任何 tick 前）`fetch('/api/maintain')` 拉 status，`_mtBefore={lyr:cum_trend 末 lyr, cov:末 cov, runs}`，
+记 `localStorage._mtRunBefore`（`JSON.stringify`，失败 catch 不阻跑）——**跑前快照**（在 `for` 循环任何 tick 前，保证基线是
+跑前累计，不被本次跑推高）② 跑完复盘区（`st2` 拉回后，R143 复盘 toast 后）对比：`_curL/_curC = st2.cum_trend 末值`，`_dL=_curL-
+_mtBefore.lyr`、`_dC=_curC-_mtBefore.cov`（本次补入增量，**全量**跑前到跑后，非单 tick），`_dR=st2.runs-_mtBefore.runs`（本次扫的
+轮数），toast「本次跑: 补 +X 歌词 / +Y 封面（跑前 A/B）· runs A→B（N 轮）」③ 与 R143 复盘（`cum_trend` **相邻 2 条**差 = 单轮
+tick 补入）**互补**：R152 跑前快照 → 跑后全量差（整个连跑 N 轮累计补入 + 扫轮数），R143 末 2 条差（本轮 tick）——两视角
+（本次连跑全量 / 单轮 tick）④ `_mtBefore` 拉 status 失败（网络断）`null`，复盘区 `if(_mtBefore && st2)` 空判跳过（不报错，
+R143 复盘照发）⑤ 验收**函数级**（mock `_mtBefore`+`st2` 直接算拼接，不真跑 `mtRun` 免 tick 污染 `runs` + 全库补完态
+`cum_trend` 常数 delta=0 看不出增量）。
+

@@ -2933,6 +2933,9 @@ async function mtRun(){
   const b = +$('#mtbatch').value || 20;
   const sub = curSub || '';
   const t0 = Date.now();
+  /* 跑前基线快照: 拉 maintain status (cum_trend 末值 + runs) 记 _mtRunBefore, 跑完对比算本次增量(补多少/扫多少); 与 R143 复盘 toast 互补(R143 跑完事后拉, R152 跑前快照跑后对比) */
+  let _mtBefore=null;
+  try{ const _bf=await (await fetch('/api/maintain')).json(); const _ct=(typeof _bf.cum_trend!=='undefined'&&_bf.cum_trend)||[]; _mtBefore={lyr:_ct.length?(_ct[_ct.length-1].lyric||0):0, cov:_ct.length?(_ct[_ct.length-1].cover||0):0, runs:_bf.runs||0}; try{ localStorage.setItem('_mtRunBefore', JSON.stringify(_mtBefore)); }catch(e){} }catch(e){}
   const FULL = $('#mtfull').checked;   /* 跑到全库: 循环到 done(忽略 N) */
   const N = FULL ? 999999 : Math.max(1, Math.min(50, +$('#mtruns').value || 1));
   /* 跑中 spinner: 按钮文字加转圈, 反馈不空等 */
@@ -3018,6 +3021,16 @@ async function mtRun(){
           _etaTxt=` · 实测 ${_actualS}s${ticks<N?`（估剩 ${_est}s）`:''}`;
         }
         if(_delta || _etaTxt){ _toast('复盘: '+(_delta||'')+_etaTxt, 'ok'); }
+        /* 跑前基线对比(R152): _mtBefore(跑前记的 cum_trend 末值+runs) vs st2(跑后) -> 本次跑补多少/扫多少, 与 R143 复盘(事后拉)互补 */
+        if(_mtBefore && st2){
+          const _ct2=st2.cum_trend||[];
+          const _curL=_ct2.length?(_ct2[_ct2.length-1].lyric||0):0;
+          const _curC=_ct2.length?(_ct2[_ct2.length-1].cover||0):0;
+          const _dL=_curL-(_mtBefore.lyr||0), _dC=_curC-(_mtBefore.cov||0);
+          const _dR=(st2.runs||0)-(_mtBefore.runs||0);
+          const _snap='本次跑: 补 +' + _dL + ' 歌词 / +' + _dC + ' 封面（跑前 ' + (_mtBefore.lyr||0) + '/' + (_mtBefore.cov||0) + '）· runs ' + (_mtBefore.runs||0) + '→' + (st2.runs||0) + (_dR>0?'（'+_dR+' 轮）':'');
+          _toast(_snap, 'ok');
+        }
       }
     }catch(e){}
     await mtStat();
