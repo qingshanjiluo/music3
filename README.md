@@ -5746,3 +5746,36 @@ _mtGuardPanelFold` 折叠态刷新 `mtGuardPanel` 不触发 8s 定时——`wind
 + `localStorage._mtGuardPanelFold` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验
 `localStorage` 读值非真刷新 headless，初始同步 IIFE 验 `#mtguardpanelfold` 文案 + `#mtguardpaneld` `display` 随初始折叠态）。
 
+---
+
+## 第220轮（前端 R206 · goal round183）：维护守护区全浮层 + 总览面板折叠一键联动（`#mtguardfoldall` 全浮层折叠态联动 `#mtguardpanelfold` 总览面板折叠——全浮层折叠时总览面板也折叠（`_mtGuardPanelFold` 强制 `true` + `#mtguardpanelfold` 文案切 + `localStorage` 存），全浮层展开时总览面板恢复自身 `localStorage` 折叠态，两折叠域联动一致省高）
+
+**简洁性（全浮层折叠联动总览面板折叠免文案 / 标志不同步）**：R204 `#mtguardfoldall` 全浮层折叠（`_mtGuardFoldAll`）+ R205 `#mtguardpanelfold` 总览面板折叠
+（`_mtGuardPanelFold`），但**两折叠域各管各**（全浮层折叠含 `#mtguardpaneld` 总览面板但 `#mtguardpanelfold` 标志 / 文案不同步——`#mtguardfoldall` 全浮层折叠后
+`#mtguardpanelfold` 文案仍「▾ 折叠总览」未跟总览面板隐，两域标志不一致，全浮层折叠省高但总览面板文案 / 标志不同步误导，`#mtguardfoldall` 全浮层折叠联动总览面板
+折叠：`_mtGuardFoldAll` 折叠态强制 `_mtGuardPanelFold=true` + `#mtguardpanelfold` 文案切「▸ 展开总览」+ `localStorage._mtGuardPanelFold` 存 `'1'`，全浮层展开态恢复
+`_mtGuardPanelFold` 自身 `localStorage` 值（`'1'` 折叠 / `'0'` 展开），两折叠域联动一致省高，文案 / 标志全同步）。`#mtguardfoldall` IIFE（R204 区）折叠态切处加总览
+面板折叠联动。
+
+**E2E**：`#mtguardpanelfold 展开态（localStorage._mtGuardPanelFold='0'）→ 点 #mtguardfoldall 全浮层折叠 → window._mtGuardPanelFold=true（联动）+ #mtguardpanelfold
+文案「▸ 展开总览」+ localStorage._mtGuardPanelFold='1'；再点 #mtguardfoldall 全浮层展开 → window._mtGuardPanelFold 恢复自身 localStorage 值`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r206_foldsync.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 708→710`，断点 `_整理后分类\洛天依\少年.mp3`。
+
+**坑**：① `#mtguardfoldall` IIFE（R204 区）折叠态切处加总览面板折叠联动（`window._mtGuardFoldAll` 切 `true`（全浮层折叠）后：`if(window._mtGuardPanelFold===undefined)`
+惰性读 `localStorage._mtGuardPanelFold` 初始化 + `window._mtGuardPanelFold=true`（全浮层折叠态强制总览面板折叠）+ `localStorage.setItem('_mtGuardPanelFold','1')`（联动
+存 `localStorage`，刷新后总览面板也折叠态，与全浮层折叠态一致）+ `#mtguardpanelfold` 文案切「▸ 展开总览」（文案跟总览面板折叠态，两域标志 / 文案全同步）——全浮层折叠
+时总览面板也折叠（`#mtguardpaneld` 总览面板 `display:none`（全浮层 `_allFolds` 含）+ `_mtGuardPanelFold=true`（标志）+ `#mtguardpanelfold` 文案（文案）+ `localStorage`（跨
+会话），四路全同步，省高全折叠）② 展开态恢复总览面板自身 `localStorage` 折叠态（`window._mtGuardFoldAll` 切 `false`（全浮层展开）后：`_pfState=(localStorage.
+getItem('_mtGuardPanelFold')==='1')` 读自身 `localStorage` 值，`window._mtGuardPanelFold=_pfState` 恢复（全浮层展开不强制展开总览面板，跟总览面板自身 `localStorage`
+折叠态——全浮层展开但总览面板自身折叠态则总览面板仍折叠，全浮层展开 + 总览面板自身展开态则总览面板展开，总览面板折叠态归 `#mtguardpanelfold` 自己管，全浮层展开不
+越权强制展开）+ `#mtguardpanelfold` 文案随 `_pfState`（`'1'` 折叠「▸ 展开总览」/ `'0'` 展开「▾ 折叠总览」）+ `#mtguardpaneld` `display` 随 `_pfState`（`'1'` 折叠
+`none` / `'0'` 展开 `block`））③ 与 R204 `#mtguardfoldall` 全浮层折叠**分工**（R204 全浮层折叠 `_mtGuardFoldAll` 隐五浮层省高，R206 全浮层折叠联动总览面板折叠
+`_mtGuardPanelFold` 同步标志 / 文案 / `localStorage`，全浮层折叠省高 + 总览面板标志 / 文案 / 记忆全同步，免全浮层折叠后 `#mtguardpanelfold` 文案 / 标志不同步误导）④
+与 R205 `#mtguardpanelfold` 总览面板折叠记忆**分工**（R205 总览面板折叠记忆 `localStorage._mtGuardPanelFold` 跨会话留存，R206 全浮层折叠联动总览面板折叠
+（全浮层折叠态强制 `localStorage._mtGuardPanelFold='1'`，全浮层展开态恢复自身 `localStorage` 值），全浮层折叠 + 总览面板记忆联动，两折叠域一致省高）⑤ 验收**函数级**（清
+`localStorage._mtGuardPanelFold`/`_mtGuardFoldAll` + 点 `#mtguardfoldall` 全浮层折叠验 `window._mtGuardPanelFold` 切 `true`（联动）+ `#mtguardpanelfold` 文案「▸ 展开总览」
++ `localStorage._mtGuardPanelFold` 存 `'1'`，再点全浮层展开验 `window._mtGuardPanelFold` 恢复自身 `localStorage` 值（`'1'` 折叠），不真跑 `mtRun` 免 tick 污染 `runs`；
+折叠联动验 `window._mtGuardPanelFold` / `#mtguardpanelfold` 文案 / `localStorage._mtGuardPanelFold` 三路全同步，展开态验 `window._mtGuardPanelFold` 恢复自身值）。
+

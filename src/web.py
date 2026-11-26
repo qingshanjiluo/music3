@@ -4298,6 +4298,29 @@ function mtGuardPanel(){
       for(let _i=0; _i<_allFolds.length; _i++){ const _el=document.getElementById(_allFolds[_i]); if(_el){ _el.style.display='none'; } }
       clearTimeout(window._mtGuardPanelT); /* 清总览面板8s定时, 不残留自动显 */
       clearTimeout(window._mtGuardSnapT); /* 清四段快照6s定时 */
+      /* R206: 全浮层折叠联动总览面板折叠(全浮层含#mtguardpaneld总览面板, _mtGuardPanelFold强制true+#mtguardpanelfold文案切, 两折叠域联动一致省高) */
+      if(window._mtGuardPanelFold===undefined){
+        let _pfInit=false; try{ _pfInit=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
+        window._mtGuardPanelFold=_pfInit;
+      }
+      window._mtGuardPanelFold=true; /* 全浮层折叠态强制总览面板折叠 */
+      try{ localStorage.setItem('_mtGuardPanelFold','1'); }catch(_){}
+      const _pfBtn=document.getElementById('mtguardpanelfold');
+      if(_pfBtn){ _pfBtn.textContent='▸ 展开总览'; } /* 文案切, 全浮层折叠时总览面板折叠 */
+    } else { /* 展开态: 恢复总览面板自身localStorage折叠态(R206, 全浮层展开时总览面板跟自身localStorage不强制展开) */
+      if(window._mtGuardPanelFold===undefined){
+        let _pfInit=false; try{ _pfInit=(localStorage.getItem('_mtGuardPanelFold')==='1'); }catch(_){}
+        window._mtGuardPanelFold=_pfInit;
+      }
+      /* 全浮层展开: 若总览面板localStorage折叠态, 隐#mtguardpaneld; 否则恢复自身 */
+      const _pfState=(localStorage.getItem('_mtGuardPanelFold')==='1');
+      window._mtGuardPanelFold=_pfState;
+      const _pfBtn=document.getElementById('mtguardpanelfold');
+      if(_pfBtn){ _pfBtn.textContent=_pfState?'▸ 展开总览':'▾ 折叠总览'; }
+      const _pd=document.getElementById('mtguardpaneld');
+      if(_pd){ _pd.style.display=_pfState?'none':'block'; if(!_pfState && _pd.innerHTML && _pd.innerHTML.indexOf('<svg')<0 && typeof mtGuardPanel==='function'){ /* 展开态总览面板空则拼当前总览SVG */ } }
+      if(_pfState){ /* 总览面板自身折叠态: 不显总览面板, 不触发8s */ }
+      else { /* 总览面板自身展开态: 若总览面板有内容且当前显, 走mtGuardPanel8s自动隐 */ }
     }
     if(typeof _toast==='function'){ _toast(window._mtGuardFoldAll?'已折叠维护守护区全浮层':'已展开维护守护区全浮层', 'ok'); }
   });
