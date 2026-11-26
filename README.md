@@ -3822,3 +3822,25 @@ tick 每轮 miss 多补不到、某源响应慢），验收改**函数级**验 `
 + 污染游标）⑤ 非全库 ETA 显**秒**（`剩 X 轮 ≈ 约 Ys`），全库显**分钟**（`预计约 N 分钟`）——量级匹配（非全库几轮 <  1 分钟，
 全库几百轮 = 分钟级）。
 
+---
+
+## 第156轮（前端 R142 · goal round119）：跑维护完成度 donut 迷你（`#mtrundonut` 小环随 `i/N` 增长，与 R121 donut 同视觉语言）
+
+**简洁性（环 vs 条）**：R139 本轮进度条是**条**（`#mtrunprog` 120px 宽条），与「看状态」区 R121 **完成度 donut 环**
+（`#mtdonut`，全库扫完度）视觉语言割裂。`#mtrunprog` 条旁挂**迷你 donut 环** `#mtrundonut`（30px SVG，`i/N` 完成度，
+`stroke-dashoffset` 按 pct + 中心 `pct%` 文字）——跑中顶栏既有条（细粒度 `i/N 轮`）又有环（完成度直觉，与 `#mtdonut`
+同 `stroke-dasharray` 算法），跑多轮扫一眼环涨到哪，与进度条互补（条看精确轮数，环看完成度）。
+
+**E2E**（函数级验 `_mtProg` 驱动 donut，不真跑 tick）：`seq[i=1..4]: vis=True + 文案 25%/50%/75%/100% + dashoffset
+65.97→43.98→21.99→0.00（随 i/N 递减）+ 跑完 hidden=True`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r142_donut.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 576→578`，断点 `_归档_封存\SD卡版\摇滚民谣\宋冬野\大雁.mp3`。
+
+**坑**：① donut 挂 `#mtrunprog` 进度条后（顶栏 `#mtrun` 旁，30px SVG），`_mtProg` 同步驱动（进度条宽 + donut `dashoffset`
+都按 `pct=i/total`，`r=14` 周长 `2πr≈87.96`，`dashoffset=87.96*(1-pct/100)`，完成时 `0`）② 中心文字 `pct%`（`#mtrundonuttx`，
+`rotate(90)` 抵消环 `rotate(-90)`，与 `#mtdonut` 同法）③ donut 与进度条**同 `#mtrunprog` 显隐**（`_mtProg` `hide` 时
+`#mtrundonut` 也隐 + `dashoffset` 回满 `87.96`），跑中（`N>1`）才显，单轮/全库/跑完全隐 ④ 环 `--acc` 色（与进度条同 accent，
+顶栏执行反馈统一色），完成度直觉环（全库 `#mtdonut` 完成才绿，跑中是 accent）⑤ 验收用 `_mtProg` 直接驱动（不真跑
+`mtRun` 免 tick 卡 + 污染游标），验 `i=1..4` 的 `dashoffset`/中心文字递增 + 跑完 `hidden`。
+

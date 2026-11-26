@@ -1046,6 +1046,7 @@ body._nosplabel .mtspark-lastval{display:none}
   <div class="bar">
     <button id="mtrun">跑一轮</button>
     <div id="mtrunprog" style="display:none;width:120px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-left:8px;vertical-align:middle" title="本轮进度 (i/N)"><div id="mtrunprogin" style="width:0;height:6px;background:var(--acc);border-radius:3px;transition:width .3s"></div></div>
+    <svg id="mtrundonut" viewBox="0 0 36 36" width="30" height="30" style="display:none;vertical-align:middle;margin-left:4px" title="本轮完成度环 (i/N)"><circle cx="18" cy="18" r="14" fill="none" stroke="var(--bg2)" stroke-width="4"/><circle id="mtrundonutc" cx="18" cy="18" r="14" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round" stroke-dasharray="87.96" stroke-dashoffset="87.96" transform="rotate(-90 18 18)" style="transition:stroke-dashoffset .3s"/><text id="mtrundonuttx" x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="var(--acc)" transform="rotate(90 18 18)">0%</text></svg>
     <span id="mtrunprogtx" style="display:none;font-size:11px;color:var(--acc);font-weight:600;margin-left:6px"></span>
     <button class="ghost" id="mtstat">看状态<span id="mtdotStat" class="mtrun-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--dim)" title="自动刷 5s 运行指示"></span></button>
     <button class="ghost sm" id="mtrefresh" title="只重拉 8 卡数据(不重铺日志区)">刷新</button>
@@ -2906,11 +2907,16 @@ function _toast(msg, kind){
 /* 本轮进度条: 跑多轮(N>1)时 #mtrunprog 显 i/N, 每轮 update; 跑完/单轮/全库隐; 扫一眼跑到第几轮/还剩多少 */
 function _mtProg(i, total, hide){
   const bar=$('#mtrunprog'), fill=$('#mtrunprogin'), tx=$('#mtrunprogtx');
-  if(hide || (total && total<=1)){ if(bar) bar.style.display='none'; if(tx) tx.style.display='none'; if(fill) fill.style.width='0'; return; }
+  const don=$('#mtrundonut'), donc=$('#mtrundonutc'), dontx=$('#mtrundonuttx');
+  if(hide || (total && total<=1)){ if(bar) bar.style.display='none'; if(tx) tx.style.display='none'; if(fill) fill.style.width='0'; if(don) don.style.display='none'; if(donc) donc.setAttribute('stroke-dashoffset','87.96'); return; }
   if(bar) bar.style.display=''; if(tx) tx.style.display='';
   const pct=Math.min(100, Math.round(i*100/Math.max(1,total)));
   if(fill) fill.style.width=pct+'%';
   if(tx) tx.textContent=i+'/'+total+' 轮';
+  /* donut 环: i/N 完成度(与进度条同 pct), r=14 周长 2πr≈87.96, dashoffset 按 (100-pct)% */
+  if(don) don.style.display='';
+  if(donc) donc.setAttribute('stroke-dashoffset', (87.96*(1-pct/100)).toFixed(2));
+  if(dontx) dontx.textContent=pct+'%';
 }
 /* 取消本轮跑标志: 跑多轮中点「取消」(按钮变红) 置 true, 循环下一轮 break(已跑的轮不回滚, 断点已写); 跑完/取消后按钮回「跑一轮」 */
 let _mtAborted=false;
