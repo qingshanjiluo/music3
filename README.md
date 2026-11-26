@@ -4039,3 +4039,27 @@ node 0、console 0、截图 r150_reset.png。
 （清 = 只清 / 导入 = 回读还原 / 重置 = 清 + 记 0 点基线），`#mthistspark` 内一排 5 小钮（清历史 / 导出 / 快照 / 导入 / 重置），
 `align-items:center` 一行排开，不占额外高度。
 
+---
+
+## 第165轮（前端 R151 · goal round128）：`#mthistlabel` 附距基线时长（读 `_mtRunHistBase` 实时算「基线 <ts> · 距基线 Xh Ym」）
+
+**连贯性（重定 0 点后随时看距基线多久）**：R150 `#mthistreset` 重置基线（清 `_mtRunHist` + 记 `_mtRunHistBase` 0s 起算
+点），但**重置后想看「距基线多久补 X」**——`#mthistlabel`（R144 近 N 次 · 均值 Xs）没附基线。`mtRunHistDraw` 读
+`_mtRunHistBase`：有基线时 `#mthistlabel` 附「· 基线 <ts> · 距基线 Xh Ym」（`_mtRunHist` 空 / 重置后也显**基线标签态**
+（无折线只有标签「基线 <ts> · 距基线 X（还没跑维护，下次跑维护从 0s 起算）」），看趋势重定 0 点后随时知道「距基线多久」，
+与 R150 记基线闭环。
+
+**E2E**：`态① 空历史+基线 → #mthistlabel「基线 11-26 00:24 · 距基线 0s（还没跑维护，下次跑维护从 0s 起算）」+ #mthistspark
+显 flex（基线标签态）+ 态② 有历史+基线 →「近 2 次 · 均值 1s · 基线 11-26 00:24 · 距基线 0s」`（绿）；端点 **30/0**、JS
+undefined NONE、CSS 320/320、node 0、console 0、截图 r151_base.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 598→600`，断点 `_归档_封存\SD卡版\万能青年旅店\排行.mp3`。
+
+**坑**：① `mtRunHistDraw` 读 `_mtRunHistBase`（R150 重置记的时间戳），有基线时 `#mthistlabel` 附「· 基线 <ts> · 距基线 X」
+（`d=Date.now()-base`，`hh/mm/ss` 分级：>1h 显 `Xh Ym`，>1m 显 `Ym Zs`，否则 `Zs`；`<ts>` = `base` 的 `MM-dd HH:mm`）
+② `_mtRunHist` 空**但有基线**（R150 重置后）时 `mtRunHistDraw` **不早 return**（`_hasBase` 判，空历史无基线才隐）——`#mthistspark`
+显**基线标签态**（`#mthistsvg` 空 `innerHTML=''`，`#mthistlabel` 显「基线 <ts> · 距基线 X（还没跑维护，下次跑维护从 0s 起算）」），
+重置后能看到「距基线多久」而非折线区全隐 ③ `_mtRunHist` 有值 + 基线：`#mthistlabel` = `近 N 次 · 均值 Xs` + 附「· 基线 <ts> · 距基线
+X」（折线 + 基线标签同显）④ 基线 `<ts>` 用 `base` 的 `toISOString` `MM-dd HH:mm`（11 位，跨天看月日）⑤ 距基线 `d` 实时算（每次
+`mtRunHistDraw` 读 `Date.now()-base`），`mtStat`/自动刷重画时刷新（基线标签态随重画更新距基线时长，看维护随时间推移）。
+

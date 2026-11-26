@@ -3527,8 +3527,19 @@ function mtRunHistDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
   const wrap=$('#mthistspark'), svg=$('#mthistsvg'), lbl=$('#mthistlabel');
   if(!wrap) return;
-  if(!h.length){ wrap.style.display='none'; return; }
+  /* _mtRunHist 空但有基线(R150 重置记的 _mtRunHistBase): 不 return, 显基线标签态(无折线, 看距基线多久); 无历史无基线才隐 */
+  const _hasBase=!!(function(){ try{ return localStorage.getItem('_mtRunHistBase'); }catch(_){ return null; } })();
+  if(!h.length && !_hasBase){ wrap.style.display='none'; return; }
   wrap.style.display='flex';
+  if(!h.length){ /* 基线标签态: 无折线, 标签显「基线 <ts> · 距基线 X」 */
+    const lbl0=$('#mthistlabel'); const svg0=$('#mthistsvg'); if(svg0){ svg0.innerHTML=''; }
+    const base=localStorage.getItem('_mtRunHistBase');
+    const d=Math.max(0,Date.now()-(+base)); const hh=Math.floor(d/3600000), mm=Math.floor(d/60000)%60, ss=Math.floor(d/1000)%60;
+    const dt=hh>0?(hh+'h '+mm+'m'):(mm>0?(mm+'m '+ss+'s'):(ss+'s'));
+    const bts=new Date(+base).toISOString().replace('T',' ').slice(5,16);
+    if(lbl0){ lbl0.textContent='基线 '+bts+' · 距基线 '+dt+'（还没跑维护，下次跑维护从 0s 起算）'; }
+    return;
+  }
   const w=110, hgt=22, pad=2;
   const mx=Math.max.apply(null,h), mn=Math.min.apply(null,h), rng=Math.max(1e-3, mx-mn);
   const pts=h.map((v,i)=>{ const x=h.length>1? i/(h.length-1)*w : w/2; const y=pad+(1-(v-mn)/rng)*(hgt-2*pad); return x.toFixed(1)+','+y.toFixed(1); }).join(' ');
@@ -3536,6 +3547,8 @@ function mtRunHistDraw(){
   const avg=Math.round((h.reduce((a,c)=>a+c,0)/h.length)*10)/10;
   lbl.textContent='近 '+h.length+' 次跑维护耗时 · 均值 '+avg+'s';
   svg.innerHTML='<div class="mthistbox" data-hh="'+encodeURIComponent(JSON.stringify(h))+'" style="position:relative;width:110px;height:22px"><svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><defs><linearGradient id="mthistg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity="0"></stop><stop offset="1" stop-color="var(--acc)" stop-opacity="0.18"></stop></linearGradient></defs><polygon points="'+area+'" fill="url(#mthistg)"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linecap="round"/></svg><span id="mthisthover" style="position:absolute;left:-99px;top:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--acc);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span id="mthisthovlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:var(--acc);white-space:nowrap;display:none;pointer-events:none"></span></div>';
+  /* 基线附注: R150 重置记的 _mtRunHistBase, 有基线时 #mthistlabel 附「基线 <ts> · 距基线 X」(看趋势重定0点后随时知道距基线多久补X) */
+  try{ const base=localStorage.getItem('_mtRunHistBase'); if(base){ const d=Math.max(0,Date.now()-(+base)); const hh=Math.floor(d/3600000), mm=Math.floor(d/60000)%60, ss=Math.floor(d/1000)%60; const dt=hh>0?(hh+'h '+mm+'m'):(mm>0?(mm+'m '+ss+'s'):(ss+'s')); const bts=new Date(+base).toISOString().replace('T',' ').slice(5,16); lbl.textContent+= ' · 基线 '+bts+' · 距基线 '+dt; } }catch(e){}
 }
 /* 跑维护历史折线 hover 数值跟随: document 捕获 mousemove/mouseout, 命中 #mthistbox 按 x 定位最近点, 显该次耗时(与 R134 维护卡 sparkline hover 同「hover 看值」直觉, 顶栏小折线也能扫单次耗时) */
 document.addEventListener('mousemove', function(e){
