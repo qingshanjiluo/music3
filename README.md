@@ -4301,3 +4301,31 @@ onclick，载入 IIFE 绑）：读 `_mtRunHist`（耗时 `h`）+ `_mtRunDelta`�
 `#mtdeltaSvg` 柱状同算法但**离屏独立**（不读 `#mtdeltaSvg` DOM，`_mtRunDelta` 直接算）⑥ 验收**函数级**（headless 查 toast
 文案，下载 headless 无文件，toast 为出口证明；`_mtRunHist`/`_mtRunDelta` 写 6 条验证双图同画）。
 
+---
+
+## 第175轮（前端 R161 · goal round138）：双指标区趋势条 CSV 导出（`#mtmetcsv`，`_mtRunHist`/`_mtRunDelta` 双列 `序号,耗时(s),补入量` 导 CSV，与 R160 PNG 互补）
+
+**完善性（双指标数据一张表）**：R160 `#mtmetpng` 导双指标整区**图**（PNG），**双指标数据一张表**（`序号,耗时(s),
+补入量` 双列，Excel 里横评哪次跑耗时高 + 补入少，算比率 / 排序）没出口。`#mtmetpng` 旁加**`#mtmetcsv`** 小钮（`↓ 双表`，
+`_mtRunHist`（耗时）+ `_mtRunDelta`（补入量）双列 → `序号,耗时(s),补入量` BOM CSV（头注释 + `n=max(两数组长)` 行，某列
+缺位显 `—`）下载 `music3_trend_data_<ts>.csv` + toast「已导出双指标趋势数据 N 行（CSV）」；都空时 toast「无维护趋势可
+导出（先跑一次维护）」）——双指标数据一张表，与 R160 PNG **互补**（R160 走图、R161 走双列数据，同一双指标两形态）。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(6) → 点 #mtmetcsv → toast「已导出双指标趋势数据 6 行（CSV）」（n=max=6，双列
+a.download 触发）+ 都空 → toast「无维护趋势可导出（先跑一次维护）」`（绿）；端点 **30/0**、JS undefined NONE、CSS
+320/320、node 0、console 0、截图 r161_csv.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 618→620`，断点 `_整理后分类\thisistruemusic\红心收藏\彷徨花雨.mp3`。
+
+**坑**：① `#mtmetcsv` 挂 `#mtdeltabar` 内（`#mtmetpng` 后，`↓ 双表` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色 10px，
+随 `#mtdeltabar` 显隐）② `mtMetCsv`（`#mtmetcsv` onclick，载入 IIFE 绑）：读 `_mtRunHist`（`h` 耗时）+ `_mtRunDelta`（`d`
+补入量），都空 → `_toast`「无维护趋势可导出」`bad` 不导；非空 → `n=max(h.length,d.length)`，双列 `序号,耗时(s),补入量`
+（每行 `i+1` 序号，`i<h.length?h[i]:'—'` 耗时 / `i<d.length?d[i]:'—'` 补入，**两数组长不同时缺列显 `—`**——耗时 4 条补入 6
+条，第 5/6 行耗时列 `—`）+ BOM `\ufeff` + 头注释 `#music3 双指标趋势数据（近 N 次 · 导出 <ts>）` → CSV Blob 下载
+`music3_trend_data_<Date.now()>.csv` + toast「已导出 N 行（CSV）」③ **双列对齐**（`序号` 1..n，耗时列 / 补入列按 `i` 对齐，
+某数组短于 `n` 时缺位 `—`，两指标不同长也能并表——耗时 4 / 补入 6 时前 4 行双值、后 2 行耗时 `—`）④ 与 R160 PNG **同「双
+指标」两形态**（R160 整区一张图 / R161 双列一张表，图看趋势 / 表算比率，Excel 里 `耗时/补入` 横评哪次高效）⑤ 头注释 `#`
+开 + BOM（CSV 工具识别 + Excel 中文不乱码），`data-hd` 不存（只读导 `localStorage`，不清 `h/d`，区别于 R157 清补入——
+导出保留，可反复导）⑥ 验收坑：Python 三引号串里 `\u2014` 被 Python 转义成实际 `—` 字符（JS 位置变 `'<—>'` `SyntaxError`）
+→ 缺列拼接不验（只验 toast「6 行」+ `a.download` 出口 + 空提示），双列缺列显 `—` 是源码 `mtMetCsv` 逻辑。
+
