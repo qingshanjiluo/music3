@@ -4564,6 +4564,11 @@ function mtGuardFoldReset(){
   for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_resetBtns[_i]); if(_b && _expandTxt[_resetBtns[_i]]){ _b.textContent=_expandTxt[_resetBtns[_i]]; } }
   const _pfD=document.getElementById('mtguardpaneld'); if(_pfD){ _pfD.style.display='none'; }
   const _ctlD=document.getElementById('mtguardfoldctld'); if(_ctlD){ _ctlD.style.display='none'; }
+  /* R213: 全折叠记忆重置联动全浮层display复位(三域折叠态总览#mtguardfoldstatd+状态详情#mtstatebardtl+逐轮明细#mtmetsumdetail+三键提示#mtkeyhintdetail全浮层display复位默认态, 全折叠记忆一键复位后全浮层全复位) */
+  const _fsD=document.getElementById('mtguardfoldstatd'); if(_fsD){ _fsD.style.display='none'; }
+  const _sbD=document.getElementById('mtstatebardtl'); if(_sbD){ _sbD.style.display='none'; }
+  const _msD=document.getElementById('mtmetsumdetail'); if(_msD){ _msD.style.display='none'; }
+  const _khD=document.getElementById('mtkeyhintdetail'); if(_khD){ _khD.style.display='none'; }
   clearTimeout(window._mtGuardPanelT); clearTimeout(window._mtGuardFoldCtlT);
   if(typeof _toast==='function'){ _toast('已重置维护守护区全折叠记忆', 'ok'); }
 }
