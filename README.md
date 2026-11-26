@@ -5817,3 +5817,44 @@ R207 三域折叠态总览看全貌（双图区 / 总览面板 / 全浮层三域
 验 `#mtguardfoldstatd` 显 + `innerHTML` 含 `<svg` + 三域名（「双图区」/「总览面板」/「全浮层」）+ 标题（「维护守护区三域折叠态总览」）+ `localStorage` 标位，不真跑
 `mtRun` 免 tick 污染 `runs`；`mtGuardFoldStat` 内联 SVG 三域 headless 验 `innerHTML` 含 `<svg` + 三域名 + 色带 + `localStorage` 标位，非真渲染 SVG 像素）。
 
+---
+
+## 第222轮（前端 R208 · goal round185）：维护守护区三域折叠态总览补 PNG 导出 + 复制出口（`#mtguardfoldstatpng` / `#mtguardfoldstatcopy` 小钮，点 `#mtguardfoldstat` 三域折叠态总览后 `#mtguardfoldstatpng` 把三域折叠态 SVG `canvas` 转 PNG 下载「music3_维护守护三域折叠态_<ts>.png」，`#mtguardfoldstatcopy` 复制三域折叠态文本（三域折叠 / 展开 + `localStorage` 记忆值）到剪贴板，三域折叠态 PNG 存档 / 文本贴工单）
+
+**完善性（三域折叠态全貌 PNG 存档 + 文本贴工单免手截 / 手抄）**：R207 `#mtguardfoldstat` 三域折叠态总览内联 SVG 只看，**没 PNG 导出 / 文本复制**（三域
+折叠态全貌要存档 / 分享得手动截屏 / 抄，`#mtguardfoldstatpng` 转 PNG 下载 + `#mtguardfoldstatcopy` 文本复制，三域折叠态 PNG 存档 + 文本贴工单双出口，
+与 R158/R198/R200 PNG 导出 + R196/R201 复制出口语言同）。`#mtguardfoldstat` 旁加**`#mtguardfoldstatpng`**（`⬇ 折叠态PNG`，`#mtguardfoldstat` 后）+
+**`#mtguardfoldstatcopy`**（`⧉ 折叠态复制`，`#mtguardfoldstatpng` 后），点 `#mtguardfoldstatpng` → **`mtGuardFoldStatPng`**（读 `#mtguardfoldstatd` 内联
+SVG（无则先 `mtGuardFoldStat()` 生成），`canvas` 转 PNG 下载「music3_维护守护三域折叠态_<ts>.png」，`toBlob` 不可用降级复制 SVG 源码 + toast），点
+`#mtguardfoldstatcopy` → **`mtGuardFoldStatCopy`**（读三域 `localStorage` 折叠记忆（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`）拼三域折叠态文本
+（`[双图区]`/`[总览面板]`/`[全浮层]` 各「折叠 / 展开」+ `localStorage` 记忆值）到剪贴板，`navigator.clipboard.writeText` 降级 + toast「已复制三域折叠态
+文本」）——三域折叠态 PNG 存档 / 文本贴工单双出口，与 R158/R198/R200 PNG 导出 + R196/R201 复制出口语言同。
+
+**E2E**：`设三域 localStorage 折叠记忆 → 点 #mtguardfoldstat（生成 #mtguardfoldstatd 内联 SVG）→ 点 #mtguardfoldstatpng → toast「已下载三域折叠态
+PNG」；点 #mtguardfoldstatcopy → toast「已复制三域折叠态文本」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r208_foldstatpncopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 712→714`，断点 `_整理后分类\洛天依\粉丝.mp3`。
+
+**坑**：① `#mtguardfoldstatpng`/`#mtguardfoldstatcopy` 小钮挂 `#mtguardfoldstat` 旁常驻位（`#mtguardfoldstat` 后，`#mtguardfoldstatpng` 再后
+`#mtguardfoldstatcopy`，三域折叠态总览 PNG 导出 + 文本复制常驻入口，非 hover 态控——`#mtguardfoldstat` 三域折叠态总览看全貌 + `#mtguardfoldstatpng`
+折叠态 PNG 存档 + `#mtguardfoldstatcopy` 折叠态文本贴工单三入口并排，三域折叠态可看可存可贴）② `mtGuardFoldStatPng` 读 `#mtguardfoldstatd` 内联 SVG
+（`#mtguardfoldstatd` 无 SVG（未点过 `#mtguardfoldstat`）则先 `mtGuardFoldStat()` 生成，`d.querySelector('svg')` 取 SVG，无 `svg` toast「无三域折叠态
+总览可导出（折叠态总览空）」`bad`，同 R198 `mtGuardSnapPng` 读 `#mtguardsnapd` 无 SVG 先 `mtGuardSnap()` 生成纪律）③ SVG 转 PNG（`new XMLSerializer().
+serializeToString(svg)` → `btoa(unescape(encodeURIComponent(svgStr)))` base64 → `Image` `onload` `canvas`（`#f7f5f0` 浅色底 fillRect，透明底贴工单看不清
+同 R158）`drawImage` → `toBlob('image/png')` → `a[download]='music3_维护守护三域折叠态_<ts>.png'`（`ts` `new Date().toISOString().replace(/[:.]/g,'-')`
+文件名安全，与 R198 `music3_维护守护全记录_快照_<ts>.png` / R200 `music3_维护守护总览_<ts>.png` 区分——三域折叠态 PNG 命名「维护守护三域折叠态」）④
+`toBlob` 不可用降级（`_fallbackCopy` 复制 SVG 源码到剪贴板 + toast「已复制三域折叠态 SVG（PNG 导出不可用降级）」，`canvas` / `toBlob` 沙箱不可用时
+SVG 源码降级留存，同 R158/R198/R200 PNG 降级复制 SVG 源码纪律）⑤ `mtGuardFoldStatCopy` 读三域 `localStorage` 折叠记忆拼文本（`#music3 三域折叠态总览
+· <new Date().toLocaleString()>` 头 + `[双图区 #mtmetfold] · 折叠 / 展开 · localStorage _mtMetFold=1/0` + `[总览面板 #mtguardpanelfold] · 折叠 / 展开 ·
+localStorage _mtGuardPanelFold=1/0` + `[全浮层 #mtguardfoldall] · 折叠 / 展开 · localStorage _mtGuardFoldAll=1/0`，读 `localStorage` 记忆值（`'1'` 折叠 /
+`'0'` / 无展开，`try/catch` 降级 `false` 展开态）非 `window` 实时标志，同 R207 `mtGuardFoldStat` 三域 `localStorage` 记忆读纪律，`navigator.clipboard.
+writeText`（`_copyFallback` 降级）+ toast「已复制三域折叠态文本」）⑥ 与 R207 `#mtguardfoldstat` 三域折叠态总览**分工**（R207 内联 SVG 三域折叠态总览看
+全貌（`#mtguardfoldstatd` 8s 自动隐），R208 折叠态 PNG 导出 + 文本复制双出口（`#mtguardfoldstatpng` 下载 PNG 存档 / 分享 + `#mtguardfoldstatcopy` 文本
+贴工单），看全貌 + 全貌 PNG / 文本留存双路，三域折叠态可看可存可贴）⑦ 与 R158 `#mtmetpng` / R198 `#mtguardsnappng` / R200 `#mtguardpanelpng` PNG 导出
+**语言同**（各 PNG 导出读各内联 SVG `canvas` 转 PNG 下载，`toBlob` 不可用降级复制 SVG 源码，三域折叠态 PNG 同语言）⑧ 与 R196 `#mtguardcopy` / R201
+`#mtguardpanelcopy` 复制出口**语言同**（各文本复制读各数据源拼文本到剪贴板，`navigator.clipboard.writeText` 降级，三域折叠态文本复制同语言）⑨ 验收
+**函数级**（设三域 `localStorage` 折叠记忆 + 点 `#mtguardfoldstat` 生成 `#mtguardfoldstatd` 内联 SVG + 点 `#mtguardfoldstatpng` 验 toast「已下载三域折叠态
+PNG」/ 降级「已复制三域折叠态 SVG」+ 点 `#mtguardfoldstatcopy` 验 toast「已复制三域折叠态文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，
+真 PNG / 剪贴板内容不验，不真跑 `mtRun` 免 tick 污染 `runs`）。
+
