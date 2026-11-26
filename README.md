@@ -4436,3 +4436,30 @@ _t1)/100)/10`（本轮 tick 耗时，1dp），读 `_mtRunHist` 推 `_rdur` 末 1
 混排，折线看逐轮尖峰 + 末位总耗时）⑤ `try/catch`（`localStorage` 满 / `mtRunHistDraw` 未定义不阻循环，耗时推失败 tick 照
 跑）⑥ 验收**函数级**（mock 3 轮各耗时直接推 `_mtRunHist` 验逐轮累计 + 取消保留，不真跑 `mtRun` 免 tick 污染 `runs`）。
 
+---
+
+## 第180轮（前端 R166 · goal round143）：`#mtrun` 跑维护中双指标实时徽标（`#mtlivebadge` 显「跑中 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」，跑中每轮 tick 后刷新）
+
+**连贯性（跑中扫一眼双指标实况）**：R164/R165 双指标已逐轮推（`_mtRunDelta`/`_mtRunHist`），但**跑中扫一眼当前跑
+双指标实况**（本轮补了多少 + 本轮耗时多少）要翻 `#mtdeltabar` 柱状 + `#mthistspark` 折线。`#mtmsg` 旁加**`#mtlivebadge`**
+（`--ok` 绿 `font-weight:600` 11px，`display:none` 默认，跑中每轮 tick 后刷新「跑中 · 第 i/N 轮 · 本轮回 +X · 本轮耗 Ys」，
+跑完 / 取消 `mtLiveBadgeHide` 隐 + 清空）——跑中当前轮双指标实况（本轮补入量 + 本轮耗时 + 跑到第几轮），与 R155 双图 hover
+配对**同「双指标配对」语言但跑中实时**（hover 看历史某次 / 徽标看当前跑中这轮）。
+
+**E2E**（函数级验徽标，不真跑 tick）：`mtLiveBadge(3,5,4,1.2) → #mtlivebadge 显「跑中 · 第 3/5 轮 · 本轮回 +4 · 本轮耗 1.2s」
+（inline-block，双指标实况）+ mtLiveBadgeHide → 隐（none + 清空，跑完/取消）`（绿）；端点 **30/0**、JS undefined NONE、CSS
+320/320、node 0、console 0、截图 r166_livebadge.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 628→630`，断点 `_整理后分类\thisistruemusic\英文歌\Enemy.mp3`。
+
+**坑**：① `#mtlivebadge` 挂 `#mtmsg` 后（顶栏 `#mtmsg` 下、`#mtmetfold` 折叠钮上，`--ok` 绿 `font-weight:600` 11px，
+`display:none` 默认——跑中才显，跑完/取消隐，不占位）② `mtLiveBadge(i, N, back, dur)`（`#mtlivebadge` 文案刷新，`mtRun` 循环
+每轮 tick 后调）：`textContent='跑中 · 第 i/'+(N>100000?'∞':N)+' 轮 · 本轮回 +'+back+' · 本轮耗 '+dur+'s'`（`N>100000` 全库
+显 `∞`，非全库显 `N`；`back=本轮补入 r.lyric_ok+r.cover_ok`，`dur=本轮耗时 (Date.now()-_t1)/100` 1dp）+ `style.display='inline-block'`
+③ `mtRun` 循环每轮 tick 后（R165 `_mtRunHist` 推区后）调 `mtLiveBadge(i, N, r.lyric_ok+r.cover_ok, Math.round((Date.now()-_t1)/100)/10)`
+（跑中每轮刷新当前轮双指标，扫一眼）④ 跑完 / 取消 `mtLiveBadgeHide`（`#mtlivebadge` 隐 `display:none` + 清 `textContent`，
+跑中徽标跑完即收，不留残）挂 `mtRun` 循环后 `_mtUnaborted` 区（跑完 + 取消都走，同 `_mtProg` 隐进度条处）⑤ 全库 `FULL`
+（`N=999999`）显 `∞`（跑到全库第 i 轮，无 `N` 分母），非全库 `N` 实数（`第 i/N 轮`）⑥ 与 R155 `#mtpairlbl`（hover 看历史某次
+双指标）/ R158 `#mtmetsum`（常驻看 N 次汇总）**分工**：`#mtlivebadge` 看**跑中当前轮**（实时刷新，跑完隐），三视图（跑中实时
+/ hover 单次 / 常驻汇总）。
+

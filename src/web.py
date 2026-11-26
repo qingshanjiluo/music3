@@ -1067,6 +1067,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
+  <span id="mtlivebadge" style="display:none;margin-top:4px;font-size:11px;color:var(--ok);font-weight:600"></span>
   <div style="margin-top:4px"><button type="button" id="mtmetfold" title="折叠/展开维护趋势条(耗时折线+补入柱状+汇总, 窄屏省高)" style="padding:0 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">▾ 折趋势</button></div>
   <div id="mtmetfoldwrap">
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
@@ -2986,10 +2987,13 @@ async function mtRun(){
       try{ const _rd=(r.lyric_ok||0)+(r.cover_ok||0); let _dr=[]; try{ _dr=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){} _dr.push(_rd); _dr=_dr.slice(-10); localStorage.setItem('_mtRunDelta', JSON.stringify(_dr)); if(typeof mtRunDeltaDraw==='function'){ mtRunDeltaDraw(); } if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } }catch(e){}
       /* 每轮 tick 后推 _mtRunHist 本轮耗时((Date.now()-_t1)/100, 逐轮实时耗时趋势) -> 与 R164 每轮推补入量对称(双指标跑中实时), 取消时已推轮保留 */
       try{ const _rdur=Math.round((Date.now()-_t1)/100)/10; let _rh=[]; try{ _rh=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){} _rh.push(_rdur); _rh=_rh.slice(-10); localStorage.setItem('_mtRunHist', JSON.stringify(_rh)); if(typeof mtRunHistDraw==='function'){ mtRunHistDraw(); } if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } }catch(e){}
+      /* 跑中双指标实时徽标(R166): 每轮 tick 后刷「跑中·第i/N轮·本轮回+X·本轮耗Ys」, 扫一眼当前跑双指标实况 */
+      try{ if(typeof mtLiveBadge==='function'){ mtLiveBadge(i, N, (r.lyric_ok||0)+(r.cover_ok||0), Math.round((Date.now()-_t1)/100)/10); } }catch(e){}
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
     _mtUnaborted(); /* 跑完恢复「跑一轮」按钮态(跑中是「取消」红) */
+    if(typeof mtLiveBadgeHide==='function'){ mtLiveBadgeHide(); } /* 跑完/取消隐跑中双指标实时徽标(R166) */
     /* 跑维护历史: 本次耗时(dur)推 localStorage._mtRunHist(近10次), 顶栏 #mtmsg 下挂小 sparkline(近几次跑耗时趋势, 跨维护会话粒度看越来越快/变慢, 与 R126 dur_trend 同 sparkline 语言但跨「跑维护」粒度) */
     try{
       const _hDur=Math.round((Date.now()-t0)/100)/10;
@@ -3786,6 +3790,13 @@ function mtMetFold(){
     if(f==='1' && wrap){ wrap.style.display='none'; if(btn){ btn.textContent='▸ 展趋势'; } }
   }catch(e){}
 })();
+/* 跑中双指标实时徽标(R166): #mtlivebadge 显「跑中·第i/N轮·本轮回+X·本轮耗Ys」, 跑中每轮 tick 后刷新, 跑完/取消隐; 扫一眼当前跑双指标实况, 与 R155 双图 hover 配对同「双指标配对」语言但跑中实时 */
+function mtLiveBadge(i, N, back, dur){
+  const el=$('#mtlivebadge'); if(!el) return;
+  el.textContent='跑中 · 第 '+i+'/'+(N>100000?'∞':N)+' 轮 · 本轮回 +'+back+' · 本轮耗 '+dur+'s';
+  el.style.display='inline-block';
+}
+function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } }
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
