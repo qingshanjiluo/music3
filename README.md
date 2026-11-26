@@ -4114,3 +4114,29 @@ console 0、截图 r153_bar.png。
 画（跨会话重开还在），跑完 `mtRunDeltaDraw` 刷新（新跑一次补入量重画）⑥ 柱状 `preserveAspectRatio=none`（`viewBox 0 0 100 22`，
 `width:110px` 拉伸，柱宽按 `90/n` 归一化，n 多时柱密，n=10 满时 9px 柱）。
 
+---
+
+## 第168轮（前端 R154 · goal round131）：`#mtdeltabar` 柱状 hover 数值跟随（`mousemove` 按 x 定位最近柱显该次补入量 `+X`，同 R145/R134 语言）
+
+**连贯性（顶栏柱状也能扫单次补入）**：R153 `#mtdeltabar` 补入量柱状看趋势（高柱=高效跑），**单次补入量**要数柱子高没数。
+`#mtdeltabox`（`#mtdeltaSvg` 容器）挂**hover 点 + 标签**（`mousemove` 按 x 定位最近柱，`#mtdelthover` 圆点 + `#mtdelthovlbl`
+该次补入量 `+X`），与 R145 历史折线 hover、R134 维护卡 sparkline hover 数值跟随同「hover 看值」直觉——顶栏柱状也能扫单次
+补入（悬停某柱看那次跑补了多少）。
+
+**E2E**：`写 _mtRunDelta=[8,5,12,0,3,2] → #mtdeltabox 有 data-hd + hover(x=1/3 → idx=2, val=12) → #mtdelthover 显 +
+#mtdelthovlbl=「+12」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r154_barhov.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 604→606`，断点 `_归档_封存\SD卡版\周传雄\时不知归.mp3`。
+
+**坑**：① `#mtdeltabox`（R153 `#mtdeltaSvg` 容器改内层 `.mtdeltabox` div）挂 `data-hd`（`encodeURIComponent(JSON 补入量)`，
+柱状重画随 `mtRunDeltaDraw` 重铺）+ `#mtdelthover`（7px 圆点绿 `--ok` 白描边，`display:none`）+ `#mtdelthovlbl`（该次补入量
+`+X`，绿 `--ok`，`display:none`）② hover 委托挂 `document` **捕获**（`mousemove`/`mouseout`，`e.target.closest('#mtdeltabar
+.mtdeltabox')` 命中，`data-hd` 解 `d`，按 `(clientX-left)/width` 定 `idx=round(frac*(n-1))`，`#mtdelthover`/`lbl` 显 +
+`left=frac*100%`/`top=y`（柱顶 `20-柱高`）/`text='+d[idx]'`；`mouseout` 隐）③ 与 R145 历史折线 hover 同 `mousemove` 捕获 +
+`closest` + x 定位算法，**容器独立**（`.mtdeltabox` vs `.mthistbox`，不串——一个耗时一个补入量）④ `data-hd` 存补入量
+（不重读 `localStorage`，`mtRunDeltaDraw` 画柱状同刻写，hover 解 `data-hd` 快，避免每次 mousemove 读 localStorage）⑤ 验收坑：
+`document.dispatchEvent` 的 `e.target=document`（`document.closest` 不是 `.mtdeltabox`，委托命中不了）——改 `box.dispatchEvent`
+（`e.target=box`，`closest('.mtdeltabox')` 命中委托）；真浏览器 hover `e.target` 是 box 内 svg/rect，冒泡到 `document` 委托正常
+命中 ⑥ hover 点 `top=y`（柱顶，`y=20-Math.max(2,round(d[idx]/mx*18))`），`#mtdelthover` 7px 圆点落在该柱顶，标签 `y-10`
+（柱顶上方 10px，`+X` 值）。
+

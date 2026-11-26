@@ -3600,8 +3600,27 @@ function mtRunDeltaDraw(){
   const bars=d.map((v,i)=>{ const bh=Math.max(2, Math.round(v/mx*18)); const bw=Math.floor(90/n)-1; return '<rect x="'+(i*(Math.floor(90/n)))+1+'" y="'+(20-bh)+'" width="'+bw+'" height="'+bh+'" rx="1" fill="var(--ok)" opacity="'+(v>0?0.85:0.3)+'"/>'; }).join('');
   const total=d.reduce((a,c)=>a+c,0);
   lbl.textContent='近 '+n+' 次跑维护补入 · 合计 +'+total+'（绿=补入, 空=没补到）';
-  svg.innerHTML='<svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><line x1="0" y1="20" x2="100" y2="20" stroke="var(--line)" stroke-width="1"/>'+bars+'</svg>';
+  svg.innerHTML='<div class="mtdeltabox" data-hd="'+encodeURIComponent(JSON.stringify(d))+'" style="position:relative;width:110px;height:22px"><svg viewBox="0 0 100 22" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><line x1="0" y1="20" x2="100" y2="20" stroke="var(--line)" stroke-width="1"/>'+bars+'</svg><span id="mtdelthover" style="position:absolute;left:-99px;top:0;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--ok);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span id="mtdelthovlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:var(--ok);white-space:nowrap;display:none;pointer-events:none"></span></div>';
 }
+/* 补入量柱状 hover 数值跟随: document 捕获 mousemove/mouseout, 命中 #mtdeltabar .mtdeltabox 按 x 定位最近柱, 显该次补入量+X(与 R145 历史折线 hover 同「hover 看值」直觉, 顶栏柱状也能扫单次补入) */
+document.addEventListener('mousemove', function(e){
+  const box=e.target.closest && e.target.closest('#mtdeltabar .mtdeltabox');
+  if(!box){ const d1=document.getElementById('mtdelthover'), l1=document.getElementById('mtdelthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; return; }
+  const raw=box.getAttribute('data-hd'); if(!raw) return;
+  let d=[]; try{ d=JSON.parse(decodeURIComponent(raw)); }catch(_){ return; }
+  const r=box.getBoundingClientRect();
+  const frac=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+  const idx=Math.round(frac*(d.length-1));
+  const mx=Math.max.apply(null,d)||1;
+  const y=20-Math.max(2,Math.round(d[idx]/mx*18));
+  const dot=document.getElementById('mtdelthover'), lbl=document.getElementById('mtdelthovlbl');
+  if(dot){ dot.style.display='block'; dot.style.left=(frac*100)+'%'; dot.style.top=y+'px'; }
+  if(lbl){ lbl.style.display='block'; lbl.style.left=(frac*100)+'%'; lbl.style.top=(y-10)+'px'; lbl.textContent='+'+d[idx]; }
+}, true);
+document.addEventListener('mouseout', function(e){
+  const box=e.target.closest && e.target.closest('#mtdeltabar .mtdeltabox');
+  if(box){ const d1=document.getElementById('mtdelthover'), l1=document.getElementById('mtdelthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; }
+}, true);
 /* 载入: 按 _mtRunDelta 画补入量 mini 条形图(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunDeltaDraw(); }); } else { mtRunDeltaDraw(); } })();
 /* 清空跑维护历史: 清 localStorage._mtRunHist + mtRunHistDraw 重画(空->#mthistspark 隐) + toast; 看趋势久了重计基线(与 R119 自动刷持久化「可清可留」同「记状态可管」直觉) */
