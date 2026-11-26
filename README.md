@@ -4358,3 +4358,30 @@ CSS 320/320、node 0、console 0、截图 r162_metimport.png。
 调用（漏 `=`）+ `\u2014` 被 Python 转义成实际 `—`（JS `SyntaxError`）→ 重跑改 `JS_IM=` 赋值 + 缺列用**空值**（`5,,3` 非
 `5,—,3`，`parseFloat('')=NaN` 跳，避开 `—` 字符），纯函数级验（不真选文件）。
 
+---
+
+## 第177轮（前端 R163 · goal round140）：双指标区趋势条整区折叠开关（`#mtmetfold`，折叠/展开 `#mthistspark` + `#mtdeltabar` 双图区，窄屏省高）
+
+**简洁性（趋势条可收起省高）**：R153 `#mtdeltabar`（补入柱状 + 一排小钮）+ R144 `#mthistspark`（耗时折线 + 一排小钮）
++ R158 `#mtmetsum` 汇总占 `#mtmsg` 区**两大块**（双图 + 一排小钮，维护区窄屏高不够时全占），**收起趋势条只留顶栏一行**
+没入口。`#mtmsg` 后加**`#mtmetfold`** 小钮（`▾ 折趋势`，切 `#mtmetfoldwrap`（包 `#mthistspark` + `#mtdeltabar` 双图区）显隐
++ `localStorage._mtMetFold` 记状态 + 钮文案 `▾ 折趋势`/`▸ 展趋势`，载入恢复折叠态）——维护区窄屏省高（趋势条收起，只留顶栏
+`#mtmsg` 一行 + 折叠钮），与 R135 末点值标开关 / R137 筛选持久化「记状态可管」对称（折叠态跨会话记，重开还在）。
+
+**E2E**：`点 #mtmetfold → #mtmetfoldwrap 隐(none，双图折) + 钮「▸ 展趋势」+ _mtMetFold=1；再点 → #mtmetfoldwrap 显
+(block，双图展) + 钮「▾ 折趋势」+ _mtMetFold=0`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r163_fold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 622→624`，断点 `_整理后分类\thisistruemusic\纯音乐\Swan Lake.mp3`。
+
+**坑**：① `#mtmetfoldwrap` 包 `#mthistspark` + `#mtdeltabar`（两图区整包，折叠一起收；`#mtmetsum` 在 `#mtdeltabar` 内随包
+收，折叠钮在 `#mtmsg` 后、wrap 外——折叠后钮还在，可再展）② `mtMetFold`（`#mtmetfold` onclick，载入 IIFE 绑）：`folded =
+wrap.style.display !== 'none'`（当前展 = 点折），`wrap.style.display = folded?'none':'block'`，钮文案 `folded?'▸ 展趋势':'▾
+折趋势'`（折叠后显 `▸ 展`，展开显 `▾ 折`），`localStorage.setItem('_mtMetFold', folded?'1':'0')` ③ 载入恢复 IIFE：`_mtMetFold`
+`==='1'` → `wrap` 隐 + 钮 `▸ 展趋势`（重开维持折叠态）；折叠态**只记显隐**（不碰 `#mthistspark`/`#mtdeltabar` 自身
+`display:none` 的「无数据隐」逻辑——`wrap` 展时内部各图仍按 `mtRunHistDraw`/`mtRunDeltaDraw` 有无数据显隐，`wrap` 折时整包
+强制 `display:none` 盖过内部）④ 与 R135/R137「记状态可管」对称（`_mtMetFold` 跨会话记，窄屏常用折叠的重开免重设）⑤ 折叠
+**只收 `#mtmsg` 下双图区**（顶栏 `#mtrun` 跑维护 / 筛选 / 日志 / 卡区不动，`#mtmetfoldwrap` 只包 `#mthistspark` +
+`#mtdeltabar` 两趋势条），省的是**趋势条占位**（双图 + 一排小钮两大块），维护区主体仍全 ⑥ node 重启瞬断（服务重启后
+`Start-Sleep 3` 抓 JS 配平 0）。
+

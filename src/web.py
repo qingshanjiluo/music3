@@ -1067,8 +1067,11 @@ body._nosplabel .mtspark-lastval{display:none}
     <label class="chk"><input type="checkbox" id="mtclean" checked> 清临时</label>
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
+  <div style="margin-top:4px"><button type="button" id="mtmetfold" title="折叠/展开维护趋势条(耗时折线+补入柱状+汇总, 窄屏省高)" style="padding:0 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">▾ 折趋势</button></div>
+  <div id="mtmetfoldwrap">
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
   <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button><button type="button" id="mtmetpng" title="双指标趋势区快照存 PNG(耗时折线+补入柱状+汇总一张, 整区趋势图存档/贴issue)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mtmetcsv" title="双指标趋势数据导出 CSV(序号,耗时(s),补入量 双列, Excel横评哪次耗时高+补入少, 与R160 PNG互补:PNG走图CSV走数据)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 双表</button><button type="button" id="mtmetimport" title="导入双指标趋势 CSV(R161 导的回填, 双列 耗时+补入量, 换设备/全清后把双指标带回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 双表</button></div>
+  </div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3761,6 +3764,24 @@ function mtMetImport(){
   inp.click();
 }
 (function(){ const im=$('#mtmetimport'); if(im){ im.onclick=mtMetImport; } })();
+/* 折叠/展开维护趋势条(R163): #mtmetfold 钮切 #mtmetfoldwrap(#mthistspark+#mtdeltabar 双图区) 显隐, 记 localStorage._mtMetFold, 窄屏省高; 与 R135末点值标开关/R137筛选持久化「记状态可管」对称 */
+function mtMetFold(){
+  const wrap=$('#mtmetfoldwrap'), btn=$('#mtmetfold');
+  if(!wrap || !btn) return;
+  const folded = wrap.style.display !== 'none';
+  wrap.style.display = folded ? 'none' : 'block';
+  btn.textContent = folded ? '▸ 展趋势' : '▾ 折趋势';
+  try{ localStorage.setItem('_mtMetFold', folded ? '1' : '0'); }catch(e){}
+}
+(function(){
+  const btn=$('#mtmetfold'); if(btn){ btn.onclick=mtMetFold; }
+  /* 载入恢复折叠态 */
+  try{
+    const f=localStorage.getItem('_mtMetFold');
+    const wrap=$('#mtmetfoldwrap');
+    if(f==='1' && wrap){ wrap.style.display='none'; if(btn){ btn.textContent='▸ 展趋势'; } }
+  }catch(e){}
+})();
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
