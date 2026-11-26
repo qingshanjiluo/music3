@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <span id="mtlivebadge" style="display:none;margin-top:4px;font-size:11px;color:var(--ok);font-weight:600;position:relative;cursor:default"></span>
-  <div id="mtlivedetail" style="display:none;position:absolute;z-index:60;margin-top:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--ink);line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
+  <div id="mtlivedetail" style="display:none;position:absolute;z-index:60;margin-top:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--ink);line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap"><button type="button" id="mtlivedetailcopy" title="复制当前轮双指标详情(贴工单/记录维护日志)" style="pointer-events:auto;padding:0 6px;margin-left:8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 复制</button></div>
   <div style="margin-top:4px"><button type="button" id="mtmetfold" title="折叠/展开维护趋势条(耗时折线+补入柱状+汇总, 窄屏省高)" style="padding:0 8px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">▾ 折趋势</button></div>
   <div id="mtmetfoldwrap">
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
@@ -3830,6 +3830,24 @@ function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display
   });
   b.addEventListener('mouseleave', function(){ d.style.display='none'; d.textContent=''; });
 })();
+/* 复制当前轮双指标详情(R169): #mtlivedetailcopy 钮 -> navigator.clipboard 复制 #mtlivebadge 的 data-dtl(本轮回+X歌词a/封面b_本轮耗Ys_累计Zs_跑到W/总轮) + toast; 跑中把当前轮双指标实况贴工单/记录维护日志, 与 R129 日志复制同「复制留档」直觉 */
+function mtLiveDetailCopy(){
+  const b=$('#mtlivebadge'); if(!b) return;
+  const dtl=b.getAttribute('data-dtl');
+  if(!dtl){ _toast('无当前轮双指标详情可复制（跑维护中才有）', 'bad'); return; }
+  const txt='#music3 维护跑中详情 · '+new Date().toISOString().replace('T',' ').slice(0,16)+'\n'+dtl;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>{ _toast('已复制当前轮双指标详情', 'ok'); }).catch(()=>{ _copyFallback(txt); }); }
+    else{ _copyFallback(txt); }
+  }catch(e){ _copyFallback(txt); }
+}
+function _copyFallback(txt){
+  const ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;left:-999px;top:0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); _toast('已复制当前轮双指标详情', 'ok'); }catch(e){ _toast('复制失败（浏览器未授权剪贴板）', 'bad'); }
+  document.body.removeChild(ta);
+}
+(function(){ const c=$('#mtlivedetailcopy'); if(c){ c.onclick=mtLiveDetailCopy; } })();
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}

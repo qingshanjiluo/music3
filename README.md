@@ -4511,3 +4511,33 @@ hover 徽标本体触，`mouseleave` 离即隐），与 R145/R154 委托捕获�
 `position:fixed` + `left+width<=视口宽` 不溢出，不真跑 `mtRun` 免 tick 污染；`#mtlivebadge` 默认视口左中，`left+width` 本
 就视口内，验 `fixed` 定位 + 不溢出基线，flip 逻辑靠右缘/底缘徽标时自动触）。
 
+---
+
+## 第183轮（前端 R169 · goal round146）：`#mtlivedetail` 详情浮层复制（`#mtlivedetailcopy`，复制当前轮双指标详情到剪贴板，贴工单/记录维护日志）
+
+**完善性（跑中双指标实况留档）**：R167 `#mtlivedetail` hover 显当前轮详情（「本轮回 +X（歌词 a / 封面 b）· 本轮耗 Ys ·
+累计 Zs · 跑到 W/总轮」），**把当前轮双指标实况复制到剪贴板**（贴工单 / 记录维护日志 / 汇报）没入口。`#mtlivedetail` 内加
+**`#mtlivedetailcopy`** 小钮（`⧉ 复制`，`navigator.clipboard.writeText` 复制 `#mtlivebadge` 的 `data-dtl` 详情（带时间戳头
+`#music3 维护跑中详情 · <ts>`）+ toast「已复制当前轮双指标详情」；无详情时 toast「无当前轮双指标详情可复制（跑维护中才有）」）
+——跑中把当前轮双指标实况贴工单 / 记录，与 R129 日志复制、R147 CSV 导出同「复制留档」直觉。
+
+**E2E**：`mtLiveBadge 设 data-dtl → 点 #mtlivedetailcopy → toast「已复制当前轮双指标详情」（clipboard 无权限走 _copyFallback
+execCommand）+ 清 data-dtl 无详情 → toast「无当前轮双指标详情可复制（跑维护中才有）」`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r169_copy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 634→636`，断点 `_整理后分类\thisistruemusic\英文歌\She Will Be Loved.mp3`。
+
+**坑**：① `#mtlivedetailcopy` 挂 `#mtlivedetail` 内（浮层右 `margin-left:8px`，`--bg2` 底 + `--line` 描边 + `--dim` 色 10px，
+随 `#mtlivedetail` 显隐——浮层 hover 显时复制钮同显）② **`pointer-events` 冲突处理**：R168 `#mtlivedetail` 整浮层
+`pointer-events:none`（不挡下层，hover 徽标本体触详情），但复制钮要**可点**——改：浮层去掉整 `pointer-events:none`，
+**复制钮单独 `pointer-events:auto`**（钮可点，浮层文本区仍不挡），`#mtlivedetail` 定位改 `position:fixed`（R168 视口坐标），
+复制钮在浮层内随浮层定位 ③ `mtLiveDetailCopy`（`#mtlivedetailcopy` onclick，载入 IIFE 绑）：读 `#mtlivebadge` 的 `data-dtl`
+（R167 详情文本），空 → `_toast`「无当前轮双指标详情可复制（跑维护中才有）」`bad`；非空 → `txt='#music3 维护跑中详情 · <ts>\n'
++ data-dtl`（带时间戳头，区分不同时刻复制），`navigator.clipboard.writeText(txt)`（异步，`then` toast「已复制」，`catch` →
+`_copyFallback`）④ `_copyFallback`（`clipboard` 无权限 / 非 https 降级）：动态 `textarea`（`value=txt`，`position:fixed left:-999px`
+离屏）+ `select()` + `document.execCommand('copy')` → toast「已复制」/ 失败「复制失败（浏览器未授权剪贴板）」（`textarea` 用后
+`removeChild`）⑤ **`data-dtl` 只在跑维护中每轮刷新**（R167 `mtLiveBadge` 传详情 `lyr!==undefined` 才 `setAttribute`，跑完/取消
+`mtLiveBadgeHide` 不清 `data-dtl`——复制钮跑完点仍拿上轮详情，`_toast` 提示「跑维护中才有」仅空态，跑完点复制可带上轮末详情
+贴记录）⑥ 验收**函数级**（`mtLiveBadge` 设 `data-dtl` + 点 `#mtlivedetailcopy` 验 toast 出口，headless `clipboard` 无权限自动走
+`_copyFallback` `execCommand`，不真验剪贴板内容——headless 无剪贴板读，toast「已复制」为出口证明）。
+
