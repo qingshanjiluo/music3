@@ -4385,3 +4385,28 @@ wrap.style.display !== 'none'`（当前展 = 点折），`wrap.style.display = f
 `#mtdeltabar` 两趋势条），省的是**趋势条占位**（双图 + 一排小钮两大块），维护区主体仍全 ⑥ node 重启瞬断（服务重启后
 `Start-Sleep 3` 抓 JS 配平 0）。
 
+---
+
+## 第178轮（前端 R164 · goal round141）：`#mtrun` 跑维护中每轮 tick 后推 `_mtRunDelta`（补入量逐轮累计，取消时已推轮保留不回滚）
+
+**连贯性（取消不虚补入历史）**：R153 `_mtRunDelta` 补入量**跑完**（`mtRun` 循环后）才推（`_dL+_dC` 本次总增量），
+R140 取消跑到第 i 轮时**已跑 i 轮的补入量没记**（循环后推，取消 `break` 不走那行）→ 取消时补入历史**不虚**（部分跑的
+补入丢了）。`mtRun` 循环**每轮 tick 后**（`doneMsg` 算完）推 `_mtRunDelta`（本轮补入 `r.lyric_ok+r.cover_ok`，逐轮累计
+`slice(-10)` + `mtRunDeltaDraw`/`mtMetSumDraw` 重画）——取消时**已推轮保留**（不回滚），补入量历史不虚（跑到第几轮记
+几轮补入），与 R140「已跑的轮不回滚，断点已写」同「不回滚」直觉。
+
+**E2E**（函数级验每轮推逻辑，不真跑 tick）：`mock 3 轮 tick（每轮 lyric+cover 补入 3/3/2）→ 逐轮推 _mtRunDelta=[3,3,2]
+（len=3）+ 取消时已推轮保留（preserved=3，不清空）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、
+截图 r164_everyround.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 624→626`，断点 `_整理后分类\thisistruemusic\纯音乐\梁祝.mp3`。
+
+**坑**：① `mtRun` 循环每轮 tick 后（`ticks=i` + `doneMsg` 算完，`r` 是本轮 tick 返回）推 `_mtRunDelta`：`_rd=(r.lyric_ok||0)+
+(r.cover_ok||0)`（本轮补入量，歌词 + 封面补入数），读 `_mtRunDelta` 推 `_rd` 末 10（`slice(-10)`），`mtRunDeltaDraw()`/`mtMetSumDraw()`
+重画（补入柱状 + 汇总随每轮 tick 更新，跑中实时看补入量趋势）② **逐轮累计**（区别于 R153 跑完才推一次本次总增量——现在每轮
+推一次，近 10 轮每轮补入量，柱状看每轮补多少）③ 取消（R140 `break`）时**已推轮保留**（`_mtRunDelta` 每轮已推，取消不回滚
+已推的，跑到第 5 轮取消 → 前 5 轮补入量都在 `_mtRunDelta`，不虚），与 R140「已跑的轮不回滚」同直觉 ④ 跑中**实时重画**
+（每轮 tick 后 `mtRunDeltaDraw`，`#mtdeltabar` 补入柱状跑中逐轮长，不用等跑完才看——补入量趋势跑中可见）⑤ `try/catch`
+（`localStorage` 满 / `mtRunDeltaDraw` 未定义不阻循环，补入量推失败 tick 照跑）⑥ 全库跑（`FULL_DONE`）/ 非全库跑完（`break`）
+也逐轮推（循环每轮都推，跑完自然累计 10 轮，`FULL_DONE` 时 `r.done` 跳出循环但前 i 轮已推）。
+

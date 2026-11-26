@@ -2982,6 +2982,8 @@ async function mtRun(){
       if(r.error){ setMsg($('#mtmsg'), `第 ${i} 轮错误: ${r.error}`, 'bad'); _mtUnaborted(); _mtProg(0, N, true); return; }
       ticks=i;
       doneMsg = `第 ${i} 轮：扫描 ${r.scanned} 首 · 歌词 +${r.lyric_ok}/-${r.lyric_miss} · 封面 +${r.cover_ok}/-${r.cover_miss} · 清理 ${r.cleaned}` + (r.done ? ' · 已跑完一圈' : '');
+      /* 每轮 tick 后推 _mtRunDelta(本轮补入量 r.lyric_ok+r.cover_ok, 逐轮累计) -> 取消(R140 跑到第i轮)时已推轮保留不回滚, 补入量历史不虚; 与 R140「已跑的轮不回滚」同「不回滚」直觉 */
+      try{ const _rd=(r.lyric_ok||0)+(r.cover_ok||0); let _dr=[]; try{ _dr=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){} _dr.push(_rd); _dr=_dr.slice(-10); localStorage.setItem('_mtRunDelta', JSON.stringify(_dr)); if(typeof mtRunDeltaDraw==='function'){ mtRunDeltaDraw(); } if(typeof mtMetSumDraw==='function'){ mtMetSumDraw(); } }catch(e){}
       if(r.done){ if(FULL){ setMsg($('#mtmsg'), `跑到全库完成 · 共 ${i} 轮 · `+doneMsg, 'ok'); _toast('跑到全库完成 · 共 '+i+' 轮 · 已挂自动刷看 9 卡', 'ok'); if(typeof _mtAutoRefTimer==='undefined'||_mtAutoRefTimer===null){ if(typeof mtAutoRef==='function') mtAutoRef(); } FULL_DONE=true; break; } if(i<N){ doneMsg += '（下一圈）'; } }
     }
     _mtProg(N, N, !(FULL_DONE||doneMsg)); /* 跑完/全库完成隐进度条(非全库 N/N 跑完也隐, 跑中才显) */
