@@ -7076,3 +7076,40 @@ SVG 标题加「· 全复位态」（`_rTag=_allReset6?' · 全复位态':''`）
 复位态总览），不真跑 `mtRun` 免 tick 污染 `runs`；`#mtallfoldcopy` 复制拼逻辑验全复位检测进 JS（`_allReset6` 检测 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false` → `_rTag=' · 全复位态'`），非真剪贴板 / 渲染像素），同 R245 `#mtallfoldpng` PNG
 快照全复位后自含 6 键复位态总览验收源码级纪律（R245 验 `mtAllFoldPng` 源码含全复位检测，R246 验 `mtAllFoldCopy` 源码含全复位检测）。
 
+---
+
+## 第261轮（前端 R247 · goal round224）：维护守护区全折叠域 5 域折叠态总控浮层折叠记忆 8s 自动隐定时触发后清 `#mtallfoldstatd` `innerHTML`（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234）的 8s 自动隐定时触发隐 `#mtallfoldstatd` `display` 后清 `innerHTML`，免全复位后 8s 自动隐触发隐浮层后 `innerHTML` 残留旧 SVG）
+
+**完善性（8s 自动隐定时触发后清 `#mtallfoldstatd` `innerHTML` 免残留旧 SVG）**：R242 `mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时 `setTimeout` 回调加 `innerHTML` 非空校验（`if(_d.innerHTML){ _d.style.display='none'; }`，全复位后 `#mtallfoldstatd` `innerHTML` 空
+时 8s 自动隐不隐 `display` 免无副作用触发），但**8s 自动隐定时触发隐 `#mtallfoldstatd` 后没清 `innerHTML`**（全复位后若直接调 `mtAllFoldStat()` 重新拼 SVG + 设 8s 自动隐定时，8s 自动隐定时触发时 `#mtallfoldstatd` `innerHTML` 非空（刚拼的 SVG）→
+`if(_d.innerHTML)` 通过 → `display` 隐但 `innerHTML` 残留旧 SVG（浮层隐但 `innerHTML` 残留，重新展开才拼新 SVG，残留旧 SVG 无副作用但多余），`mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时 `setTimeout` 回调触发隐 `display` 后清 `innerHTML`
+（`_d.style.display='none'; _d.innerHTML='';`），免全复位后 8s 自动隐触发隐浮层后 `innerHTML` 残留旧 SVG，与 R240/R242 全复位后 `#mtallfoldstatd` `innerHTML` 清 / 8s 自动隐定时 `innerHTML` 非空校验同域）。
+
+**E2E**：`展开态（6 键全 '0' + 6 标志全 false）→ 直接调 mtAllFoldStat() 拼面板（设 8s 自动隐定时）→ 等 8.5s → #mtallfoldstatd display 隐（8s 自动隐）+ innerHTML 清（R247 8s 自动隐定时触发后清 innerHTML 免残留旧 SVG）`（绿）；端点 **30/0**、JS
+undefined NONE、CSS 320/320、node 0、console 0、截图 r247_8s_hide_clear.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 792→794`，断点 `_Best Day of My Life.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆（R234，`window._mtGuardAllFoldStat` + `localStorage._mtGuardAllFoldStat` 折叠记忆 + `#mtallfoldstatd` 浮层 `innerHTML` 拼内联 SVG + 8s 自动隐 + `#mtallfoldstat` 折叠记忆切 IIFE（`document`
+click 委托 `#mtallfoldstat` 点切折叠记忆态，折叠态 `#mtallfoldstatd` 隐常驻省高 + 文案「▸ 展开全折叠域浮层」+ `clearTimeout(window._mtGuardAllFoldStatT)` 清 8s 自动隐定时 / 展开态 `mtAllFoldStat()` 拼面板显 + 文案「▣ 全折叠域浮层」+ 8s 自动隐）+
+`#mtallfoldstat` 初始同步 IIFE（`#mtallfoldstat` 文案 / `#mtallfoldstatd` `display` 随初始折叠态刷新恢复折叠 / 展开态）+ `mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时（R242 加 `innerHTML` 非空校验））的 8s 自动隐定时触发后清 `#mtallfoldstatd`
+`innerHTML`（R247，`mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时 `setTimeout` 回调 `if(_d.innerHTML){ _d.style.display='none'; _d.innerHTML=''; }`（R242 `if(_d.innerHTML){ _d.style.display='none'; }` → R247 补 `_d.innerHTML=''`），全复位后若直接调
+`mtAllFoldStat()` 重新拼 SVG + 设 8s 自动隐定时，8s 自动隐定时触发时 `#mtallfoldstatd` `innerHTML` 非空（刚拼的 SVG）→ `if(_d.innerHTML)` 通过 → `display` 隐 + `innerHTML` 清（R247），免全复位后 8s 自动隐触发隐浮层后 `innerHTML` 残留旧 SVG（浮层隐但
+`innerHTML` 残留旧 SVG，重新展开才拼新 SVG，残留旧 SVG 无副作用但多余），与 R240/R242 全复位后 `#mtallfoldstatd` `innerHTML` 清 / 8s 自动隐定时 `innerHTML` 非空校验同域，`mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时触发后清 `#mtallfoldstatd` `innerHTML`）
+② `mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时 `setTimeout` 回调（R242 `if(_d.innerHTML){ _d.style.display='none'; }` → R247 `if(_d.innerHTML){ _d.style.display='none'; _d.innerHTML=''; }`）补 `innerHTML` 清（`_d.innerHTML=''` 在 `display` 隐后清 `innerHTML`，
+免全复位后 8s 自动隐触发隐浮层后 `innerHTML` 残留旧 SVG），与 R240 `mtGuardFoldReset`（R235 区 4672 行）`#mtallfoldstatd` `display` 复位 `none` 后清 `innerHTML`（`_afsD.innerHTML=''`）同结构（全复位后 `innerHTML` 清免残留旧 SVG），R247 是 8s 自动隐定时触发
+后清 `innerHTML`（非全复位后清），同 R240/R242 `innerHTML` 清纪律③ 与 R242 `mtAllFoldStat` 8s 自动隐定时 `innerHTML` 非空校验（全复位后 `innerHTML` 空时 8s 自动隐不隐 `display` 免无副作用触发）/ R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧
+SVG）/ R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览 / R245 `#mtallfoldpng` PNG 快照全复位后自含 6 键复位态总览 /
+R246 `#mtallfoldcopy` 一键复制全复位后自含 6 键复位态总览**分工**（R242 `mtAllFoldStat` 8s 自动隐定时 `innerHTML` 非空校验（全复位后 `innerHTML` 空时 8s 自动隐不隐 `display` 免无副作用触发），R240 `#mtallfoldstatd` `innerHTML` 清（全复位后免残留旧 SVG），
+R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用（全复位后 `#mtallfoldstat` 折叠记忆切 IIFE 点 `#mtallfoldstat` 切折叠态时 `clearTimeout(window._mtGuardAllFoldStatT)` 已清 8s 自动隐定时无副作用），R235 全折叠记忆重置补第 6 键
+`_mtGuardAllFoldStat` 复位（`localStorage` 清 `'0'` + `window` 标志 `false` + 文案复位 + `display` 复位 + `clearTimeout`），R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位态总览（SVG 标题加「· 全复位态」标记，全复位后 `#mtallfoldstatd` 浮层自含 6 键
+复位态总览），R245 `#mtallfoldpng` PNG 快照全复位后自含 6 键复位态总览（`mtAllFoldPng` 拼 SVG 前加全复位检测（`_allReset6`：读 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`），全复位时 SVG 标题加「· 全复位态」，全复位后 PNG 快照自含 6 键复位态总览），
+R246 `#mtallfoldcopy` 一键复制全复位后自含 6 键复位态总览（`mtAllFoldCopy` 复制文本拼前加全复位检测（`_allReset6`：读 `localStorage` 6 键全 `'0'` + `window` 6 标志全 `false`），全复位时复制文本标题行加「· 全复位态」，全复位后一键复制自含 6 键复位态总览），
+R247 `mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时触发后清 `#mtallfoldstatd` `innerHTML`（8s 自动隐定时 `setTimeout` 回调 `if(_d.innerHTML){ _d.style.display='none'; _d.innerHTML=''; }` 触发隐 `display` 后清 `innerHTML`，免全复位后 8s 自动隐触发隐浮层后
+`innerHTML` 残留旧 SVG）——R235/R240/R242/R243/R244/R245/R246/R247 全折叠域 6 键全复位 + 全折叠域 5 域折叠态总控浮层 / PNG 快照 / 一键复制全复位后自含 6 键复位态总览 + 8s 自动隐定时触发后清 `innerHTML`，九路自含全折叠域 6 键复位态）④ 与 R242 `mtAllFoldStat`
+8s 自动隐定时 `innerHTML` 非空校验 / R240 `#mtallfoldstatd` `innerHTML` 清 / R243 `#mtallfoldstat` 折叠记忆切 IIFE 全复位后清 8s 自动隐定时无副作用 / R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 / R244 `#mtallfoldstatd` 浮层全复位后重拼 SVG 自含 6 键复位
+态总览 / R245 `#mtallfoldpng` PNG 快照全复位后自含 6 键复位态总览 / R246 `#mtallfoldcopy` 一键复制全复位后自含 6 键复位态总览**语言同**（各 8s 自动隐定时 `innerHTML` 非空校验 / `innerHTML` 清 / 折叠记忆切 IIFE 清 8s 自动隐定时无副作用 / 全折叠记忆重置 /
+全复位后重拼 SVG / PNG 快照 / 一键复制读 6 键 `localStorage` 复位值 / 当前态 + `innerHTML` 清 + 8s 自动隐定时触发后清 `innerHTML`，全折叠域 6 键复位态同语言，各出口自含全折叠域出口标位）⑤ 验收**函数级**（展开态（6 键全 `'0'` + 6 标志全 `false`，全复位态）+
+直接调 `mtAllFoldStat()` 拼面板（`#mtallfoldstatd` `innerHTML` 非空 + 设 8s 自动隐定时）+ 等 8.5s 验 `#mtallfoldstatd` `display` 隐（`hideOk=true`，8s 自动隐触发）+ `innerHTML` 清（`innerCleared=true`，R247 8s 自动隐定时触发后清 `innerHTML` 免残留旧 SVG），
+不真跑 `mtRun` 免 tick 污染 `runs`；`mtAllFoldStat`（R234 区 4960 行）8s 自动隐定时拼逻辑验 8s 自动隐触发后清 `innerHTML`（`setTimeout` 回调 `if(_d.innerHTML){ _d.style.display='none'; _d.innerHTML=''; }` `display` 隐后清 `innerHTML`），非真渲染像素）。
+

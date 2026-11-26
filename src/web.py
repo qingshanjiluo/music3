@@ -4957,7 +4957,7 @@ function mtAllFoldStat(){
   _d.style.position='absolute'; _d.style.left=_r.left+'px'; _d.style.top=(_r.bottom+2)+'px';
   clearTimeout(window._mtGuardAllFoldStatT);
   if(window._mtGuardAllFoldStat===undefined){ var _init=false; try{ _init=(localStorage.getItem('_mtGuardAllFoldStat')==='1'); }catch(_){} window._mtGuardAllFoldStat=_init; }
-  if(!window._mtGuardAllFoldStat){ _d.style.display='none'; clearTimeout(window._mtGuardAllFoldStatT); window._mtGuardAllFoldStatT=setTimeout(function(){ if(_d.innerHTML){ _d.style.display='none'; } }, 8000); } /* R242 8s自动隐定时触发前验innerHTML非空(全复位后innerHTML清R240, 8s自动隐不隐空innerHTML浮层免无副作用触发) */
+  if(!window._mtGuardAllFoldStat){ _d.style.display='none'; clearTimeout(window._mtGuardAllFoldStatT); window._mtGuardAllFoldStatT=setTimeout(function(){ if(_d.innerHTML){ _d.style.display='none'; _d.innerHTML=''; } }, 8000); } /* R242 8s自动隐定时触发前验innerHTML非空(全复位后innerHTML清R240, 8s自动隐不隐空innerHTML浮层免无副作用触发) + R247 8s自动隐定时触发隐display后清innerHTML(免全复位后8s自动隐触发隐浮层后innerHTML残留旧SVG, 与R240/R242全复位后innerHTML清/8s自动隐定时innerHTML非空校验同域) */
 }
 /* R234 全折叠域5域折叠态总控浮层折叠记忆切IIFE: #mtallfoldstat点切折叠记忆态(window._mtGuardAllFoldStat+localStorage._mtGuardAllFoldStat), 折叠态常驻省高/展开态8s自动隐, 与R218全折叠域总控面板折叠记忆同语言 */
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtallfoldstat'){ e.stopPropagation();
