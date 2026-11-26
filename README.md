@@ -5170,3 +5170,37 @@ R188 `#mtmetsum` hover 委托 `d.innerHTML=_lines.replace(...)` 重写 `#mtmetsu
 `#mtmetsum`/copy + 点 copy 验 toast「无双指标逐轮明细可复制」，剪贴板 / 降级只验 toast 出口（真剪贴板内容 headless 不验，`copy` 文本
 拼逻辑验 `mtMetSumDetailCopy` 出口 toast），不真跑 `mtRun` 免 tick 污染 `runs`）。
 
+---
+
+## 第204轮（前端 R190 · goal round167）：`#mtmetsum` 双指标汇总 hover 逐轮明细浮层补 `#mtmetsumdetailcopy` 复制钮联动（`#mtmetsumdetail` hover 显浮层时 copy 显，hover 逐轮明细时顺手复制免移开找常驻位，浮层内 + 常驻双入口）
+
+**流畅性（hover 逐轮明细顺手复制免移开）**：R189 `#mtmetsumdetailcopy` 挂 `#mtmetsum` 旁常驻位（`mtMetSumDraw` 数据显隐），hover
+`#mtmetsumdetail` 浮层看逐轮明细时想复制要移开点 `#mtmetsum` 旁常驻 copy，**浮层内没复制入口**（hover 浮层逐轮明细时顺手复制免移开
+找常驻 copy）。`#mtmetsum` hover 委托（R188 区）改：`#mtmetsum` 有数据 hover 显 `#mtmetsumdetail` 浮层时 `#mtmetsumdetailcopy` 同步显
+（`mouseenter` 有数据 `cp.style.display='inline-block'`），`mouseleave` 浮层隐 + copy 隐（`cp.style.display='none'`）——copy 跟**浮层
+hover 态**（非 `#mtmetsum` 数据态，`mtMetSumDraw` 不控 copy 显，避免常驻显），hover 逐轮明细时 copy 同步显顺手点复制，免移开找常驻
+位，浮层内 + 常驻双入口（hover 浮层看逐轮明细时顺手复制 / 不 hover 时 `#mtmetsum` 旁常驻 copy 也在（`mtMetSumDraw` 数据显 `#mtmetsum`
+时常驻位 copy 可点），双入口同 `mtMetSumDetailCopy`）。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(4) → #mtmetsum hover（mouseenter）→ #mtmetsumdetail 浮层显 + #mtmetsumdetailcopy 显（hover
+态）+ 点 copy → toast「已复制双指标逐轮明细（4 次）」；mouseleave → 浮层隐 + copy 隐`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r190_hovercopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 676→678`，断点 `_整理后分类\摇滚民谣\苏打绿\当我们一起走过.mp3`。
+
+**坑**：① copy 跟**浮层 hover 态**（非 `#mtmetsum` 数据态）：`#mtmetsum` `mouseenter` 有数据（`n>0`）显 `#mtmetsumdetail` 浮层时
+`cp.style.display='inline-block'` 显 copy / `mouseleave` 浮层隐 `cp.style.display='none'` 隐 copy——copy 显隐跟 hover 态，不跟
+`#mtmetsum` 数据态（`mtMetSumDraw` 不控 copy 显，避免常驻显）② `mtMetSumDraw`（R189 区）改不控 copy（R189 `mtMetSumDraw` 有数据
+`cp.style.display='inline-block'` 常驻显 → R190 去，copy 跟 hover 态，`#mtmetsum` 旁常驻位 copy 只 hover 浮层时显，非 hover 不显
+——避免 `#mtmetsum` 有数据时 copy 常驻占位，hover 才显顺手复制）③ `#mtmetsumdetailcopy` 挂 `#mtmetsum` 旁独立位（R189 坑，非
+`#mtmetsumdetail` 内防 `d.innerHTML` 冲掉），`#mtdeltabar` 内 `#mtmetsum` 后 `inline-block`，hover 浮层显时 copy 显（`#mtmetsum` 旁
+copy 跟浮层 hover 态，hover 浮层看逐轮明细时 copy 同步在 `#mtmetsum` 旁显，顺手点 copy 复制免移开找）④ `mtMetSumDetailCopy`（R189
+复制函数，读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼「#music3 双指标逐轮明细 · <ts>」+ 逐轮明细 + 均值 / 合计，`navigator.
+clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制双指标逐轮明细（N 次）」）复用，hover 浮层内 copy + 常驻 copy 同
+`mtMetSumDetailCopy`，双入口同复制函数不重复实现 ⑤ 与 R188 hover 浮层 / R189 常驻 copy**双入口**（R188 `#mtmetsum` hover 显
+`#mtmetsumdetail` 逐轮明细浮层看，R189 `#mtmetsum` 旁常驻 copy 复制，R190 copy 跟浮层 hover 态——hover 逐轮明细时 copy 同步显
+顺手复制 + 不 hover 时常驻 copy 也可点，浮层内 + 常驻双入口，复制出口两处）⑥ 验收**函数级**（写 `_mtRunHist`/`_mtRunDelta` 4 条 +
+`#mtmetsum` `dispatchEvent` `mouseenter` 验 `#mtmetsumdetail` 浮层显 + `#mtmetsumdetailcopy` hover 态显 + 点 copy 验 toast「已复制
+双指标逐轮明细（4 次）」，`mouseleave` 验浮层 + copy 隐，不真跑 `mtRun` 免 tick 污染 `runs`；copy 复制只验 toast 出口，真剪贴板内容
+headless 不验）。
+

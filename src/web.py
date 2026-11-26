@@ -4052,8 +4052,7 @@ function mtMetSumDraw(){
   else if(typeof window._mtPaused!=='undefined' && window._mtPaused){ el.style.color='var(--warn)'; }
   else{ el.style.color=''; } /* 默认色继承, 续跑/非取消清 */
   el.style.display='inline-block';
-  const _cp=$('#mtmetsumdetailcopy'); /* R189 逐轮明细复制钮: 双指标有数据才显(贴 #mtdeltabar 内 #mtmetsum 旁常驻位, 跟 #mtmetsum 数据显隐非 hover 态) */
-  if(_cp){ _cp.style.display='inline-block'; }
+  /* R190: #mtmetsumdetailcopy 跟浮层 hover 态(#mtmetsum mouseenter 有数据显/mouseleave 隐), mtMetSumDraw 不控 copy 显隐(非数据态控, 避免常驻显) */
 }
 /* 双指标汇总 hover 显逐轮明细(R188): #mtmetsum mouseenter -> #mtmetsumdetail 浮层显近N次每轮耗时+补入明细列表(第1次1.2s+8/第2次0.8s+5/…)+均值/合计, 常驻汇总hover看逐轮明细(与R186三键状态灯hover详情同「hover看逐条」语言), 读 _mtRunHist/_mtRunDelta 逐条拼 */
 (function(){
@@ -4075,7 +4074,7 @@ function mtMetSumDraw(){
       const _bSum=b.length?b.reduce((a,c)=>a+c,0):0;
       _lines+='\n均值 '+_hAvg+'s/次 · 合计 +'+_bSum;
       d.innerHTML=_lines.replace(/\n/g,'<br>');
-      if(cp){ cp.style.display='inline-block'; } /* 逐轮明细有数据才显复制钮(R189) */
+      if(cp){ cp.style.display='inline-block'; } /* R190 copy 跟浮层 hover 态: 有数据 hover 显浮层时 copy 显, 点 copy 复制免移开找常驻位 */
       d.style.display='block';
     }
     /* 视口跟随定位(R168 同 getBoundingClientRect + flip): #mtmetsum 下方浮层, 靠右/靠底不溢出 */
@@ -4089,7 +4088,7 @@ function mtMetSumDraw(){
     if(ty+dh>window.innerHeight-8){ ty=Math.max(8, r.top-dh-2); }
     d.style.top=ty+'px';
   });
-  el.addEventListener('mouseleave', function(){ d.style.display='none'; d.innerHTML=''; if(cp){ cp.style.display='none'; } });
+  el.addEventListener('mouseleave', function(){ d.style.display='none'; d.innerHTML=''; if(cp){ cp.style.display='none'; } /* R190 离隐 copy, 跟浮层 hover 态 */ });
 })();
 /* 双指标逐轮明细复制(R189): #mtmetsumdetailcopy 点 -> 复制「#music3 双指标逐轮明细·<ts>」+逐轮明细文本到剪贴板(navigator.clipboard, _copyFallback降级), 贴工单/记录维护日志, 与R169详情复制同「复制出口」语言 */
 function mtMetSumDetailCopy(){
