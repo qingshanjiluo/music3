@@ -4473,36 +4473,48 @@ function mtGuardFoldStatCopy(){
 /* 维护守护区折叠全链路总控(R209): #mtguardfoldctl 点 -> 拼内联SVG折叠全链路面板(三域折叠钮+折叠联动R206+折叠记忆R204/R205localStorage+三域折叠态总览R207+折叠态PNG/文本R208全折叠出口分块标位), 显#mtguardfoldctld浮层, 折叠域能力/出口全景图免分散找, 与R199总览面板语言同 */
 function mtGuardFoldCtl(){
   const d=$('#mtguardfoldctld'); if(!d) return;
-  const _W=400, _H=180, _p=10;
+  const _W=400, _H=236, _p=10;
   let _svg='<svg width="'+_W+'" height="'+_H+'" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
-  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区折叠全链路总控</text>';
-  /* 块1: 三域折叠钮 */
-  _svg+='<rect x="'+_p+'" y="22" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
-  _svg+='<text x="'+(_p+6)+'" y="36" font-size="9" fill="var(--dim)">三域折叠钮</text>';
-  const _fbtns=['#mtmetfold 双图区折叠(R159)','#mtguardpanelfold 总览面板折叠(R202)','#mtguardfoldall 全浮层折叠(R203)'];
-  for(let _i=0;_i<3;_i++){ _svg+='<text x="'+(_p+8)+'" y="'+(48+_i*8)+'" font-size="8" fill="var(--ink)">'+_fbtns[_i]+'</text>'; }
+  _svg+='<text x="'+_p+'" y="14" font-size="10" font-weight="600" fill="var(--ink)">维护守护区折叠全链路总控（全折叠域5域）</text>';
+  /* 块1: 全折叠域5域折叠钮(R225三域->全折叠域5域加折叠全链路/全折叠域总控面板) */
+  _svg+='<rect x="'+_p+'" y="22" width="180" height="66" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="36" font-size="9" fill="var(--dim)">全折叠域5域折叠钮</text>';
+  const _fbtns=['#mtmetfold 双图区(R159)','#mtguardpanelfold 总览面板(R202)','#mtguardfoldall 全浮层(R203)','#mtguardfoldctl 折叠全链路(R209)','#mtguardalldomain 全折叠域(R216)'];
+  for(let _i=0;_i<5;_i++){ _svg+='<text x="'+(_p+8)+'" y="'+(48+_i*9)+'" font-size="8" fill="var(--ink)">'+_fbtns[_i]+'</text>'; }
   /* 块2: 折叠联动 */
   _svg+='<rect x="'+(_p+190)+'" y="22" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
   _svg+='<text x="'+(_p+196)+'" y="36" font-size="9" fill="var(--dim)">折叠联动 (R206)</text>';
   _svg+='<text x="'+(_p+198)+'" y="48" font-size="8" fill="var(--ink)">全浮层折叠态强制总览面板折叠</text>';
   _svg+='<text x="'+(_p+198)+'" y="58" font-size="8" fill="var(--ink)">_mtGuardFoldAll→_mtGuardPanelFold</text>';
   _svg+='<text x="'+(_p+198)+'" y="68" font-size="8" fill="var(--dim)">展开态恢复自身localStorage值</text>';
-  /* 块3: 折叠记忆 */
-  _svg+='<rect x="'+_p+'" y="78" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
-  _svg+='<text x="'+(_p+6)+'" y="92" font-size="9" fill="var(--dim)">折叠记忆 (R204/R205)</text>';
-  _svg+='<text x="'+(_p+8)+'" y="104" font-size="8" fill="var(--ink)">localStorage _mtGuardFoldAll(全浮层)</text>';
-  _svg+='<text x="'+(_p+8)+'" y="114" font-size="8" fill="var(--ink)">localStorage _mtGuardPanelFold(总览面板)</text>';
-  _svg+='<text x="'+(_p+8)+'" y="124" font-size="8" fill="var(--ink)">localStorage _mtMetFold(双图区)</text>';
-  /* 块4: 三域折叠态总览 */
-  _svg+='<rect x="'+(_p+190)+'" y="78" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
-  _svg+='<text x="'+(_p+196)+'" y="92" font-size="9" fill="var(--dim)">三域折叠态总览 (R207)</text>';
-  _svg+='<text x="'+(_p+198)+'" y="104" font-size="8" fill="var(--ink)">▣ #mtguardfoldstat 三域折叠态SVG</text>';
-  _svg+='<text x="'+(_p+198)+'" y="114" font-size="8" fill="var(--ink)">_mtguardfoldstatd 内联SVG色带</text>';
-  /* 块5: 折叠态 PNG / 文本 */
-  _svg+='<rect x="'+_p+'" y="134" width="180" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
-  _svg+='<text x="'+(_p+6)+'" y="148" font-size="9" fill="var(--dim)">折叠态 PNG / 文本 (R208)</text>';
-  _svg+='<text x="'+(_p+8)+'" y="160" font-size="8" fill="var(--ink)">⬇ #mtguardfoldstatpng PNG导出</text>';
-  _svg+='<text x="'+(_p+8)+'" y="170" font-size="8" fill="var(--ink)">⧉ #mtguardfoldstatcopy 文本复制</text>';
+  /* 块3: 折叠记忆(R225三域->全折叠域5域加折叠全链路/全折叠域总控面板) */
+  _svg+='<rect x="'+_p+'" y="94" width="180" height="66" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="108" font-size="9" fill="var(--dim)">折叠记忆 (R204/R205)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="120" font-size="8" fill="var(--ink)">localStorage _mtGuardFoldAll(全浮层)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="130" font-size="8" fill="var(--ink)">localStorage _mtGuardPanelFold(总览)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="140" font-size="8" fill="var(--ink)">localStorage _mtMetFold(双图区)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="150" font-size="8" fill="var(--ink)">localStorage _mtGuardFoldCtl(全链路)</text>';
+  _svg+='<text x="'+(_p+8)+'" y="156" font-size="8" fill="var(--ink)">localStorage _mtGuardAllDomain(全折叠域)</text>';
+  /* 块4: 全折叠域5域折叠态总览(R225三域->全折叠域5域加折叠全链路/全折叠域总控面板) */
+  _svg+='<rect x="'+(_p+190)+'" y="94" width="180" height="66" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+196)+'" y="108" font-size="9" fill="var(--dim)">全折叠域5域折叠态总览 (R207/R224)</text>';
+  _svg+='<text x="'+(_p+198)+'" y="120" font-size="8" fill="var(--ink)">▣ #mtguardfoldstat 全折叠域5域SVG</text>';
+  _svg+='<text x="'+(_p+198)+'" y="130" font-size="8" fill="var(--ink)">_mtguardfoldstatd 内联SVG色带</text>';
+  _svg+='<text x="'+(_p+198)+'" y="140" font-size="8" fill="var(--dim)">R224三域->全折叠域5域</text>';
+  /* 块5: 全折叠域5键当前态(R225补5键/5标志/5折叠钮/7浮层当前态, 与R222/R223/R224补全折叠域字段同域) */
+  _svg+='<rect x="'+_p+'" y="166" width="360" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="180" font-size="9" fill="var(--dim)">全折叠域当前态 (R222/R223/R224同域)</text>';
+  const _fl5c=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _kn5c=['Met','Pan','All','Ctl','Dom'];
+  const _cw5c=Math.floor((360-12)/5)-2;
+  for(let _i=0;_i<5;_i++){
+    const _sx=_p+6+_i*(Math.floor((360-12)/5));
+    const _scol=(_fl5c[_i]==='0')?'var(--ok)':'var(--bad)';
+    _svg+='<rect x="'+_sx+'" y="188" width="'+_cw5c+'" height="14" rx="2" fill="var(--bg2)" stroke="'+_scol+'"/><text x="'+(_sx+2)+'" y="198" font-size="7" fill="'+_scol+'">'+_kn5c[_i]+'='+_fl5c[_i]+'</text>';
+  }
+  /* 块6: 折叠态 PNG / 文本 */
+  _svg+='<rect x="'+_p+'" y="220" width="360" height="12" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="229" font-size="8" fill="var(--ink)">⬇ #mtguardfoldstatpng · ⧉ #mtguardfoldstatcopy · ⬇ #mtguardfoldctlpng · ⧉ #mtguardfoldctlcopy</text>';
   /* 时间戳 */
   _svg+='<text x="'+_p+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
   _svg+='</svg>';
@@ -4587,16 +4599,18 @@ function mtGuardFoldCtlPng(){
 /* 折叠全链路文本复制(R210): #mtguardfoldctscopy 点 -> 读折叠全链路五块(三域折叠钮+折叠联动R206+折叠记忆R204/R205+三域折叠态总览R207+折叠态PNG/文本R208)拼全链路文本到剪贴板, 折叠全链路可文本留存/贴工单, 与R196/R201/R208复制出口同语言 */
 function mtGuardFoldCtlCopy(){
   let _lines='#music3 维护守护区折叠全链路总控 · '+new Date().toLocaleString()+'\n';
-  _lines+='[三域折叠钮]\n';
-  _lines+='#mtmetfold 双图区折叠(R159) · #mtguardpanelfold 总览面板折叠(R202) · #mtguardfoldall 全浮层折叠(R203)\n';
+  _lines+='\n[全折叠域5域折叠钮]\n';
+  _lines+='#mtmetfold 双图区(R159) · #mtguardpanelfold 总览面板(R202) · #mtguardfoldall 全浮层(R203) · #mtguardfoldctl 折叠全链路(R209) · #mtguardalldomain 全折叠域(R216)\n';
   _lines+='\n[折叠联动 (R206)]\n';
   _lines+='全浮层折叠态强制总览面板折叠(_mtGuardFoldAll→_mtGuardPanelFold) · 展开态恢复自身localStorage值\n';
   _lines+='\n[折叠记忆 (R204/R205)]\n';
-  let _g1='', _g2='', _g3='';
-  try{ _g1=localStorage.getItem('_mtGuardFoldAll')||'0'; _g2=localStorage.getItem('_mtGuardPanelFold')||'0'; _g3=localStorage.getItem('_mtMetFold')||'0'; }catch(_){}
-  _lines+='localStorage _mtGuardFoldAll='+_g1+' · _mtGuardPanelFold='+_g2+' · _mtMetFold='+_g3+'\n';
-  _lines+='\n[三域折叠态总览 (R207)]\n';
-  _lines+='▣ #mtguardfoldstat 三域折叠态SVG · #mtguardfoldstatd 内联SVG色带\n';
+  let _g1='', _g2='', _g3='', _g4='', _g5='';
+  try{ _g1=localStorage.getItem('_mtGuardFoldAll')||'0'; _g2=localStorage.getItem('_mtGuardPanelFold')||'0'; _g3=localStorage.getItem('_mtMetFold')||'0'; _g4=localStorage.getItem('_mtGuardFoldCtl')||'0'; _g5=localStorage.getItem('_mtGuardAllDomain')||'0'; }catch(_){}
+  _lines+='localStorage _mtGuardFoldAll='+_g1+' · _mtGuardPanelFold='+_g2+' · _mtMetFold='+_g3+' · _mtGuardFoldCtl='+_g4+' · _mtGuardAllDomain='+_g5+'\n';
+  _lines+='\n[全折叠域5域折叠态总览 (R207/R224)]\n';
+  _lines+='▣ #mtguardfoldstat 全折叠域5域折叠态SVG · #mtguardfoldstatd 内联SVG色带\n';
+  _lines+='\n[全折叠域当前态 (R222/R223/R224同域)]\n';
+  _lines+='localStorage 5键: _mtMetFold='+_g3+' · _mtGuardPanelFold='+_g2+' · _mtGuardFoldAll='+_g1+' · _mtGuardFoldCtl='+_g4+' · _mtGuardAllDomain='+_g5+'\n';
   _lines+='\n[折叠态 PNG / 文本 (R208)]\n';
   _lines+='⬇ #mtguardfoldstatpng PNG导出 · ⧉ #mtguardfoldstatcopy 文本复制\n';
   _lines+='\n[折叠全链路 (R209/R210)]\n';
