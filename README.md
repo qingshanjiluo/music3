@@ -6087,3 +6087,39 @@ IIFE `document` click 委托纪律；首跑 IIFE 语法多 `)` `node=1`，修正
 
 **坑**：① `#mtguardfoldresetpng` 小钮挂 `#mtguardfoldresetcopy` 旁常驻位（`#mtguardfoldresetcopy` 后 `inline-block`，维护守护区全折叠记忆重置详情 PNG 导出常驻入口，非 hover 态控——`#mtguardfoldreset` 全折叠记忆重置 + `#mtguardfoldresetcopy` 重置详情复制 + `#mtguardfoldresetpng` 重置详情 PNG 三入口并排，全折叠域一键复位 + 重置详情文本 / 图片双留存）② `mtGuardFoldResetPng` 拼全折叠记忆重置详情内联 SVG（4 键 + 4 标志 + 4 折叠钮 + 6 浮层复位状态色带 + 时间戳，各分块标题 `--dim` 灰 + 色带 `rect`（复位态 `--ok` 绿 / 非复位 `--bad` 红 / 浮层非 `none` `--dim` 灰）+ 数值文案，`#f7f5f0` 浅色底 fillRect（透明底贴工单看不清，同 R158 浅色底纪律），`toBlob` 不可用 `_fallbackCopy` 复制 SVG 源码 + toast「已复制全折叠记忆重置详情 SVG（PNG 导出不可用降级）」，与 R158/R198/R200/R208 PNG 导出读内联 SVG `canvas` 转 PNG 下载 + `toBlob` 降级复制 SVG 源码语言同）③ SVG 拼接引号配平（SVG 属性值用双引号 `"` 外层单引号 `'` 串拼接，`'<text x="8" y="'+_y+'" ...>'`，免 Python 写 JS 时 `'` 转义破坏嵌套引号——首跑 SVG 拼接 `'+_y+'` 嵌套引号配平错 `node=1`（`missing ) after argument list`），重写函数体 SVG 拼接双引号属性值 + 单引号外层串后 `node=0`，同 R212/R214 IIFE 多 `)` 语法修正纪律——SVG 拼接引号配平坑）④ `#mtguardfoldresetpng` IIFE 用 **`document` click 委托**（维护 tab 懒加载，非 IIFE 顶层直绑，同 R212 `#mtguardfoldreset` / R214 `#mtguardfoldresetcopy` IIFE `document` click 委托纪律）⑤ 与 R214 `#mtguardfoldresetcopy` 重置详情文本复制**分工**（R214 重置详情文本复制贴工单 / 记录，R215 重置详情 PNG 存档 / 图片贴工单——重置详情文本 / 图片双留存，`#mtguardfoldresetcopy` 文本 + `#mtguardfoldresetpng` 图片双出口，全折叠域一键复位 + 详情双留存）⑥ 与 R158 `#mtmetpng` / R198 `#mtguardsnappng` / R200 `#mtguardpanelpng` / R208 `#mtguardfoldstatpng` PNG 导出**语言同**（各 PNG 导出读 / 拼内联 SVG `canvas` 转 PNG 下载，`toBlob` 不可用降级复制 SVG 源码，全折叠记忆重置详情 PNG 同语言，各 PNG 命名区分数据源「全折叠记忆重置详情」）⑦ 验收**函数级**（点 `#mtguardfoldreset` 重置 + 点 `#mtguardfoldresetpng` 验 toast「已下载全折叠记忆重置详情 PNG」/ 降级「已复制全折叠记忆重置详情 SVG」，`canvas` / `toBlob` 下载 headless 验 toast 出口，真 PNG 文件不验，不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验 toast 出口，色带 / 文案渲染逻辑同 R198/R200/R208 PNG 拼内联 SVG 读数据源逻辑）。
 
+---
+
+## 第230轮（前端 R216 · goal round193）：维护守护区全折叠域总控面板（`#mtguardalldomain` 小钮，点 `#mtguardalldomain` 显 `#mtguardalldomains` 浮层内联全折叠域总控面板（四折叠记忆 `localStorage` 键 + 四折叠出口 + 全折叠重置 / 详情复制 / 详情 PNG + 全浮层复位出口一张全折叠域总控图，全折叠域能力 / 出口全景图免分散找，与 R209 折叠全链路总控同语言）
+
+**完善性（全折叠域能力 / 出口全景图免分散找）**：R209 `#mtguardfoldctl` 折叠全链路总控看全折叠出口，但**全折叠记忆重置域（`#mtguardfoldreset` 重置 + `#mtguardfoldresetcopy` 详情复制 +
+`#mtguardfoldresetpng` 详情 PNG + 全浮层复位）没独立总控面板**，`#mtguardalldomain` 全折叠域总控面板（四折叠记忆键 + 四折叠出口 + 全折叠重置 / 详情双出口 + 全浮层复位出口全景图），全折叠域
+能力 / 出口一张总控图，与 R209 折叠全链路总控同语言。`#mtguardfoldresetpng` 旁加**`#mtguardalldomain`** 小钮（`▣ 全折叠域`，`#mtguardfoldresetpng` 后常驻位）+ **`#mtguardalldomains`** 浮层
+div，点 `#mtguardalldomain` → **`mtGuardAllDomain`**（拼内联 SVG 全折叠域总控面板六块（`[四折叠记忆 localStorage 键]`（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`
+各值 + 色带（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红））+ `[四折叠出口]`（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/`#mtguardfoldctl` 各钮文案）+ `[全折叠重置]`
+（`#mtguardfoldreset` 全折叠记忆一键复位标位）+ `[重置详情复制 / PNG]`（`#mtguardfoldresetcopy` 重置详情复制 + `#mtguardfoldresetpng` 重置详情 PNG 双出口标位）+ `[全浮层复位]`
+（`#mtguardpaneld`/`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail` 6 浮层 `display` 色带（`none` 复位 `--ok` 绿 / 非 `none` `--dim` 灰））
++ `[三域折叠态总览 (R207)]`（`#mtguardfoldstat` 三域折叠态 SVG + `#mtguardfoldstatpng`/`#mtguardfoldstatcopy` 双出口标位）），`#mtguardalldomains` 挂 `#mtguardalldomain` 下沿
+`z-index:70` + 8s 自动隐 `window._mtGuardAllDomainT`）——全折叠域能力 / 出口全景图免分散找，与 R209 折叠全链路总控同语言。
+
+**E2E**：`点 #mtguardalldomain → #mtguardalldomains 内联 SVG（含 <svg + 六块标题）+ display=block`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图
+r216_alldomain.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 730→732`，断点 `_英文歌\Hey Soul Sister.mp3`。
+
+**坑**：① `#mtguardalldomain` 小钮挂 `#mtguardfoldresetpng` 旁常驻位（`#mtguardfoldresetpng` 后 `inline-block`，维护守护区全折叠域总控常驻入口，非 hover 态控——`#mtguardfoldreset`
+全折叠记忆重置 + `#mtguardfoldresetcopy` 重置详情复制 + `#mtguardfoldresetpng` 重置详情 PNG + `#mtguardalldomain` 全折叠域总控四入口并排，全折叠域一键复位 + 详情双留存 + 全景总控）②
+`#mtguardalldomains` 浮层 div（`#mtguardfoldctld` 后，`z-index:70` + `white-space:nowrap` + `pointer-events:none`，全折叠域总控浮层，`#f7f5f0` 底 + `--line` 描边 + `box-shadow` 微浮，
+同 R197/R199/R207/R209 各浮层 div 纪律）③ `mtGuardAllDomain` 拼内联 SVG 全折叠域总控面板六块（`music3 全折叠域总控面板 · <时间戳>` 头 + 各分块 `--line` 分隔线 + 标题 `--dim` 灰，
+`[四折叠记忆 localStorage 键]` 4 色带（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ `[四折叠出口]` 4 钮文案 + `[全折叠重置]` / `[重置详情复制/PNG]` 各出口标位 `--ok` 绿 +
+`[全浮层复位]` 6 浮层 `display` 色带 + `[三域折叠态总览 (R207)]` 出口标位，读 `localStorage` 4 键值 + 4 折叠钮 `textContent` + 6 浮层 `style.display` 实时拼 SVG，与 R197 `mtGuardSnap` /
+R199 `mtGuardPanel` / R207 `mtGuardFoldStat` / R209 `mtGuardFoldCtl` 各内联 SVG 总控拼分块标位 / 色带同语言）④ `#mtguardalldomain` IIFE 用 **`document` click 委托**（维护 tab 懒加载，
+非 IIFE 顶层直绑，同 R212 `#mtguardfoldreset` / R214 `#mtguardfoldresetcopy` / R215 `#mtguardfoldresetpng` IIFE `document` click 委托纪律）⑤ 与 R209 `#mtguardfoldctl` 折叠全链路
+总控**分工**（R209 折叠全链路总控看全折叠出口（`#mtguardfoldctld` 8s 自动隐），R216 全折叠域总控面板看全折叠域能力 / 出口全景（`#mtguardalldomains` 8s 自动隐），全折叠出口全景
++ 全折叠域能力 / 出口全景双总控，`#mtguardalldomain` 全折叠域总控面板看全折叠域，`#mtguardfoldctl` 折叠全链路看全折叠链路）⑥ 与 R207 `#mtguardfoldstat` 三域折叠态总览**分工**
+（R207 三域折叠态总览看三域 `localStorage` 折叠记忆态，R216 全折叠域总控面板看全折叠域能力 / 出口全景（含三域折叠态总览出口标位 + 全折叠重置 / 详情双出口 + 全浮层复位），三域
+折叠态 + 全折叠域全景双总控）⑦ 与 R197 `#mtguardsnap` / R199 `#mtguardpanel` / R207 `#mtguardfoldstat` / R209 `#mtguardfoldctl` 内联 SVG 总控面板族**语言同**（各总控面板拼内联
+SVG 分块标位 / 色带 + `#...d` 浮层 + `getBoundingClientRect` 下沿定位 + `clearTimeout` 8s 自动隐，全折叠域总控面板同语言，各面板分块不同：四段快照 / 能力出口总览 / 三域折叠态 /
+折叠全链路 / 全折叠域全景）⑧ 验收**函数级**（点 `#mtguardalldomain` 验 `#mtguardalldomains` `innerHTML` 含 `<svg` + 六块标题（`[四折叠记忆`/`[四折叠出口]`/`[全折叠重置]`/
+`[重置详情复制`/`[全浮层复位]`/`[三域折叠态总览`）+ `display=block`，`localStorage` 4 键 / 4 折叠钮 / 6 浮层读值验 SVG 拼逻辑，不真跑 `mtRun` 免 tick 污染 `runs`；8s 自动隐验
+`clearTimeout(window._mtGuardAllDomainT)` + `setTimeout` 重置，非真等 8s）。
+

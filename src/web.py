@@ -1073,7 +1073,9 @@ body._nosplabel .mtspark-lastval{display:none}
     <button type="button" id="mtguardfoldreset" title="重置维护守护区全折叠记忆(localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll/_mtGuardFoldCtl全清0+全折叠出口#mtmetfold/_mtguardpanelfold/_mtguardfoldall/_mtguardfoldctl文案/display恢复展开态, 维护守护区全折叠记忆一键复位)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">↺ 重置折叠</button>
     <button type="button" id="mtguardfoldresetcopy" title="全折叠记忆重置详情复制(4键localStorage复位值+4window标志复位值+4折叠钮文案复位+6浮层display复位+重置时间戳到剪贴板, 全折叠记忆重置详情可文本留存/贴工单, 与R196/R201/R208复制出口同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⧉ 重置复制</button>
     <button type="button" id="mtguardfoldresetpng" title="全折叠记忆重置详情PNG导出(4键+4标志+4折叠钮+6浮层复位状态SVG转canvas下载music3_全折叠记忆重置详情_ts.png, 全折叠记忆重置详情PNG存档/贴工单, 与R158/R198/R200/R208PNG导出同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">⬇ 重置PNG</button>
+    <button type="button" id="mtguardalldomain" title="维护守护区全折叠域总控面板(四折叠记忆localStorage键+四折叠出口+全折叠重置/详情复制/详情PNG+全浮层复位出口一张全折叠域总控图, 全折叠域能力/出口全景图免分散找, 与R209折叠全链路总控同语言)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px;vertical-align:middle">▣ 全折叠域</button>
     <div id="mtguardfoldctld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
+    <div id="mtguardalldomains" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardfoldstatd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardpaneld" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
     <div id="mtguardsnapd" style="display:none;position:absolute;z-index:70;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:10px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;pointer-events:none"></div>
@@ -4644,6 +4646,36 @@ function mtGuardFoldResetPng(){
   _img.src='data:image/svg+xml;base64,'+_b64;
 }
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardfoldresetpng'){ e.stopPropagation(); mtGuardFoldResetPng(); } }); })();
+/* R216 全折叠域总控面板: #mtguardalldomain 点->拼内联SVG全折叠域总控面板六块(四折叠记忆localStorage键+四折叠出口+全折叠重置+重置详情复制/PNG+全浮层复位+三域折叠态总览), 全折叠域能力/出口全景图免分散找, 与R209折叠全链路总控同语言 */
+function mtGuardAllDomain(){
+  const _d=document.getElementById('mtguardalldomains'); if(!_d) return;
+  const _ls=[localStorage.getItem('_mtMetFold'),localStorage.getItem('_mtGuardPanelFold'),localStorage.getItem('_mtGuardFoldAll'),localStorage.getItem('_mtGuardFoldCtl')];
+  const _btns=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl'];
+  const _floors=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail'];
+  const _OK='rgb(47,125,85)', _BAD='rgb(163,38,26)', _DIM='rgb(119,112,106)', _ACC='#c4381f', _LN='rgb(226,221,211)';
+  const _W=460; let _y=8; const _rows=[];
+  _rows.push('<text x="8" y="'+_y+'" font-size="11" fill="'+_ACC+'" font-weight="600">music3 全折叠域总控面板 · '+new Date().toLocaleString()+'</text>'); _y+=18;
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[四折叠记忆 localStorage 键]</text>'); _y+=14;
+  for(let _i=0;_i<4;_i++){ const _key=['_mtMetFold','_mtGuardPanelFold','_mtGuardFoldAll','_mtGuardFoldCtl'][_i]; const _c=(_ls[_i]==='0')?_OK:_BAD; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_key+'='+_ls[_i]+'</text>'); _y+=13; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[四折叠出口]</text>'); _y+=14;
+  for(let _i=0;_i<4;_i++){ const _b=document.getElementById(_btns[_i]); const _v=_b?_b.textContent:'无'; _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_btns[_i]+'='+_v+'</text>'); _y+=12; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[全折叠重置]</text>'); _y+=14;
+  _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_OK+'">↺ #mtguardfoldreset 全折叠记忆一键复位(清4键+4标志+4折叠钮+全浮层)</text>'); _y+=13;
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[重置详情复制 / PNG]</text>'); _y+=14;
+  _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_OK+'">⧉ #mtguardfoldresetcopy 重置详情复制 · ⬇ #mtguardfoldresetpng 重置详情PNG</text>'); _y+=13;
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[全浮层复位]</text>'); _y+=14;
+  for(let _i=0;_i<6;_i++){ const _f=document.getElementById(_floors[_i]); const _v=_f?_f.style.display:'无'; const _c=(_v==='none')?_OK:_DIM; _rows.push('<rect x="8" y="'+(_y-8)+'" width="8" height="8" rx="2" fill="'+_c+'"/><text x="20" y="'+_y+'" font-size="9" fill="'+_DIM+'">'+_floors[_i]+'='+_v+'</text>'); _y+=12; }
+  _rows.push('<line x1="8" y1="'+_y+'" x2="'+(_W-8)+'" y2="'+_y+'" stroke="'+_LN+'"/><text x="8" y="'+(_y+14)+'" font-size="10" fill="'+_DIM+'">[三域折叠态总览 (R207)]</text>'); _y+=14;
+  _rows.push('<text x="8" y="'+_y+'" font-size="9" fill="'+_OK+'">▣ #mtguardfoldstat 三域折叠态SVG · ⬇ #mtguardfoldstatpng · ⧉ #mtguardfoldstatcopy</text>'); _y+=13;
+  const _H=_y+8;
+  const _svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+_W+'" height="'+_H+'">'+_rows.join('')+'</svg>';
+  _d.innerHTML=_svg; _d.style.display='block';
+  const _r=document.getElementById('mtguardalldomain').getBoundingClientRect();
+  _d.style.position='absolute'; _d.style.left=_r.left+'px'; _d.style.top=(_r.bottom+2)+'px';
+  clearTimeout(window._mtGuardAllDomainT);
+  window._mtGuardAllDomainT=setTimeout(function(){ _d.style.display='none'; }, 8000);
+}
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomain'){ e.stopPropagation(); mtGuardAllDomain(); } }); })();
 (function(){ const c=$('#mtguardpanel'); if(c){ c.addEventListener('click', function(e){ e.stopPropagation(); mtGuardPanel(); }); } })();
 /* 维护守护区总览PNG导出(R200): #mtguardpanelpng 点 -> 读 #mtguardpaneld 内联SVG(若无则先 mtGuardPanel 生成), canvas 转 PNG 下载「music3_维护守护总览_<ts>.png」, 能力/出口全景图PNG存档/可分享, 与R158/R198PNG导出同语言 */
 function mtGuardPanelPng(){
