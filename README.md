@@ -6037,3 +6037,41 @@ $('#mtguardfoldreset')` 直绑——`#mtguardfoldreset` 在维护 tab 懒加载�
 
 **坑**：① `mtGuardFoldReset`（R212 区）清全折叠记忆后补全浮层 `display` 复位（R213：`const _fsD=document.getElementById('mtguardfoldstatd'); if(_fsD){ _fsD.style.display='none'; }` + `const _sbD=document.getElementById('mtstatebardtl'); if(_sbD){ _sbD.style.display='none'; }` + `const _msD=document.getElementById('mtmetsumdetail'); if(_msD){ _msD.style.display='none'; }` + `const _khD=document.getElementById('mtkeyhintdetail'); if(_khD){ _khD.style.display='none'; }`，`#mtguardpaneld`/`#mtguardfoldctld` 总览面板 / 折叠全链路面板 R212 已 `display:none`，R213 补 `#mtguardfoldstatd` 三域折叠态总览 / `#mtstatebardtl` 状态详情 / `#mtmetsumdetail` 逐轮明细 / `#mtkeyhintdetail` 三键提示全浮层 `display:none` 复位默认态——全浮层（6 浮层 `#mtguardpaneld`/`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`）全 `display:none` 复位，全折叠记忆一键复位后全浮层全复位，免残留隐 / 显态）② 全浮层 `display` 复位默认态 `none`（各浮层默认隐，hover / 点触发才显，`display:none` 复位回默认隐态，不强制显——与 R212 总览面板 / 折叠全链路面板 `display:none` 复位同纪律，全浮层复位全 `none` 默认态）③ 与 R212 `#mtguardfoldreset` 全折叠记忆重置**分工**（R212 清 4 键 `localStorage` + 4 `window` 标志 + 4 折叠钮文案 / `display` 复位，R213 补全浮层 `display` 复位（6 浮层 `display:none`），全折叠记忆复位 + 全浮层复位全复位，`#mtguardfoldreset` 一键复位全折叠域 + 全浮层）④ 各浮层 `display:none` 复位非强制显（`if(_fsD){ _fsD.style.display='none'; }` 各浮层存在即 `display:none`，不强制 `display` 值——复位回默认隐态，hover / 点触发才显，全浮层复位全隐，维护守护区全浮层全复位）⑤ 与 R159 `#mtmetfold` 双图区折叠 / R204 `#mtguardfoldall` 全浮层折叠 / R205 `#mtguardpanelfold` 总览面板折叠 / R211 `#mtguardfoldctl` 折叠全链路折叠**语言同**（各折叠域 `display` 复位默认态，全折叠记忆重置 + 全浮层 `display` 复位全复位，维护守护区全折叠域全复位）⑥ 验收**函数级**（设全折叠态（4 键 `'1'` + 4 标志 `true`）+ 各浮层 `display:block` 显态 + 点 `#mtguardfoldreset` 验全浮层（6 浮层 `#mtguardpaneld`/`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`）`display` 全复位 `'none'` + 4 键全清 `'0'` + toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；全浮层 `display` 复位验 6 浮层全 `'none'`，非真渲染像素）。
 
+---
+
+## 第228轮（前端 R214 · goal round191）：维护守护区全折叠记忆重置补出口（`#mtguardfoldresetcopy` 小钮，点 `#mtguardfoldreset` 全折叠记忆重置后 `#mtguardfoldresetcopy` 复制全折叠记忆重置详情（4 键 `localStorage` 复位值 + 4 `window` 标志复位值 + 4 折叠钮文案复位 + 6 浮层 `display` 复位 + 重置时间戳）到剪贴板，全折叠记忆重置详情可文本留存 / 贴工单）
+
+**完善性（全折叠记忆重置详情文本留存 / 贴工单免手抄）**：R213 `#mtguardfoldreset` 全折叠记忆重置 + 全浮层复位，但**重置详情（4 键 / 4 标志 / 4 折叠钮 / 6 浮层
+复位状态 + 时间戳）要记录 / 贴工单得手动抄**，`#mtguardfoldresetcopy` 复制全折叠记忆重置详情到剪贴板，全折叠记忆重置详情可文本留存 / 贴工单。
+`#mtguardfoldreset` 旁加**`#mtguardfoldresetcopy`** 小钮（`⧉ 重置复制`，`#mtguardfoldreset` 后常驻位），点 `#mtguardfoldresetcopy` → **`mtGuardFoldResetCopy`**
+（读全折叠记忆重置后各数据源：`localStorage._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 复位值 + `window._mtMetFold`/`_mtGuardPanelFold`/
+`_mtGuardFoldAll`/`_mtGuardFoldCtl` 复位值 + `#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/`#mtguardfoldctl` 4 折叠钮文案 + `#mtguardpaneld`/
+`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail` 6 浮层 `display` + 重置时间戳，拼重置详情到剪贴板，
+`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制全折叠记忆重置详情」）——全折叠记忆重置详情文本留存 / 贴工单，与 R196/R201/R208 复制
+出口同语言。
+
+**E2E**：`点 #mtguardfoldreset（重置全折叠记忆）→ 点 #mtguardfoldresetcopy → toast「已复制全折叠记忆重置详情」`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r214_resetcopy.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 726→728`，断点 `_英文歌\21 Guns.mp3`。
+
+**坑**：① `#mtguardfoldresetcopy` 小钮挂 `#mtguardfoldreset` 旁常驻位（`#mtguardfoldreset` 后 `inline-block`，维护守护区全折叠记忆重置详情复制常驻入口，
+非 hover 态控——`#mtguardfoldreset` 全折叠记忆重置 + `#mtguardfoldresetcopy` 重置详情复制双入口并排，全折叠域一键复位 + 重置详情留存双出口）②
+`mtGuardFoldResetCopy` 读全折叠记忆重置后各数据源拼重置详情（`#music3 全折叠记忆重置详情 · <new Date().toLocaleString()>` 头 + `[localStorage 4键复位值]`
+（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 各 `localStorage.getItem` 值）+ `[window 4标志复位值]`（`window._mtMetFold`/
+`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 各布尔值）+ `[4折叠钮文案复位]`（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/`#mtguardfoldctl`
+各 `textContent`）+ `[6浮层display复位]`（`#mtguardpaneld`/`#mtguardfoldctld`/`#mtguardfoldstatd`/`#mtstatebardtl`/`#mtmetsumdetail`/`#mtkeyhintdetail`
+各 `style.display`），`navigator.clipboard.writeText`（`_copyFallback` 降级）+ toast「已复制全折叠记忆重置详情」，读重置后当前态（点 `#mtguardfoldresetcopy`
+即拼重置后各数据源当前值，非缓存旧值，与 R196 `mtGuardCopy` / R201 `mtGuardPanelCopy` 读当前态同纪律）③ `#mtguardfoldresetcopy` IIFE 用 **`document` click
+委托**（`document.addEventListener('click', function(e){ if(e.target.id==='mtguardfoldresetcopy'){ e.stopPropagation(); mtGuardFoldResetCopy(); } })`，
+非 IIFE 顶层 `c=$('#mtguardfoldresetcopy')` 直绑——`#mtguardfoldresetcopy` 在维护 tab 懒加载区，IIFE 顶层跑时维护 tab 未激活小钮 DOM 未渲染 `c=null` 不绑，
+维护 tab 激活后点才触发，`document` click 委托 `e.target.id==='mtguardfoldresetcopy'` 精确匹配 + `stopPropagation` 防冒泡，同 R212 `#mtguardfoldreset`
+IIFE `document` click 委托纪律；首跑 IIFE 语法多 `)` `node=1`，修正 `document.addEventListener('click', function(e){ ... });` 后 IIFE 闭合 `})();` 免多
+`)` 后 `node=0`，同 R212 `#mtguardfoldreset` IIFE 多 `)` 语法修正纪律）④ 与 R212 `#mtguardfoldreset` 全折叠记忆重置 / R213 全浮层复位**分工**（R212
+全折叠记忆一键重置清 4 键 + 4 标志 + 4 折叠钮 + 全浮层复位，R213 补全浮层 `display` 复位，R214 重置详情复制贴工单 / 记录——全折叠记忆复位 + 全浮层复位 +
+重置详情留存三出口，`#mtguardfoldreset` 复位 + `#mtguardfoldresetcopy` 留存双入口）⑤ 与 R196 `#mtguardcopy` / R201 `#mtguardpanelcopy` / R208
+`#mtguardfoldstatcopy` 复制出口**语言同**（各文本复制读各数据源拼文本到剪贴板，`navigator.clipboard.writeText` 降级，全折叠记忆重置详情复制同语言，
+重置详情自含 4 键 + 4 标志 + 4 折叠钮 + 6 浮层全复位状态标位，复制重置详情即全折叠域复位记录留存）⑥ 验收**函数级**（点 `#mtguardfoldreset` 重置全折叠
+记忆 + 点 `#mtguardfoldresetcopy` 验 toast「已复制全折叠记忆重置详情」，剪贴板 / 降级只验 toast 出口，真剪贴板内容 headless 不验，不真跑 `mtRun` 免 tick
+污染 `runs`；`mtGuardFoldResetCopy` 重置详情拼逻辑验 toast 出口，各数据源当前值读逻辑同 R196/R201/R208 读当前态复制）。
+
