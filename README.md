@@ -6325,3 +6325,29 @@ R197 `#mtguardsnap` 四段数据快照**分工**（R196/R197 四段全复制 / �
 `innerHTML` 含 `<svg` + 全折叠域 5 键色带（`MetFold=` 或 `mtMetFold`）+ 点 `#mtguardcopy` 验 toast「已复制维护守护全记录（四段）」（四段全复制含全折叠域当前态段），不真跑
 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验 5 键色带进 SVG + 四段全复制文本含全折叠域段，非真渲染像素 / 剪贴板内容）。
 
+---
+
+## 第237轮（前端 R223 · goal round200）：维护守护区能力 / 出口总览面板补全折叠域字段（`#mtguardpanel` 能力 / 出口总览内联 SVG + `#mtguardpanelcopy` 总览文本补全折叠域 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态字段，能力 / 出口总览自含全折叠域当前态）
+
+**完善性（能力 / 出口总览自含全折叠域当前态）**：R222 `#mtguardcopy` / `#mtguardsnap` 维护守护全记录 / 快照补全折叠域字段，但**`#mtguardpanel` 能力 / 出口总览（R199 区，六块）没全折叠域字段**（能力 / 出口总览要自含全折叠域当前态，
+`mtGuardPanel`（R199 区）补块 7「全折叠域当前态」（5 键 `localStorage` 色带 + 5 折叠钮 + 7 浮层，`_H=210`→`270`），`mtGuardPanelCopy`（R201 区）总览文本补第 7 段「全折叠域当前态」（5 键 + 5 标志 + 5 折叠钮 + 7 浮层），
+能力 / 出口总览自含全折叠域当前态，与 R222 维护守护全记录补全折叠域字段同域。
+
+**E2E**：`设 5 键全 '1' → 点 #mtguardpanel 生成总览（#mtguardpaneld SVG 含全折叠域当前态块）；点 #mtguardpanelcopy → toast「已复制维护守护区总览文本」（总览文本含全折叠域当前态段）`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r223_panelallfold.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 744→746`，断点 `_赵雷\南方姑娘2.mp3`。
+
+**坑**：① `mtGuardPanel`（R199 区）六块内联 SVG（三键状态灯 + 触发记录 / 四段数据源 / 复制出口 / 快照 PNG 出口 / 键盘三操作 + 状态同态 / 全库 ∞ + 完成态）补块 7「全折叠域当前态」（`_fl7` 5 键 `localStorage`（`_mtMetFold`/
+`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`，`||'0'` 降级）+ `_kn7` 5 键名缩写（`Met`/`Pan`/`All`/`Ctl`/`Dom`，色带 `rect`（`'0'` 展开 `--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 值 +
+`_btns7` 5 折叠钮（`#mtmetfold`/`#mtguardpanelfold`/`#mtguardfoldall`/`#mtguardfoldctl`/`#mtguardalldomain` 各 `textContent`），`_H=210`→`270` 加高容块 7，能力 / 出口总览自含全折叠域当前态，与 R222 维护守护全记录
+补全折叠域字段同域）② `mtGuardPanelCopy`（R201 区）总览文本六段（三键状态灯 + 触发记录 / 四段数据源 / 复制出口 / 快照 PNG 出口 / 键盘三操作 + 状态同态 / 全库 ∞ + 完成态）补第 7 段「全折叠域当前态」（`_flc` 5 键
+`localStorage` + `_wlc` 5 标志 `window` + `_b7` 5 折叠钮 + `_f7` 7 浮层，`_lines+=` 拼「[全折叠域当前态]」段（`localStorage 5键` + `window 5标志` + 5 折叠钮 + 7 浮层各值），总览文本自含全折叠域当前态，与 R222 维护守护全记录
+补全折叠域字段同域）③ `mtGuardPanelPng`（R200 区）读 `#mtguardpaneld` 内联 SVG（`mtGuardPanel` 拼），`mtGuardPanel` 补块 7 全折叠域当前态后，总览 PNG 自动含块 7，无需 `mtGuardPanelPng` 改（PNG 读 SVG 当前态自动
+完整，同 R221 `mtGuardAllDomainPng` 读 `#mtguardalldomains` SVG 自动含全折叠域字段 / R222 `mtGuardSnapPng` 读 `#mtguardsnapd` SVG 自动含全折叠域 5 键纪律）④ 与 R199 `#mtguardpanel` 能力 / 出口总览 / R201
+`#mtguardpanelcopy` 总览文本**分工**（R199/R201 能力 / 出口总览六块（三键状态灯 / 四段数据源 / 复制出口 / 快照 PNG 出口 / 键盘三操作 + 状态同态 / 全库 ∞ + 完成态），R223 补块 7 / 第 7 段全折叠域当前态（5 键 /
+5 标志 / 5 折叠钮 / 7 浮层）——能力 / 出口总览六块 + 全折叠域第七块，总览自含全折叠域当前态）⑤ 与 R222 维护守护全记录补全折叠域字段**语言同**（各维护守护全记录 / 能力出口总控读 5 键 `localStorage` + 5 标志
+`window` + 5 折叠钮 + 7 浮层拼文本 / 色带，全折叠域当前态同语言，各出口自含全折叠域出口标位）⑥ 验收**函数级**（设 5 键全 `'1'` + 点 `#mtguardpanel` 生成总览验 `#mtguardpaneld` `innerHTML` 含 `<svg` + 全折叠域
+当前态块 + 点 `#mtguardpanelcopy` 验 toast「已复制维护守护区总览文本」（总览文本含全折叠域当前态段），不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验全折叠域块进 SVG + 总览文本含全折叠域段，非真渲染像素 /
+剪贴板内容）。
+

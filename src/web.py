@@ -4210,7 +4210,7 @@ function mtGuardSnapPng(){
 /* 维护守护区能力/出口总览(R199): #mtguardpanel 点 -> 拼内联SVG总览面板(三键状态灯+四段数据源+各复制出口+快照/PNG出口分块标位), 显#mtguardpaneld浮层, 维护守护区能力/出口全景图一眼知有哪些入口/能力免分散找 */
 function mtGuardPanel(){
   const d=$('#mtguardpaneld'); if(!d) return;
-  const _W=400, _H=210, _p=10;
+  const _W=400, _H=270, _p=10;
   const _run=(typeof window._mtRunning!=='undefined' && window._mtRunning);
   const _ps=(typeof window._mtPaused!=='undefined' && window._mtPaused);
   const _ab=(typeof window._mtAborted!=='undefined' && window._mtAborted);
@@ -4273,6 +4273,20 @@ function mtGuardPanel(){
   for(let _i=0;_i<3;_i++){
     _svg+='<text x="'+(_p+198)+'" y="'+(170+_i*7)+'" font-size="7" fill="var(--dim)">'+_full[_i]+'</text>';
   }
+  /* R223 块7: 全折叠域当前态(5键localStorage色带+5折叠钮+7浮层, 能力/出口总览自含全折叠域当前态, 与R222维护守护全记录补全折叠域字段同域) */
+  _svg+='<rect x="'+_p+'" y="208" width="360" height="48" rx="4" fill="var(--bg2)" stroke="var(--line)"/>';
+  _svg+='<text x="'+(_p+6)+'" y="222" font-size="9" fill="var(--dim)">全折叠域当前态</text>';
+  const _fl7=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _kn7=['Met','Pan','All','Ctl','Dom'];
+  const _cw7=Math.floor((360-12)/5)-2;
+  for(let _i=0;_i<5;_i++){
+    const _sx=_p+6+_i*(Math.floor((360-12)/5));
+    const _scol=(_fl7[_i]==='0')?'var(--ok)':'var(--bad)';
+    _svg+='<rect x="'+_sx+'" y="228" width="'+_cw7+'" height="14" rx="2" fill="var(--bg2)" stroke="'+_scol+'"/><text x="'+(_sx+2)+'" y="238" font-size="7" fill="'+_scol+'">'+_kn7[_i]+'='+_fl7[_i]+'</text>';
+  }
+  const _btns7=['#mtmetfold','#mtguardpanelfold','#mtguardfoldall','#mtguardfoldctl','#mtguardalldomain'];
+  for(let _i=0;_i<5;_i++){ const _bb=document.getElementById(_btns7[_i]); _svg+='<text x="'+(_p+6+_i*72)+'" y="252" font-size="6" fill="var(--dim)">'+_btns7[_i].replace('#','=')+(_bb?_bb.textContent:'无')+'</text>'; }
+  const _floors7=['paneld','ctl d','statd','sbdtl','msd','khd','alld'];
   _svg+='<text x="'+_p+'" y="'+(_H-4)+'" font-size="8" fill="var(--dim)">'+new Date().toLocaleString()+'</text>';
   _svg+='</svg>';
   d.innerHTML=_svg; d.style.display='block';
@@ -4838,6 +4852,16 @@ function mtGuardPanelCopy(){
   _lines+='Space 暂停/续跑(R180) · Esc 取消(R178) · Enter 跳双图(R179) · 徽标暂停同态(R182) · 汇总同态(R183) · 指示条同态(R184)\n';
   _lines+='\n[全库 ∞ + 完成态]\n';
   _lines+='全库∞(R166, N>100000 显∞) · 完成态徽标(R187) · 全库完成详情(R187)\n';
+  /* R223 块7: 全折叠域当前态(5键localStorage+5标志window+5折叠钮+7浮层, 能力/出口总览自含全折叠域当前态, 与R222维护守护全记录补全折叠域字段同域) */
+  const _flc=[localStorage.getItem('_mtMetFold')||'0',localStorage.getItem('_mtGuardPanelFold')||'0',localStorage.getItem('_mtGuardFoldAll')||'0',localStorage.getItem('_mtGuardFoldCtl')||'0',localStorage.getItem('_mtGuardAllDomain')||'0'];
+  const _wlc=[window._mtMetFold,window._mtGuardPanelFold,window._mtGuardFoldAll,window._mtGuardFoldCtl,window._mtGuardAllDomain];
+  const _b7=['mtmetfold','mtguardpanelfold','mtguardfoldall','mtguardfoldctl','mtguardalldomain'];
+  const _f7=['mtguardpaneld','mtguardfoldctld','mtguardfoldstatd','mtstatebardtl','mtmetsumdetail','mtkeyhintdetail','mtguardalldomains'];
+  _lines+='\n[全折叠域当前态]\n';
+  _lines+='localStorage 5键: _mtMetFold='+_flc[0]+' · _mtGuardPanelFold='+_flc[1]+' · _mtGuardFoldAll='+_flc[2]+' · _mtGuardFoldCtl='+_flc[3]+' · _mtGuardAllDomain='+_flc[4]+'\n';
+  _lines+='window 5标志: _mtMetFold='+_wlc[0]+' · _mtGuardPanelFold='+_wlc[1]+' · _mtGuardFoldAll='+_wlc[2]+' · _mtGuardFoldCtl='+_wlc[3]+' · _mtGuardAllDomain='+_wlc[4]+'\n';
+  for(let _i=0;_i<5;_i++){ const _bb=document.getElementById(_b7[_i]); _lines+=_b7[_i]+'='+(_bb?_bb.textContent:'无')+'\n'; }
+  for(let _i=0;_i<7;_i++){ const _ff=document.getElementById(_f7[_i]); _lines+=_f7[_i]+'='+(_ff?_ff.style.display:'无')+'\n'; }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(_lines).then(function(){ if(typeof _toast==='function'){ _toast('已复制维护守护区总览文本', 'ok'); } }).catch(function(){ _copyFallback(_lines); });
   } else { _copyFallback(_lines); }
