@@ -5779,3 +5779,41 @@ getItem('_mtGuardPanelFold')==='1')` 读自身 `localStorage` 值，`window._mtG
 + `localStorage._mtGuardPanelFold` 存 `'1'`，再点全浮层展开验 `window._mtGuardPanelFold` 恢复自身 `localStorage` 值（`'1'` 折叠），不真跑 `mtRun` 免 tick 污染 `runs`；
 折叠联动验 `window._mtGuardPanelFold` / `#mtguardpanelfold` 文案 / `localStorage._mtGuardPanelFold` 三路全同步，展开态验 `window._mtGuardPanelFold` 恢复自身值）。
 
+---
+
+## 第221轮（前端 R207 · goal round184）：维护守护区三域折叠态总览（`#mtguardfoldstat` 小钮，点显 `#mtguardfoldstatd` 浮层内联 SVG 三域折叠态图——双图区（`_mtMetFold`）/ 总览面板（`_mtGuardPanelFold`）/ 全浮层（`_mtGuardFoldAll`）三域折叠 / 展开态色带 + `localStorage` 记忆标位，三域折叠态一眼全貌免逐点各折叠钮）
+
+**简洁性（三域折叠态全貌免逐点各折叠钮）**：R206 全浮层 + 总览面板折叠联动，但**三域折叠态要全貌得逐个点各折叠钮**（双图区 `#mtmetfold` / 总览面板
+`#mtguardpanelfold` / 全浮层 `#mtguardfoldall` 三域各折叠 / 展开态得逐点各折叠钮看，`#mtguardfoldstat` 点显三域折叠态内联 SVG 浮层（三域折叠 / 展开色带 +
+`localStorage` 记忆标位），三域折叠态一眼全貌，免逐点各折叠钮）。`#mtguardfoldall` 旁加**`#mtguardfoldstat`** 小钮（`▣ 折叠总览`，`#mtguardfoldall` 后常驻位）
++ **`#mtguardfoldstatd`** SVG 浮层（`#mtguardfoldstat` 下沿，`z-index:70`），点 `#mtguardfoldstat` → **`mtGuardFoldStat`**（读三域折叠标志（`localStorage._mtMetFold`
+双图区 / `localStorage._mtGuardPanelFold` 总览面板 / `localStorage._mtGuardFoldAll` 全浮层，`'1'` 折叠 / `'0'` 展开）拼内联 SVG 三域折叠态图：`[双图区 (#mtmetfold)]`
+折叠色带黄 `--warn` / 展开色带绿 `--ok` + `localStorage _mtMetFold = 1/0` 标位 + `[总览面板 (#mtguardpanelfold)]` 同 + `[全浮层 (#mtguardfoldall)]` 同，显
+`#mtguardfoldstatd` 浮层，8s 自动隐）——三域折叠态一眼全貌，免逐点各折叠钮，与 R197 四段快照 / R199 总览面板语言同。
+
+**E2E**：`设 localStorage._mtMetFold='1'（双图区折叠）/ _mtGuardPanelFold='0'（总览展开）/ _mtGuardFoldAll='1'（全浮层折叠）→ 点 #mtguardfoldstat → #mtguardfoldstatd
+显内联 SVG 三域折叠态图（svg 含维护守护区三域折叠态总览标题 + 双图区 / 总览面板 / 全浮层三域折叠 / 展开色带 + localStorage 记忆标位）`（绿）；端点 **30/0**、
+JS undefined NONE、CSS 320/320、node 0、console 0、截图 r207_foldstat.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 710→712`，断点 `_整理后分类\洛天依\权御天下 - 001xZXiW4aAhkL (1).mp3`。
+
+**坑**：① `#mtguardfoldstat` 小钮挂 `#mtguardfoldall` 旁常驻位（`#mtguardfoldall` 后 `inline-block`，维护守护区三域折叠态总览常驻入口，非 hover 态控——`#mtguardfoldall`
+全浮层折叠 + `#mtguardfoldstat` 三域折叠态总览双入口并排，全浮层折叠省高 + 三域折叠态全貌，维护守护区折叠域全貌 / 省高双路）② `mtGuardFoldStat` 读三域 `localStorage`
+折叠记忆拼内联 SVG（`_metFold/_pfFold/_allFold` 各域读 `localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll`（`'1'` 折叠 / `'0'` / 无展开，`try/catch` 降级 `false`
+展开态，同 R204/R205 `localStorage` 惰性读纪律），拼 `<svg width="340" height="140">`：`[双图区 (#mtmetfold)]` 行（域标签 + 折叠色带 `rect`（折叠 `--warn` 黄 / 展开
+`--ok` 绿）+ 「折叠 / 展开」文案 + `localStorage _mtMetFold = 1/0` 记忆标位）+ `[总览面板 (#mtguardpanelfold)]` 行（同色带 + `localStorage _mtGuardPanelFold` 标位）+
+`[全浮层 (#mtguardfoldall)]` 行（同色带 + `localStorage _mtGuardFoldAll` 标位），三域各 34px 行高，色带 120px 宽 `rect` 横色带（同 R184 `#mtstatebar` 色带语言），
+`d.innerHTML=_svg` 拼，`d.style.display='block'`）③ `#mtguardfoldstatd` 挂 `#mtguardfoldstat` 下沿（`#mtguardfoldstat` `getBoundingClientRect` + `position:absolute`
+定位，`top:r.bottom+2`，`z-index:70` 高于 `#mtstatebar`/`#mtmetsumdetail`/`#mtguardsnapd`/`#mtguardpaneld` 浮层，`--bg2` 底 + `--line` 描边 + `box-shadow` 微浮，
+`white-space:nowrap` 内联 SVG 不折，`pointer-events:none` 不挡下层，8s 自动隐 `clearTimeout(window._mtGuardFoldStatT)` 重置——三域折叠态总览临时看全貌不常驻，
+`setTimeout` 8s 后隐，再点重计 8s，同 R197 `mtGuardSnap` / R199 `mtGuardPanel` 8s 自动隐纪律）④ 三域 `localStorage` 记忆读非 `window` 实时标志（`mtGuardFoldStat`
+读 `localStorage._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll` 折叠记忆（跨会话留存态），非 `window._mtMetFold/_mtGuardPanelFold/_mtGuardFoldAll` 实时标志
+（当前会话态），三域折叠态总览看 `localStorage` 记忆全貌（刷新后三域折叠态），与 R205/R204 `localStorage` 惰性读同纪律——三域折叠态总览标位是 `localStorage`
+记忆值非实时标志值）⑤ 与 R206 全浮层 + 总览面板折叠联动**分工**（R206 全浮层折叠联动总览面板折叠（`_mtGuardFoldAll` 折叠态强制 `_mtGuardPanelFold=true`），
+R207 三域折叠态总览看全貌（双图区 / 总览面板 / 全浮层三域 `localStorage` 记忆折叠态色带 + 标位），折叠联动 + 折叠态全貌双路，`#mtguardfoldall` 折叠省高 +
+`#mtguardfoldstat` 三域折叠态全貌）⑥ 与 R197 `mtGuardSnap` 四段快照 / R199 `mtGuardPanel` 总览面板**语言同**（R197 四段数据快照内联 SVG（双指标 / 状态 / 完成 /
+键盘流），R199 能力 / 出口总览内联 SVG（六块分块标位），R207 三域折叠态总览内联 SVG（三域折叠 / 展开色带 + `localStorage` 记忆标位），三内联 SVG 总览语言同，
+各管各域——数据 / 能力 / 折叠三总览）⑦ 验收**函数级**（设 `localStorage._mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll` 三域折叠记忆值 + 点 `#mtguardfoldstat`
+验 `#mtguardfoldstatd` 显 + `innerHTML` 含 `<svg` + 三域名（「双图区」/「总览面板」/「全浮层」）+ 标题（「维护守护区三域折叠态总览」）+ `localStorage` 标位，不真跑
+`mtRun` 免 tick 污染 `runs`；`mtGuardFoldStat` 内联 SVG 三域 headless 验 `innerHTML` 含 `<svg` + 三域名 + 色带 + `localStorage` 标位，非真渲染 SVG 像素）。
+
