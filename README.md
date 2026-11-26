@@ -6615,3 +6615,40 @@ DOM 未渲染 `c=null` 不绑（同 R212/R214/R215/R216/R217 `document` click �
 免 tick 污染 `runs`；`#mtallfoldpng` PNG 拼逻辑验全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层字段进内联 SVG（`_rows.push` 全折叠域 5 域色带 + 5 标志色带 + 5 折叠钮文案 + 7 浮层色带），
 headless 下载 PNG 无 toast 属正常（`canvas` `toBlob` 转 PNG 下载不显 toast，降级才 toast「PNG 导出不可用」/「PNG 导出失败」，验 `console 0` + 下载成功，真 PNG 内容不验）。
 
+---
+
+## 第248轮（前端 R234 · goal round211）：维护守护区全折叠域 5 域折叠态总控浮层（`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（R234），拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG 浮层（8s 自动隐 + 折叠记忆 `localStorage._mtGuardAllFoldStat`），全折叠域 5 域折叠态总控浮层一眼全貌 + 跨会话折叠记忆）
+
+**完善性（全折叠域 5 域折叠态总控浮层一眼全貌 + 跨会话折叠记忆）**：R232/R233 全折叠域 5 域折叠态一键复制 / PNG 快照（`#mtallfoldcopy` / `#mtallfoldpng`），但**全折叠域 5 域折叠态总控浮层没加**
+（全折叠域 5 域折叠态要一眼全貌浮层 + 跨会话折叠记忆，`#mtallfoldstat` 全折叠域 5 域折叠态总控浮层（R234）拼全折叠域 5 域（双图区 / 总览面板 / 全浮层 / 折叠全链路 / 全折叠域总控面板）+ 5 键
+`localStorage` + 5 标志 `window` + 5 折叠钮文案 + 7 浮层 `display` 当前态内联 SVG（分块色带：`[全折叠域5域]` 5 域色带 + `[5标志 window]` 5 标志色带 + `[5折叠钮文案]` + `[7浮层 display]` 7 浮层色带），
+显 `#mtallfoldstatd` 浮层（`getBoundingClientRect` 下沿定位 + `z-index:70` + 8s 自动隐 + `window._mtGuardAllFoldStat` 折叠记忆 `localStorage._mtGuardAllFoldStat`（折叠态常驻省高 / 展开态 8s 自动隐），
+全折叠域 5 域折叠态总控浮层一眼全貌 + 跨会话折叠记忆，与 R232/R233 全折叠域 5 域折叠态一键复制 / PNG 快照同域，`#mtallfoldstat` 浮层读全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层拼内联 SVG 色带显浮层）。
+
+**E2E**：`设 5 键全 '1' + 5 标志全 true → 直接调 mtAllFoldStat() 拼面板 → #mtallfoldstatd SVG 含全折叠域 5 域 / 5 标志 / 5 折叠钮 / 7 浮层分块；点 #mtallfoldstat → localStorage.
+_mtGuardAllFoldStat='1' + 文案「▸ 展开全折叠域浮层」（折叠记忆切态）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r234_allfoldstat.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 766→768`，断点 `_周杰伦\跨时代.mp3`。
+
+**坑**：① `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层小钮（R234，维护守护区小钮区 `#mtallfoldpng` 后）+ `#mtallfoldstatd` 浮层 div（`display:none` + `position:absolute` + `z-index:70` + 内联 SVG）+
+`mtAllFoldStat` 函数（拼全折叠域 5 域 / 5 键 / 5 标志 / 5 折叠钮 / 7 浮层当前态内联 SVG：`_rows` 数组拼标题 + `[全折叠域5域]` 5 域色带（`_doms` 数组 5 元素，各域 `localStorage` 折叠态（`'0'` 展开
+`--ok` 绿 / 非 `'0'` 折叠 `--bad` 红）+ 域名 + 键名 + 值 + `[5标志 window]` 5 标志色带（`_w5` 各 `window` 标志，`false` 展开 `--ok` 绿 / `true` 折叠 `--bad` 红）+ 标志名 + 值 + `[5折叠钮文案]` 5 折叠
+钮 `textContent` + `[7浮层 display]` 7 浮层 `style.display` 色带（`none` 隐 `--ok` 绿 / 显 `--dim` 灰），`#mtallfoldstatd` `innerHTML` 拼 SVG + `getBoundingClientRect` 下沿定位（`#mtallfoldstat`
+`left`/`bottom+2`）+ `z-index:70` + 8s 自动隐（`clearTimeout(window._mtGuardAllFoldStatT)` + `setTimeout` 8s `display:none`），全折叠域 5 域折叠态总控浮层一眼全貌，与 R232/R233 全折叠域 5 域折叠态
+一键复制 / PNG 快照同域）② `mtAllFoldStat` 折叠记忆（R234）`window._mtGuardAllFoldStat` 惰性初始化读 `localStorage._mtGuardAllFoldStat`（`'1'` 折叠态 / `'0'` / 无默认展开态，`try/catch` `localStorage`
+不可用（隐私模式 / 沙箱）降级 `false` 展开态），`#mtallfoldstat` 点切折叠记忆（折叠态 `window._mtGuardAllFoldStat=true`（`#mtallfoldstatd` 隐常驻省高 + 文案「▸ 展开全折叠域浮层」+ `clearTimeout` 清 8s
+定时）/ 展开态 `window._mtGuardAllFoldStat=false`（`mtAllFoldStat()` 拼面板显 + 文案「▣ 全折叠域浮层」+ 8s 自动隐），切后 `localStorage.setItem('_mtGuardAllFoldStat', window._mtGuardAllFoldStat?'1':'0')`
+存，`localStorage` 键族加 `_mtGuardAllFoldStat`（同 `_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain` 维护守护区折叠记忆），`mtAllFoldStat` 8s 自动隐跟折叠记忆
+态（`if(!window._mtGuardAllFoldStat)` 才 8s 自动隐，折叠态全折叠域 5 域折叠态总控浮层常驻省高不消失，展开态才 8s 自动隐，同 R218 `#mtguardalldomain` 全折叠域总控面板 8s 自动隐跟折叠态纪律）③
+初始折叠态同步（`#mtallfoldstat` 折叠记忆切 IIFE 后另 IIFE：惰性初始化读 `localStorage._mtGuardAllFoldStat` + `#mtallfoldstat` 文案 + `#mtallfoldstatd` `display` 随初始折叠态，刷新后恢复初始折叠态，
+折叠态刷新隐全折叠域 5 域折叠态总控浮层省高，展开态刷新不隐）④ 与 R232 `#mtallfoldcopy` 全折叠域 5 域折叠态一键复制 / R233 `#mtallfoldpng` 全折叠域 5 域折叠态 PNG 快照**分工**（R232 全折叠域 5 域
+折叠态一键复制到剪贴板（文本留存 / 贴工单），R233 全折叠域 5 域折叠态 PNG 快照到 PNG（图像存档 / 可分享），R234 全折叠域 5 域折叠态总控浮层（`#mtallfoldstatd` 浮层 + 8s 自动隐 + 折叠记忆）——全折叠
+域 5 域折叠态总控浮层一眼全貌 + 跨会话折叠记忆，`#mtallfoldcopy` 文本 + `#mtallfoldpng` PNG + `#mtallfoldstat` 浮层三出口自含全折叠域 5 域全当前态）⑤ 与 R224 `#mtguardfoldstat` 全折叠域 5 域折叠态
+总览 / R225 `#mtguardfoldctl` 折叠全链路总控 / R222-R231 各面板 / 出口补全折叠域 5 键段**语言同**（各全折叠域 5 域折叠态总览 / 总控浮层 / PNG 快照 / 各面板 / 出口读 5 键 `localStorage` + 各域
+`textContent` / `display` 拼色带 / 文本 / SVG，全折叠域 5 域当前态同语言，各出口自含全折叠域出口标位）⑥ `#mtallfoldstat` 维护 tab 懒加载坑 → `document` click 委托（折叠记忆切 IIFE：
+`document.addEventListener('click', function(e){ if(e.target.id==='mtallfoldstat'){ e.stopPropagation(); 折叠记忆切逻辑 }; });`），免维护 tab 未激活小钮 DOM 未渲染 `c=null` 不绑（同 R212/R214/R215/
+R216/R217/R232/R233 `document` click 委托纪律）⑦ 验收**函数级**（设 5 键全 `'1'` + 5 标志全 `true` + 直接调 `mtAllFoldStat()` 拼内联 SVG（绕 R234 折叠记忆切态——设 `_mtGuardAllFoldStat` 无后点
+`#mtallfoldstat` 走 R234 折叠记忆切（当前展开态 → 切折叠才隐面板），验收直接调 `mtAllFoldStat()` 免切态干扰）+ 验 `#mtallfoldstatd` `innerHTML` 含 `<svg` + 全折叠域 5 域 / 5 标志 / 5 折叠钮 / 7 浮层
+分块 + 点 `#mtallfoldstat` 验 `localStorage._mtGuardAllFoldStat='1'`（折叠记忆切态）+ 文案「▸ 展开全折叠域浮层」，不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验全折叠域 5 域 / 5 标志 / 5 折叠钮 / 7
+浮层字段进 SVG，非真渲染像素）。
+
