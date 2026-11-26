@@ -6160,3 +6160,44 @@ R200 `#mtguardpanelpng` / R208 `#mtguardfoldstatpng` PNG 导出**语言同**（�
 全折叠域总控 SVG」+ 点 `#mtguardalldomaincopy` 验 toast「已复制全折叠域总控文本」，`canvas` / `toBlob` 下载 / 剪贴板 headless 验 toast 出口，真 PNG / 剪贴板内容不验，不真跑 `mtRun`
 免 tick 污染 `runs`）。
 
+---
+
+## 第232轮（前端 R218 · goal round195）：维护守护区全折叠域总控面板补折叠记忆（`#mtguardalldomain` 面板折叠态存 `localStorage._mtGuardAllDomain`，刷新后恢复折叠 / 展开态，全折叠域总控面板折叠态跨会话留存）
+
+**完善性（全折叠域总控面板折叠态跨会话留存免刷新复位）**：R217 `#mtguardalldomainpng`/`#mtguardalldomaincopy` 全折叠域总控 PNG / 文本，但**`#mtguardalldomains` 全折叠域总控面板
+8s 自动隐**（看全貌 8s 即消失，要长看全折叠域总控得反复点 `#mtguardalldomain` 重显，`#mtguardalldomain` 面板折叠态存 `localStorage._mtGuardAllDomain`，刷新后恢复折叠 / 展开态，
+全折叠域总控面板折叠态跨会话留存，与 R204/R205/R211 折叠记忆语言同）。`#mtguardalldomain` IIFE（R216 区）改：`window._mtGuardAllDomain` 惰性初始化读 `localStorage._mtGuardAllDomain`
+（`'1'` 折叠态 / `'0'` / 无默认展开态），切后存 `localStorage._mtGuardAllDomain`，`#mtguardalldomain` 文案 + `#mtguardalldomains` `display` 随初始折叠态（初始同步 IIFE），
+`mtGuardAllDomain` 8s 自动隐改 `_mtGuardAllDomain` 折叠记忆控制（折叠态不 8s 自动隐常驻省高，展开态才 8s 自动隐）——全折叠域总控面板折叠态跨会话留存，与 R204/R205/R211 折叠记忆
+语言同。
+
+**E2E**：`清 localStorage._mtGuardAllDomain → 点 #mtguardalldomain（折叠，window._mtGuardAllDomain=true + #mtguardalldomains 隐 + 文案「▸ 展开全折叠域」+ localStorage.
+_mtGuardAllDomain='1'）；再点（展开，window._mtGuardAllDomain=false + 文案「▣ 全折叠域」+ localStorage._mtGuardAllDomain='0'）`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r218_alldomfoldmem.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 734→736`，断点 `_英文歌\Radioactive.mp3`。
+
+**坑**：① `window._mtGuardAllDomain` 惰性初始化读 `localStorage._mtGuardAllDomain`（`#mtguardalldomain` 折叠记忆切 IIFE 顶 + 初始同步 IIFE，`if(window._mtGuardAllDomain===
+undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){} window._mtGuardAllDomain=_init; }`——刷新后 `window._mtGuardAllDomain`
+未设（`undefined`）则读 `localStorage._mtGuardAllDomain` 恢复折叠 / 展开态，`'1'` 折叠 / `'0'` / 无展开，`try/catch` `localStorage` 不可用（隐私模式 / 沙箱）降级 `false` 展开态，
+同 R204 `_mtGuardFoldAll` / R205 `_mtGuardPanelFold` / R211 `_mtGuardFoldCtl` `localStorage` 惰性读降级纪律）② `#mtguardalldomain` 点切折叠记忆（非直接 `mtGuardAllDomain()` 显面板
+——R216 `#mtguardalldomain` 原 IIFE 点直接 `mtGuardAllDomain()` 显面板 8s 自动隐，R218 改点切折叠记忆标志：折叠态 `window._mtGuardAllDomain=true`（`#mtguardalldomains` 隐常驻
+省高 + 文案「▸ 展开全折叠域」+ `clearTimeout` 清 8s 定时）/ 展开态 `window._mtGuardAllDomain=false`（`mtGuardAllDomain()` 拼面板显 + 文案「▣ 全折叠域」+ `mtGuardAllDomain` 内 8s
+自动隐），切后 `localStorage.setItem('_mtGuardAllDomain', window._mtGuardAllDomain?'1':'0')` 存（`localStorage` 不可用降级不记，跨会话不留存当前会话 `window` 标志仍生效），
+`localStorage` 键族加 `_mtGuardAllDomain`（同 `_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` 维护守护区折叠记忆）③ `mtGuardAllDomain` 8s 自动隐跟折叠
+记忆态（`if(!window._mtGuardAllDomain){ _d.style.display='none'; clearTimeout(window._mtGuardAllDomainT); window._mtGuardAllDomainT=setTimeout(function(){ _d.style.display='none'; },
+8000); }`——折叠态 `window._mtGuardAllDomain===true` 不 8s 自动隐（全折叠域总控面板常驻省高，用户手动点 `#mtguardalldomain` 折叠 / 展开控制），展开态 `false` 才 8s 自动隐（临时看
+全貌 8s 隐，同 R202 `mtGuardPanel` / R211 `mtGuardFoldCtl` 8s 自动隐跟折叠态纪律）④ 初始折叠态同步（`#mtguardalldomain` 折叠记忆切 IIFE 后另 IIFE：`if(window._mtGuardAllDomain===
+undefined)` 惰性初始化读 `localStorage._mtGuardAllDomain` + `c.textContent=window._mtGuardAllDomain?'▸ 展开全折叠域':'▣ 全折叠域'`（文案随初始折叠态）+ `if(d && window.
+_mtGuardAllDomain){ d.style.display='none'; }`（刷新恢复折叠态隐 `#mtguardalldomains`，展开态刷新不隐）——刷新后恢复初始折叠态（文案 + `#mtguardalldomains` `display` 随
+`localStorage._mtGuardAllDomain`，折叠态刷新隐全折叠域总控面板省高，展开态刷新不隐）⑤ 与 R216 `#mtguardalldomain` 全折叠域总控面板**分工**（R216 内联 SVG 全折叠域总控面板看全貌
+（`#mtguardalldomains` 8s 自动隐），R218 面板折叠记忆 `localStorage._mtGuardAllDomain` 跨会话留存——当前会话折叠 / 展开 + 跨会话记忆，`#mtguardalldomain` 折叠态存 `localStorage`
+刷新恢复，免刷新复位展开态重折叠）⑥ 与 R204 `#mtguardfoldall` 全浮层折叠记忆 / R205 `#mtguardpanelfold` 总览面板折叠记忆 / R211 `#mtguardfoldctl` 折叠全链路面板折叠记忆**语言同**
+（R204 `_mtGuardFoldAll` 存 `localStorage._mtGuardFoldAll` 全浮层折叠记忆，R205 `_mtGuardPanelFold` 存 `localStorage._mtGuardPanelFold` 总览面板折叠记忆，R211 `_mtGuardFoldCtl`
+存 `localStorage._mtGuardFoldCtl` 折叠全链路面板折叠记忆，R218 `_mtGuardAllDomain` 存 `localStorage._mtGuardAllDomain` 全折叠域总控面板折叠记忆，各面板 / 域折叠记忆 `localStorage`
+各管各）⑦ `#mtguardalldomain` 折叠记忆切 IIFE 多 `)` 语法错（`document` click 委托 + `return;` 闭合 + IIFE 闭合多 `)`，首跑 `node=1` `missing ) after argument list`，修正
+`return; } });` 后 IIFE 闭合 `})();` 免多 `)` 后 `node=0`，同 R212/R214 IIFE 多 `)` 语法修正纪律）⑧ 验收**函数级**（清 `localStorage._mtGuardAllDomain` + 点 `#mtguardalldomain`
+验 `window._mtGuardAllDomain` 切 `true`（折叠）+ `#mtguardalldomains` 隐 + 文案「▸ 展开全折叠域」+ `localStorage._mtGuardAllDomain` 存 `'1'`，再点验 `window._mtGuardAllDomain`
+切 `false`（展开）+ 文案「▣ 全折叠域」+ `localStorage._mtGuardAllDomain` 存 `'0'`，不真跑 `mtRun` 免 tick 污染 `runs`；`localStorage` 存 / 读验 `getItem`/`setItem` 值，刷新恢复验
+`localStorage` 读值非真刷新 headless，初始同步 IIFE 验 `#mtguardalldomain` 文案 + `#mtguardalldomains` `display` 随初始折叠态）。
+

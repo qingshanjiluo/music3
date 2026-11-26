@@ -4675,8 +4675,17 @@ function mtGuardAllDomain(){
   const _r=document.getElementById('mtguardalldomain').getBoundingClientRect();
   _d.style.position='absolute'; _d.style.left=_r.left+'px'; _d.style.top=(_r.bottom+2)+'px';
   clearTimeout(window._mtGuardAllDomainT);
-  window._mtGuardAllDomainT=setTimeout(function(){ _d.style.display='none'; }, 8000);
+  if(window._mtGuardAllDomain===undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){} window._mtGuardAllDomain=_init; }
+  if(!window._mtGuardAllDomain){ _d.style.display='none'; clearTimeout(window._mtGuardAllDomainT); window._mtGuardAllDomainT=setTimeout(function(){ _d.style.display='none'; }, 8000); }
 }
+/* R218 全折叠域总控面板折叠记忆: #mtguardalldomain 点切折叠记忆态(window._mtGuardAllDomain+localStorage._mtGuardAllDomain), 折叠态常驻省高/展开态8s自动隐, 与R204/R205/R211折叠记忆语言同 */
+(function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomain'){ e.stopPropagation();
+  if(window._mtGuardAllDomain===undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){} window._mtGuardAllDomain=_init; }
+  if(window._mtGuardAllDomain){ window._mtGuardAllDomain=false; try{ localStorage.setItem('_mtGuardAllDomain','0'); }catch(_){} document.getElementById('mtguardalldomain').textContent='▣ 全折叠域'; if(typeof mtGuardAllDomain==='function'){ mtGuardAllDomain(); } } else { window._mtGuardAllDomain=true; try{ localStorage.setItem('_mtGuardAllDomain','1'); }catch(_){} document.getElementById('mtguardalldomain').textContent='▸ 展开全折叠域'; const _d=document.getElementById('mtguardalldomains'); if(_d){ _d.style.display='none'; } clearTimeout(window._mtGuardAllDomainT); }
+  if(typeof _toast==='function'){ _toast(window._mtGuardAllDomain?'已折叠全折叠域总控':'已展开全折叠域总控', 'ok'); }
+  return; } }); })();
+/* R218 全折叠域总控面板折叠态初始同步(读localStorage._mtGuardAllDomain惰性初始化+文案/display随初始折叠态, 刷新恢复折叠/展开态) */
+(function(){ if(window._mtGuardAllDomain===undefined){ let _init=false; try{ _init=(localStorage.getItem('_mtGuardAllDomain')==='1'); }catch(_){} window._mtGuardAllDomain=_init; } const _c=document.getElementById('mtguardalldomain'); if(_c){ _c.textContent=window._mtGuardAllDomain?'▸ 展开全折叠域':'▣ 全折叠域'; } const _d=document.getElementById('mtguardalldomains'); if(_d && window._mtGuardAllDomain){ _d.style.display='none'; } })();
 (function(){ document.addEventListener('click', function(e){ if(e.target && e.target.id==='mtguardalldomain'){ e.stopPropagation(); mtGuardAllDomain(); } }); })();
 /* R217 全折叠域总控面板PNG导出: #mtguardalldomainpng 点->读#mtguardalldomains内联SVG(无则先mtGuardAllDomain生成)canvas转PNG下载「music3_全折叠域总控_<ts>.png」, toBlob不可用降级复制SVG源码, 与R158/R198/R200/R208PNG导出同语言 */
 function mtGuardAllDomainPng(){
