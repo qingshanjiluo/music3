@@ -6652,3 +6652,34 @@ R216/R217/R232/R233 `document` click 委托纪律）⑦ 验收**函数级**（�
 分块 + 点 `#mtallfoldstat` 验 `localStorage._mtGuardAllFoldStat='1'`（折叠记忆切态）+ 文案「▸ 展开全折叠域浮层」，不真跑 `mtRun` 免 tick 污染 `runs`；SVG 拼逻辑验全折叠域 5 域 / 5 标志 / 5 折叠钮 / 7
 浮层字段进 SVG，非真渲染像素）。
 
+---
+
+## 第249轮（前端 R235 · goal round212）：维护守护区全折叠记忆一键重置补全折叠域 6 键（`#mtguardfoldreset` 全折叠记忆重置后清第 6 键 `localStorage._mtGuardAllFoldStat` 全折叠域 5 域折叠态总控浮层折叠记忆，全折叠记忆一键复位后全折叠域 6 键全复位）
+
+**完善性（全折叠记忆一键复位后全折叠域 6 键全复位）**：R219 `#mtguardfoldreset` 全折叠记忆重置清 5 键（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`）
++ R219 补全折叠域总控面板折叠记忆复位（`_mtGuardAllDomain`），但 R234 加第 6 键 `localStorage._mtGuardAllFoldStat`（全折叠域 5 域折叠态总控浮层折叠记忆）没进 `#mtguardfoldreset` 全折叠记忆重置
+（全折叠记忆一键复位后全折叠域 6 键全复位，`mtGuardFoldReset`（R212 区）清 5 键 + 全折叠域总控面板折叠记忆复位（R219）补第 6 键 `localStorage._mtGuardAllFoldStat` 清 `'0'` +
+`window._mtGuardAllFoldStat` 复位 `false` + `#mtallfoldstat` 文案复位「▣ 全折叠域浮层」+ `#mtallfoldstatd` `display` 复位 + `clearTimeout(window._mtGuardAllFoldStatT)`，全折叠记忆一键复位后
+全折叠域 6 键全复位，与 R219/R220 全折叠记忆重置 / 重置详情同域）。
+
+**E2E**：`设 6 键全 '1' → 点 #mtguardfoldreset → 6 键全复位 '0' + #mtallfoldstat 文案复位「▣ 全折叠域浮层」+ toast「已重置维护守护区全折叠记忆」`（绿）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r235_reset6key.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 768→770`，断点 `_洛天依\刀马红颜.mp3`。
+
+**坑**：① `#mtguardfoldreset` 全折叠记忆一键重置（R212 区，`mtGuardFoldReset` 清 5 键 `_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl` + 5 标志 `window` 复位 + 5 折叠钮文案复位
++ 全浮层 `display` 复位 + R219 补全折叠域总控面板 `_mtGuardAllDomain` 复位（`localStorage._mtGuardAllDomain` 清 `'0'` + `window._mtGuardAllDomain` 复位 `false` + `#mtguardalldomain` 文案复位「▣ 全
+折叠域」+ `#mtguardalldomains` `display` 复位 + `clearTimeout(window._mtGuardAllDomainT)`））补第 6 键全折叠域 5 域折叠态总控浮层折叠记忆复位（R235，R219 全折叠域总控面板折叠记忆复位后插：
+`try{ localStorage.setItem('_mtGuardAllFoldStat','0'); }catch(_){}` + `window._mtGuardAllFoldStat=false` + `#mtallfoldstat` 文案复位「▣ 全折叠域浮层」+ `#mtallfoldstatd` `display` 复位 +
+`clearTimeout(window._mtGuardAllFoldStatT)`，全折叠记忆一键复位后全折叠域 6 键全复位（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`/
+`_mtGuardAllFoldStat` 全清 `'0'` + 6 标志 `window` 全复位 `false`），与 R219/R220 全折叠记忆重置 / 重置详情同域，`#mtguardfoldreset` 全折叠记忆重置补第 6 键）② 与 R219 `#mtguardfoldreset`
+全折叠域总控面板折叠记忆复位 / R234 `#mtallfoldstat` 全折叠域 5 域折叠态总控浮层折叠记忆**分工**（R219 全折叠记忆重置补 `_mtGuardAllDomain` 全折叠域总控面板折叠记忆复位，R234 加 `_mtGuardAllFoldStat`
+全折叠域 5 域折叠态总控浮层折叠记忆（新第 6 键），R235 `#mtguardfoldreset` 全折叠记忆重置补第 6 键 `_mtGuardAllFoldStat` 复位——全折叠记忆一键复位后全折叠域 6 键全复位，`#mtguardfoldreset` 全
+折叠记忆重置 6 键全清 + 6 标志全复位）③ 与 R214 `#mtguardfoldresetcopy` 全折叠记忆重置详情复制 / R215 `#mtguardfoldresetpng` 全折叠记忆重置详情 PNG**分工**（R214/R215 重置详情读 6 键 `localStorage`
+复位值 + 6 标志 `window` 复位值拼重置详情，R235 `#mtguardfoldreset` 重置后 6 键全复位 `localStorage` 值，R214/R215 重置详情读 6 键复位值自含全折叠域 6 键当前态，R214/R215 补 6 键段同 R220 重置详情
+补第 5 键 `_mtGuardAllDomain` 同域，R235 重置 6 键全复位 + R214/R215 重置详情 6 键段双路自含全折叠域 6 键当前态）④ 与 R219 全折叠记忆重置补全折叠域总控面板折叠记忆 / R220 重置详情补第 5 键
+`_mtGuardAllDomain` / R234 全折叠域 5 域折叠态总控浮层折叠记忆**语言同**（各全折叠记忆重置 / 重置详情读各键 `localStorage` 复位值 / 当前态，全折叠域 6 键当前态同语言，各出口自含全折叠域出口标位）
+⑤ 验收**函数级**（设 6 键全 `'1'`（`_mtMetFold`/`_mtGuardPanelFold`/`_mtGuardFoldAll`/`_mtGuardFoldCtl`/`_mtGuardAllDomain`/`_mtGuardAllFoldStat`）+ 6 标志全 `true` + 点 `#mtguardfoldreset` 验 6 键
+全复位 `'0'`（`k6.every(v=>v==='0')`）+ `#mtallfoldstat` 文案复位「▣ 全折叠域浮层」+ toast「已重置维护守护区全折叠记忆」，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtguardfoldreset` 重置拼逻辑验 6 键
+`localStorage` 全清 `'0'` + 6 标志 `window` 全复位 `false` + 6 折叠钮文案复位 + 浮层 `display` 复位，非真渲染像素）。
+
