@@ -3866,6 +3866,19 @@ function mtLiveBadgeJump(){
   /* 右键取消提示 */
   j.title=(j.title?j.title+' · 右键取消跑维护':'右键取消跑维护');
 })();
+/* 跑中 Esc 键盘快捷取消(R178): document keydown(Escape) + 维护 tab 激活 -> _mtAborted=true + #mtrun 取消红态同步 + toast, 跑中看徽标/看双图时按 Esc 即取消免手点/免右键(键盘路径, 与 R176 右键取消同「已跑的轮不回滚」直觉) */
+(function(){
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Escape'){ return; }
+    /* 只维护 tab 激活时 Esc 取消(其他 tab 按 Esc 不触发, 不挡全局 Esc) */
+    const activeTab=document.querySelector('.tab.active[data-p="d"], .tab.on[data-p="d"]');
+    if(!activeTab){ return; }
+    if(typeof _mtAborted!=='undefined'){ _mtAborted=true; } /* 跑中下一轮 abort 检查跳出 */
+    const run=$('#mtrun');
+    if(run){ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
+    if(typeof _toast==='function'){ _toast('已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）', 'ok'); }
+  });
+})();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');

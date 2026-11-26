@@ -4790,3 +4790,37 @@ _mtMetFold=0 + mtFocusLatest 聚焦最新轮 #mtpairlbl「第 4 次 · 耗时 1.
 + `#mtmetfold` `dispatchEvent` `dblclick` 验展开 `block` + `_mtMetFold=0` + `#mtpairlbl` 末位配对「第 4 次·耗时 1.5s·补入 +0」，不真跑
 `mtRun` 免 tick 污染 `runs`；`dblclick` 触发前两次 `click` 闪烁验净展开 + 聚焦，不验闪烁过程）。
 
+---
+
+## 第192轮（前端 R178 · goal round155）：`#mtlivebadge` 跑中双指标实时徽标补键盘 `Esc` 快捷取消（`document` 监听 `keydown`，维护 tab 激活时按 `Esc` = `_mtAborted=true` 取消跑维护 + `#mtrun` 取消红态同步 + toast，跑中看徽标 / 看双图时按 `Esc` 即取消免手点 / 免右键）
+
+**流畅性（跑中看双图趋势时键盘流取消免移开手）**：R176 `#mtlivebadge` 右键取消（`contextmenu`），跑中看徽标 / 看双图时想
+取消要移开手点 `#mtrun` / 右键徽标，**键盘路径没做**（跑中看双图趋势时键盘流免移开手，`Esc` 即取消）。`document` 监听
+**`keydown`**（`e.key==='Escape'` + 维护 tab 激活 `.tab[data-p="d"]` on 判）→ `_mtAborted=true` + `#mtrun` 取消红态同步
+（`textContent=取消` + `--bad`）+ toast「已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）」——跑中看徽标双指标 / 看双图趋势
+时**按 `Esc` 即取消**（键盘流免移开手，与 R176 右键取消 / R140 取消「已跑的轮不回滚」同直觉，取消路径三选：手点 `#mtrun` /
+右键徽标 / 键盘 `Esc`）。
+
+**E2E**：`维护 tab 激活（.tab[data-p="d"] on）→ document 按 Esc（keydown key=Escape）→ #mtrun 取消红态（textContent=取消 +
+--bad rgb(196,56,31)）+ toast「已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）」+ _mtAborted=true（跑中下一轮 abort）`（绿）；
+端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r178_esc.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 652→654`，断点 `_整理后分类\华语经典\林俊杰\一跃而下.mp3`。
+
+**坑**：① `document` 监听 `keydown`（`e.key==='Escape'`），**维护 tab 激活判**（`.tab[data-p="d"]` `classList` 含 `on`，`tabs.forEach`
+`data-p=d` 加 `on` 其他去 `on` 模拟激活态，`activeTab=document.querySelector('.tab.on[data-p="d"]')` 非 null 才取消——其他 tab
+按 `Esc` 不触，不挡全局 `Esc`（全局 `Esc` 可能关弹层 / 退出全屏，维护 tab 才取消跑维护，`activeTab` 判挡非维护 tab）②
+`_mtAborted=true`（`typeof _mtAborted!=='undefined'` 判，`mtRun` 循环顶 abort 检查跳出，跑中下一轮生效——`_mtAborted` 是 `mtRun`
+函数作用域 `let`，`document` 监听 IIFE 作用域外访问要 `typeof` 判不直接读，`typeof` 安全，同 R176 右键 `_mtAborted` 纪律）③
+`#mtrun` 取消红态同步（`textContent='取消'` + `background/borderColor` `var(--bad)` + `color=#fff`，跑中 `#mtrun` 本来红「取消」
+态，`Esc` 取消同红态视觉同步，看 `#mtrun` 红知道已发取消）④ toast「已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）」（点明
+`Esc` 触发 + 已跑轮保留，与 R176 右键 toast 同「不回滚」直觉，`Esc` 路径区分右键）⑤ **`Esc` 不 `preventDefault`**（`Esc` 无
+默认行为要挡的——浏览器 `Esc` 默认退出全屏 / 关弹层，维护 tab `Esc` 取消跑维护是叠加取消不挡全屏 / 弹层 `Esc`，`keydown`
+监听 `keydown` 不 `preventDefault`，全屏 / 弹层在维护 tab `Esc` 也同时触发各自默认，两不冲突；若挡 `Esc` `preventDefault` 会
+误伤全屏退出，不挡）⑥ 与 R176 右键取消**分工**（R176 `#mtlivebadge` `contextmenu` 右键 / R178 `document` `keydown` `Esc` 键盘，
+取消路径三选：手点 `#mtrun` / 右键徽标 / 键盘 `Esc`，三入口 `_mtAborted=true` 同效果，`Esc` 是键盘流免移开手——跑中看双图
+趋势手放键盘按 `Esc` 即取消，最顺）⑦ 验收**函数级**（维护 tab `on` 态 `document` `dispatchEvent` `keydown` `key=Escape` 验
+`#mtrun` 红态 + toast「已取消（Esc）」，`_mtAborted` 作用域外读不验——`_mtAborted` 是 `mtRun` 块级 `let`，`document` 监听 IIFE
+外读不到，验 `#mtrun` 视觉同步 + toast 出口证明取消已发，`_mtAborted` 真取消跑中下一轮生效是 `mtRun` 内部行为不真跑 `mtRun`
+免 tick 污染 `runs`）。
+
