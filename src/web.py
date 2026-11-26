@@ -1068,7 +1068,7 @@ body._nosplabel .mtspark-lastval{display:none}
   </div>
   <div class="msg" id="mtmsg" role="status" aria-live="polite"></div>
   <div id="mthistspark" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mthistlabel">近 10 次跑维护耗时</span><span id="mthistsvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><button type="button" id="mthistexport" title="导出跑维护耗时历史为 CSV(近10次, 换设备带历史走)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↓ 导出</button><button type="button" id="mthistpng" title="折线快照存 PNG(看趋势截图分享, 离屏canvas重绘折线区)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button><button type="button" id="mthistimport" title="导入跑维护耗时历史 CSV(R147 导的回填, 换设备/清历史后把旧 CSV 导回来)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">↑ 导入</button><button type="button" id="mthistreset" title="重置基线(清耗时历史+记当前为0s起算点, 看趋势重定0点)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⟲ 重置</button><button type="button" id="mthistclear" title="清空跑维护耗时历史(重新计基线, 折线隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清历史</button></div>
-  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button></div>
+  <div id="mtdeltabar" style="display:none;margin-top:4px;align-items:center;gap:6px;font-size:11px;color:var(--dim)"><span id="mtdeltaLabel">近 10 次跑维护补入量</span><span id="mtdeltaSvg" style="display:inline-block;width:110px;height:22px;vertical-align:middle"></span><span id="mtpairlbl" style="font-size:10px;color:var(--acc);font-weight:600;display:none"></span><button type="button" id="mtdeltaclear" title="清空补入量历史(重计补入基线, 柱状隐)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">✕ 清补入</button><span id="mtmetsum" style="font-size:10px;color:var(--dim);display:none"></span><button type="button" id="mtmetclear" title="一键全清维护趋势区(耗时+补入量+基线三键一起清, 三图归零)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊗ 全清</button><button type="button" id="mtmetpng" title="双指标趋势区快照存 PNG(耗时折线+补入柱状+汇总一张, 整区趋势图存档/贴issue)" style="padding:0 6px;font-size:10px;color:var(--dim);background:var(--bg2);border:1px solid var(--line);border-radius:4px;cursor:pointer;line-height:16px">⊡ 快照</button></div>
   <div id="mtresult"></div>
 
   <div class="bar" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
@@ -3666,6 +3666,50 @@ function mtMetClear(){
   _toast('维护趋势区已全清（耗时 + 补入量 + 基线 · 重新计基线）', 'ok');
 }
 (function(){ const c=$('#mtmetclear'); if(c){ c.onclick=mtMetClear; } })();
+/* 双指标趋势区快照存 PNG(R160): 离屏 canvas 画 耗时折线+补入柱状+汇总标签(整区一张) -> download; 整区趋势图存档/贴issue/分享, 与 R148 单折线 PNG 互补(R148 单图 R160 双指标整区) */
+function mtMetPng(){
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}
+  let d=[]; try{ d=JSON.parse(localStorage.getItem('_mtRunDelta')||'[]'); }catch(_){}
+  if(!h.length && !d.length){ _toast('无维护趋势可快照（先跑一次维护）', 'bad'); return; }
+  const W=520, H=210, padL=14, padR=14;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,W,H);
+  g.font='13px ui-sans-serif,system-ui,sans-serif'; g.fillStyle='#5a5a5f';
+  g.fillText('维护趋势 · '+(new Date().toISOString().replace('T',' ').slice(0,16))+' 时', padL, 20);
+  /* 上: 耗时折线(h), 下: 补入柱状(d), 各占 60px */
+  function drawLine(y0, vals, color){
+    if(!vals.length) return;
+    const mx=Math.max.apply(null,vals), mn=Math.min.apply(null,vals), rng=Math.max(1e-3,mx-mn);
+    const iw=W-padL-padR;
+    const pts=vals.map((v,i)=>{ const x=padL+(vals.length>1? i/(vals.length-1):0.5)*iw; const y=y0+(1-(v-mn)/rng)*50; return [x,y]; });
+    g.beginPath(); g.moveTo(pts[0][0],y0); pts.forEach(p=>g.lineTo(p[0],p[1])); g.lineTo(pts[pts.length-1][0],y0); g.closePath();
+    g.fillStyle=color.replace(')',',0.12)').replace('rgb','rgba'); g.fill();
+    g.beginPath(); g.moveTo(pts[0][0],pts[0][1]); pts.forEach(p=>g.lineTo(p[0],p[1])); g.strokeStyle=color; g.lineWidth=2; g.stroke();
+    pts.forEach(p=>{ g.beginPath(); g.arc(p[0],p[1],3,0,Math.PI*2); g.fillStyle=color; g.fill(); });
+    g.fillStyle='#9a9aa0'; g.font='10px ui-sans-serif,system-ui,sans-serif';
+    g.fillText('近 '+vals.length+' 次', padL, y0+62);
+  }
+  function drawBar(y0, vals, color){
+    if(!vals.length) return;
+    const mx=Math.max.apply(null,vals)||1;
+    const iw=W-padL-padR, bw=Math.floor(iw/vals.length)-1;
+    vals.forEach((v,i)=>{ const bh=Math.max(2,Math.round(v/mx*50)); g.fillStyle=color; g.globalAlpha=(v>0?0.85:0.3);
+      g.fillRect(padL+i*(Math.floor(iw/vals.length))+1, y0+bh, bw, 50-bh); g.globalAlpha=1; });
+    g.fillStyle='#9a9aa0'; g.font='10px ui-sans-serif,system-ui,sans-serif';
+    g.fillText('近 '+vals.length+' 次 · 合计 +'+(vals.reduce((a,c)=>a+c,0)), padL, y0+62);
+  }
+  if(h.length){ g.strokeStyle='#e4e4ea'; g.lineWidth=1; g.beginPath(); g.moveTo(padL,30); g.lineTo(W-padR,30); g.stroke(); drawLine(32, h, 'rgb(196,56,31)'); }
+  if(d.length){ drawBar(h.length?96:32, d, 'rgb(47,125,85)'); }
+  /* 汇总标签 */
+  const sum=$('#mtmetsum'); if(sum && sum.style.display!=='none' && sum.textContent){ g.fillStyle='#c4381f'; g.font='11px ui-sans-serif,system-ui,sans-serif'; g.fillText(sum.textContent, padL, H-10); }
+  const url=c.toDataURL('image/png');
+  const a=document.createElement('a'); a.href=url; a.download='music3_trend_'+Date.now()+'.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  _toast('已导出双指标趋势快照（PNG）', 'ok');
+}
+(function(){ const x=$('#mtmetpng'); if(x){ x.onclick=mtMetPng; } })();
 /* 双指标区一行汇总(R158): _mtRunHist+_mtRunDelta 都非空 -> #mtmetsum 显「近N次·耗时均值Xs·补入均值+Y/次·合计+Z」(两指标总体一览, 与 R156 #mtpairlbl 单次配对互补: #mtmetsum 看N次汇总_mtpairlbl 看单次) */
 function mtMetSumDraw(){
   let h=[]; try{ h=JSON.parse(localStorage.getItem('_mtRunHist')||'[]'); }catch(_){}

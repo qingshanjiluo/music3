@@ -4270,3 +4270,34 @@ NONE、CSS 320/320、node 0、console 0、截图 r159_metclear.png。
 排开，全清靠最右（收尾位）⑥ 只清前端展示层三键（`_mtRunHist`/`_mtRunDelta`/`_mtRunHistBase` 都是 `localStorage` 趋势，
 不动后端 `maintain_state.json` tick 游标/totals——真维护进度不动，只清趋势展示区）。
 
+---
+
+## 第174轮（前端 R160 · goal round137）：双指标区趋势条快照导出 PNG（`#mtmetpng`，`_mtRunHist`/`_mtRunDelta` 双图整区离屏 canvas 渲染成一张 PNG 下载）
+
+**完善性（双指标整区图档）**：R148 `#mthistpng` 导**单折线** PNG（耗时），**双指标整区**（耗时折线 + 补入柱状 + 汇总
+标签）一张图没出口。`#mtmetclear` 旁加**`#mtmetpng`** 小钮（`⊡ 快照`，`_mtRunHist` + `_mtRunDelta` → 离屏 canvas 画
+**整区一张**（白底 + 标题时间戳 + 上耗时折线 accent 面积 + 下补入柱状绿 + 汇总标签 `#mtmetsum` 文案 + `#mtmetsum` 补入
+合计）→ `toDataURL` 下载 `music3_trend_<ts>.png` + toast「已导出双指标趋势快照（PNG）」；都空时 toast「无维护趋势可快照
+（先跑一次维护）」）——双指标整区一张图存档 / 贴 issue / 分享，与 R148 单折线 PNG **互补**（R148 单图耗时、R160 双指标
+整区）。
+
+**E2E**：`写 _mtRunHist+_mtRunDelta → 点 #mtmetpng → 离屏 canvas 双图 + a.download PNG + toast「已导出双指标趋势快照
+（PNG）」+ 都空 → toast「无维护趋势可快照（先跑一次维护）」`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r160_metpng.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 616→618`，断点 `_归档_封存\SD卡版\张学友\还是觉得你最好.mp3`。
+
+**坑**：① `#mtmetpng` 挂 `#mtdeltabar` 内（`#mtmetclear` 后，`⊡ 快照` 小钮，同 `--bg2` 底 + `--line` 描边 + `--dim` 色
+10px，随 `#mtdeltabar` 显隐——无补入量时隐，快照是两指标整区场景，`#mtdeltabar` 显才挂钮）② `mtMetPng`（`#mtmetpng`
+onclick，载入 IIFE 绑）：读 `_mtRunHist`（耗时 `h`）+ `_mtRunDelta`（补入 `d`），都空 → `_toast`「无维护趋势可快照」`bad`
+不导；非空 → **离屏 canvas**（520×210，白底 + 标题「维护趋势 · <ts> 时」+ 上耗时折线 `drawLine`（accent `rgb(196,56,31)`
+面积 0.12 + 折线 + 点）+ 下补入柱状 `drawBar`（绿 `rgb(47,125,85)`，`globalAlpha` 补入 0.85 / 空补 0.3，柱宽 `iw/n`）
++ `#mtmetsum` 汇总文案（`H-10` 底，accent 色））`toDataURL('image/png')` 下载 `music3_trend_<Date.now()>.png` +
+`revokeObjectURL` 3s 后 + toast「已导出双指标趋势快照（PNG）」③ **整区一张**（双指标叠一张图：上耗时折线 y0=32、下补入
+柱状 y0=96（有耗时）/32（只有补入），各占 50px 高 + 汇总文案底部，比 R148 单折线信息全——耗时 + 补入 + 汇总配一张）
+④ 折线/柱状坐标 `drawLine/drawBar`（`vals` 归一化 `iw/n`，`x=padL+i/(n-1)*iw` 折线 / `padL+i*(iw/n)` 柱，`y=y0+...` 顶
+对齐），**不依赖** DOM 折线（离屏独立画，PNG 含标题 + 时间戳 + 双图 + 汇总，比截图 `#mtdeltabar` 区信息全）⑤ `drawBar`
+柱宽 `Math.floor(iw/n)-1`（n 多柱密，n=10 满时 45px 柱），`globalAlpha` 区分补入 / 空补（空补 0 矮柱 0.3 透明），与 R153
+`#mtdeltaSvg` 柱状同算法但**离屏独立**（不读 `#mtdeltaSvg` DOM，`_mtRunDelta` 直接算）⑥ 验收**函数级**（headless 查 toast
+文案，下载 headless 无文件，toast 为出口证明；`_mtRunHist`/`_mtRunDelta` 写 6 条验证双图同画）。
+
