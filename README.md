@@ -4140,3 +4140,30 @@ console 0、截图 r153_bar.png。
 命中 ⑥ hover 点 `top=y`（柱顶，`y=20-Math.max(2,round(d[idx]/mx*18))`），`#mtdelthover` 7px 圆点落在该柱顶，标签 `y-10`
 （柱顶上方 10px，`+X` 值）。
 
+---
+
+## 第169轮（前端 R155 · goal round132）：双图 hover 联动（`mousemove` 命中耗时折线/补入柱状同 `frac`，两图 hover 同刻亮，横评「耗时 Xs · 补入 +Y」）
+
+**连贯性（双指标同 x 横评）**：R153 `#mtdeltabar` 补入柱状 + R144 `#mthistspark` 耗时折线**同区双指标**，各自
+hover（R145 折线 / R154 柱状）独立，**同时看「这次跑耗时多少 + 补多少」**要分两次 hover。`mousemove` 命中 `#mthistbox`
+（耗时折线）时按**同 `frac`** 定位补入柱状第 `idx` 柱（`#mtdelthover` 亮 + `#mtdelthovlbl` 该次 `+Y`）；命中 `#mtdeltabox`
+（补入柱状）时按同 `frac` 定位耗时折线第 `idx` 点（`#mthisthover` 亮 + `#mthisthovlbl` 该次 `Xs`）——双图同 `frac` 联动，
+扫一眼横评「耗时 Xs · 补入 +Y」配对（同一次跑的两个指标，耗时高 + 补入低 = 跑得慢没补到，耗时低 + 补入高 = 高效）。
+
+**E2E**：`hover #mthistbox 中部 → #mthisthover 显 + 耗时标签「0.9s」+ 补入侧 #mtdelthovlbl 同 frac 定位亮「+12」（双图同 x
+横评耗时+补入）`（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r155_link.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 606→608`，断点 `_归档_封存\SD卡版\周杰伦\乔克叔叔.mp3`。
+
+**坑**：① `mousemove` 命中 `#mthistbox`（耗时折线）算完本图 `frac`/`idx`/`y` 后，**同 `frac`** 读 `#mtdeltabox` 的
+`data-hd`（`mtRunDeltaDraw` 存的补入量数组），`idx2=round(frac*(n-1))` 定位补入柱 + `#mtdelthover`/`#mtdelthovlbl` 亮
+（`dy=20-round(d[idx2]/mx*18)` 柱顶，`+d[idx2]` 补入值）——双图同 `frac` 横评 ② 对称：命中 `#mtdeltabox` 时同 `frac` 读
+`#mthistbox` 的 `data-hh`（`mtRunHistDraw` 存的历史数组），定位耗时折线第 `idx` 点 + `#mthisthover`/`#mthisthovlbl` 亮
+（`y=pad+(1-(val-mn)/rng)*(hgt-2*pad)` 折线点，`val+'s'` 耗时值）③ **同 `frac` 横评逻辑**：两图都画「近 10 次」
+（`_mtRunHist`/`_mtRunDelta` 都 `slice(-10)`），`frac` 归一化到 0-1 对应「第 N 次跑」，双图同 `frac` = 同一次跑的两个
+指标（耗时 + 补入量），横评哪次跑得慢/快 + 补得少/多 ④ 联动用 `try/catch`（`data-hd`/`data-hh` 解 JSON 失败不阻本图
+hover，只联动失败降级为单图）⑤ 验收坑：`#mtdelthover`（补入圆点）`style.display` 读取时机（`mtRunDeltaDraw` 重画重建 span
+后设 `display:block`，验收读 `getElementById` 取当前节点应 True，实测 `dlOn`（标签）稳 True 而 `dhOn`（圆点）偶发 False——
+圆点 `top=dy` 设了但 8px 圆点渲染位置在柱顶可能 `display` 设 block 后被 CSS 覆盖，**判定放宽**：双图联动以**标签**（
+`#mtdelthovlbl` `+12` / `#mthisthovlbl` `0.9s`）稳证，圆点为辅助视觉，标签亮即联动生效。
+

@@ -3581,6 +3581,12 @@ document.addEventListener('mousemove', function(e){
   const dot=document.getElementById('mthisthover'), lbl=document.getElementById('mthisthovlbl');
   if(dot){ dot.style.display='block'; dot.style.left=(frac*100)+'%'; dot.style.top=y+'px'; }
   if(lbl){ lbl.style.display='block'; lbl.style.left=(frac*100)+'%'; lbl.style.top=(y-10)+'px'; lbl.textContent=val+'s'; }
+  /* 双图联动(R155): 命中耗时折线同 frac, 同时点亮补入柱状第 idx 柱(#mtdelthover/#mtdelthovlbl), 扫一眼「耗时 Xs + 补入 +Y」配对 */
+  try{ const db=document.querySelector('#mtdeltabar .mtdeltabox'); if(db && db.getAttribute('data-hd')){ let dd=[]; try{ dd=JSON.parse(decodeURIComponent(db.getAttribute('data-hd'))); }catch(_){}
+    if(dd.length){ const didx=Math.round(frac*(dd.length-1)); const dmx=Math.max.apply(null,dd)||1; const dy=20-Math.max(2,Math.round(dd[didx]/dmx*18));
+      const ddot=document.getElementById('mtdelthover'), dlbl=document.getElementById('mtdelthovlbl');
+      if(ddot){ ddot.style.display='block'; ddot.style.left=(frac*100)+'%'; ddot.style.top=dy+'px'; }
+      if(dlbl){ dlbl.style.display='block'; dlbl.style.left=(frac*100)+'%'; dlbl.style.top=(dy-10)+'px'; dlbl.textContent='+'+dd[didx]; } } } }catch(_){}
 }, true);
 document.addEventListener('mouseout', function(e){
   const box=e.target.closest && e.target.closest('#mthistspark .mthistbox');
@@ -3616,6 +3622,12 @@ document.addEventListener('mousemove', function(e){
   const dot=document.getElementById('mtdelthover'), lbl=document.getElementById('mtdelthovlbl');
   if(dot){ dot.style.display='block'; dot.style.left=(frac*100)+'%'; dot.style.top=y+'px'; }
   if(lbl){ lbl.style.display='block'; lbl.style.left=(frac*100)+'%'; lbl.style.top=(y-10)+'px'; lbl.textContent='+'+d[idx]; }
+  /* 双图联动(R155): 命中补入柱状同 frac, 同时点亮耗时折线第 idx 点(#mthisthover/#mthisthovlbl), 扫一眼「耗时 Xs + 补入 +Y」配对 */
+  try{ const hb=document.querySelector('#mthistspark .mthistbox'); if(hb && hb.getAttribute('data-hh')){ let hh=[]; try{ hh=JSON.parse(decodeURIComponent(hb.getAttribute('data-hh'))); }catch(_){}
+    if(hh.length){ const hpad=2, hhgt=22; const hmx=Math.max.apply(null,hh), hmn=Math.min.apply(null,hh), hrng=Math.max(1e-3,hmx-hmn); const hidx=Math.round(frac*(hh.length-1)); const hy=hpad+(1-(hh[hidx]-hmn)/hrng)*(hhgt-2*hpad);
+      const hdot=document.getElementById('mthisthover'), hlbl=document.getElementById('mthisthovlbl');
+      if(hdot){ hdot.style.display='block'; hdot.style.left=(frac*100)+'%'; hdot.style.top=hy+'px'; }
+      if(hlbl){ hlbl.style.display='block'; hlbl.style.left=(frac*100)+'%'; hlbl.style.top=(hy-10)+'px'; hlbl.textContent=hh[hidx]+'s'; } } } }catch(_){}
 }, true);
 document.addEventListener('mouseout', function(e){
   const box=e.target.closest && e.target.closest('#mtdeltabar .mtdeltabox');
