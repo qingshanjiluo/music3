@@ -4824,3 +4824,36 @@ _mtMetFold=0 + mtFocusLatest 聚焦最新轮 #mtpairlbl「第 4 次 · 耗时 1.
 外读不到，验 `#mtrun` 视觉同步 + toast 出口证明取消已发，`_mtAborted` 真取消跑中下一轮生效是 `mtRun` 内部行为不真跑 `mtRun`
 免 tick 污染 `runs`）。
 
+---
+
+## 第193轮（前端 R179 · goal round156）：`#mtlivebadge` 跑中双指标实时徽标补键盘 `Enter` 快捷跳双图（`document` 监听 `keydown`，维护 tab 激活 + 焦点非输入框时按 `Enter` = `mtLiveBadgeJump` 跳双图 + `mtFocusLatest` 聚焦最新轮，同 R171 点击跳双图但键盘路径）
+
+**流畅性（跑中看双图趋势时手放键盘按 `Enter` 即跳双图免移开手点）**：R171 `#mtlivebadge` 点击跳双图（手点），R178 `Esc` 键盘
+取消，**键盘 `Enter` 跳双图没做**（跑中看徽标 / 看双图趋势时手放键盘按 `Enter` 即跳双图 + 聚焦最新轮，免移开手点）。`document`
+监听 `keydown`（R178 `Esc` 取消同 IIFE，补 `e.key==='Enter'` 分支）：维护 tab 激活 `.tab[data-p="d"]` on + **焦点非输入框**
+（`document.activeElement` `tagName` 非 `input`/`textarea`/`contentEditable`）→ `mtLiveBadgeJump`（跳双图 + `mtFocusLatest` 聚焦
+最新轮）+ toast「已跳双图区 · 聚焦最新轮（Enter）」——跑中看徽标双指标 / 看双图趋势时**手放键盘按 `Enter` 即跳双图**，与 R178
+`Esc` 取消**同键盘路径**（`Enter` 跳双图 / `Esc` 取消，键盘流两操作，跑中看双图趋势手放键盘流最顺），与 R171 点击跳双图同
+「趋势条可管」但键盘路径。
+
+**E2E**：`维护 tab 激活 + 焦点非输入框 → document 按 Enter（keydown key=Enter）→ mtLiveBadgeJump 跳双图（#mtmetfoldwrap 展开
+block + _mtMetFold=0）+ mtFocusLatest 聚焦最新轮 + toast「已跳双图区 · 聚焦最新轮（Enter）」`（绿）；端点 **30/0**、JS undefined
+NONE、CSS 320/320、node 0、console 0、截图 r179_enter.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 654→656`，断点 `_整理后分类\华语经典\林俊杰\无拘.mp3`。
+
+**坑**：① `document` `keydown`（R178 `Esc` 取消同 IIFE 补 `Enter` 分支，两键盘操作同一监听不重复挂）：`e.key==='Enter'` →
+`e.preventDefault()`（挡全局 `Enter`——表单提交等，维护区 `Enter` 只做跳双图）+ `mtLiveBadgeJump()`（R171 跳双图函数，展开
+`#mtmetfoldwrap`（若折叠）+ `scrollIntoView` 双图区 + `mtFocusLatest` 聚焦最新轮，复用 R171/R172/R177 跳双图聚焦链）② **焦点非
+输入框判**（`document.activeElement.tagName` 非 `input`/`textarea`/`contentEditable` 才触——用户焦点在维护区输入框（如 `#mtrf`
+筛选 / 日志过滤）按 `Enter` 是提交 / 确认输入框，不跳双图，`activeElement` 判挡输入框焦点，键盘快捷只维护区空焦点触）③
+**维护 tab 激活判**（R178 同 `.tab.on[data-p="d"]`，其他 tab 按 `Enter` 不触，不挡全局 `Enter` 表单提交）④ `Enter` `preventDefault`
+（挡全局 `Enter` 默认——维护区 `Enter` 只做跳双图，挡表单误触；`Esc` 不 `preventDefault`（R178，不挡全屏 / 弹层 `Esc`），两键
+`preventDefault` 策略不同：`Enter` 挡（维护区 `Enter` 专用跳双图），`Esc` 不挡（全屏 / 弹层 `Esc` 默认保留，取消叠加）⑤ toast
+「已跳双图区 · 聚焦最新轮（Enter）」（点明 `Enter` 触发 + 跳双图 + 聚焦最新轮，与 R178 `Esc` toast 同键盘流提示，`Enter` 路径
+区分 `Esc`）⑥ **键盘流两操作**（`Enter` 跳双图 / `Esc` 取消，跑中看双图趋势手放键盘：`Enter` 跳双图区 + 聚焦最新轮看趋势，
+`Esc` 取消跑维护，两键分工，与 R176 右键取消 / R171 点击跳双图 / R177 折叠钮双击 / R174 汇总点击跳双图全路径，键盘流最省
+手移开）⑦ 验收**函数级**（维护 tab `on` + 焦点 `document.body.focus()` 非输入框 + `document` `dispatchEvent` `keydown`
+`key=Enter` 验 `#mtmetfoldwrap` 展开 `block` + `_mtMetFold=0` + toast「已跳双图区（Enter）」，不真跑 `mtRun` 免 tick 污染
+`runs`；`Enter` `preventDefault` 验挡全局，`activeElement` 输入框焦点时不触验收同判 `tag` 挡）。
+

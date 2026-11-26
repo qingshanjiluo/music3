@@ -3869,14 +3869,24 @@ function mtLiveBadgeJump(){
 /* 跑中 Esc 键盘快捷取消(R178): document keydown(Escape) + 维护 tab 激活 -> _mtAborted=true + #mtrun 取消红态同步 + toast, 跑中看徽标/看双图时按 Esc 即取消免手点/免右键(键盘路径, 与 R176 右键取消同「已跑的轮不回滚」直觉) */
 (function(){
   document.addEventListener('keydown', function(e){
-    if(e.key!=='Escape'){ return; }
-    /* 只维护 tab 激活时 Esc 取消(其他 tab 按 Esc 不触发, 不挡全局 Esc) */
-    const activeTab=document.querySelector('.tab.active[data-p="d"], .tab.on[data-p="d"]');
+    /* 维护 tab 激活判(其他 tab 不触键盘快捷, 不挡全局) */
+    const activeTab=document.querySelector('.tab.on[data-p="d"], .tab.active[data-p="d"]');
     if(!activeTab){ return; }
-    if(typeof _mtAborted!=='undefined'){ _mtAborted=true; } /* 跑中下一轮 abort 检查跳出 */
-    const run=$('#mtrun');
-    if(run){ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
-    if(typeof _toast==='function'){ _toast('已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）', 'ok'); }
+    /* 焦点在输入框/可编辑区时不触(不挡用户输入) */
+    const tag=(document.activeElement && document.activeElement.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||(document.activeElement&&document.activeElement.isContentEditable)){ return; }
+    if(e.key==='Escape'){
+      if(typeof _mtAborted!=='undefined'){ _mtAborted=true; } /* 跑中下一轮 abort 检查跳出 */
+      const run=$('#mtrun');
+      if(run){ run.textContent='取消'; run.style.background='var(--bad)'; run.style.color='#fff'; run.style.borderColor='var(--bad)'; }
+      if(typeof _toast==='function'){ _toast('已取消 · 跑到下一轮生效（Esc · 已跑的轮不回滚）', 'ok'); }
+    }
+    /* Enter 跳双图(R179): 维护 tab 激活 + 焦点非输入框 -> mtLiveBadgeJump(跳双图+mtFocusLatest聚焦最新轮), 跑中看徽标手放键盘按 Enter 即跳双图免移开手点, 与 R171 点击跳双图同「趋势条可管」但键盘路径 */
+    if(e.key==='Enter'){
+      e.preventDefault(); /* 挡全局 Enter(表单提交等), 维护区 Enter 只做跳双图 */
+      if(typeof mtLiveBadgeJump==='function'){ mtLiveBadgeJump(); }
+      if(typeof _toast==='function'){ _toast('已跳双图区 · 聚焦最新轮（Enter）', 'ok'); }
+    }
   });
 })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
