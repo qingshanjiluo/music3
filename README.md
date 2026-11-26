@@ -5101,3 +5101,37 @@ hover 时 `mouseenter` 读 `window._mtRunning`/`_mtPaused`/`_mtAborted` 算三�
 轮 · 累计耗时 12.3s」，不真跑 `mtRun` 全库免 tick 污染 `runs`；`mtRun` 跑完区 `FULL_DONE` 调 `mtLiveBadgeDone` 是循环后行为不验，
 验 `mtLiveBadgeDone` 函数出口）。
 
+---
+
+## 第202轮（前端 R188 · goal round165）：`#mtmetsum` 双指标汇总 hover 显逐轮明细（`#mtmetsumdetail` 浮层，hover 显近 N 次每轮耗时 + 补入明细列表（第 i 次 Xs · 补入 +Y / …）+ 均值 / 合计，常驻汇总 hover 看逐轮明细）
+
+**完善性（汇总 hover 看逐轮明细免只看均值）**：R183 `#mtmetsum` 取消 / 暂停同态前缀 + 汇总值（均值 / 合计），但汇总只显
+均值 / 合计**不显逐轮明细**（近 N 次每轮耗时 + 补入逐条列表没入口，要看逐轮趋势得看双图区柱状 / 折线，汇总 hover 没逐轮
+明细）。`#mtmetsum`（R158 双指标汇总 span）加 hover 委托 + **`#mtmetsumdetail`** 浮层（`mouseenter` 显「近 N 次逐轮明细：
+第 i 次 Xs · 补入 +Y / …」逐条列表 + 均值 / 合计，读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼，`mouseleave` 隐）——常驻
+汇总 hover 看逐轮明细（与 R186 `#mtkeyhint` 三键状态灯 hover 详情同「hover 看逐条」语言，汇总均值 / 合计 + hover 逐轮明细
+双路看双指标趋势）。
+
+**E2E**：`写 _mtRunHist(4)+_mtRunDelta(4) → #mtmetsum hover（mouseenter）→ #mtmetsumdetail 显「近 4 次逐轮明细：第 i 次 Xs ·
+补入 +Y」逐条列表 + 均值 / 合计 + mouseleave → 隐`（绿，逐轮明细 + 逐条第 i 次 + 均值合计）；端点 **30/0**、JS undefined NONE、
+CSS 320/320、node 0、console 0、截图 r188_metsumhover.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 672→674`，断点 `_整理后分类\摇滚民谣\宋冬野\无题.mp3`。
+
+**坑**：① `#mtmetsumdetail` 挂 `#mtmetsum` 后（`#mtdeltabar` 双图区 `#mtmetsum` span 后，`position:absolute z-index:60`，`--bg2` 底
++ `--line` 描边 + `--ink` 色 10px，`line-height:1.5` 多行逐轮明细，`white-space:nowrap` + `max-width:280px`（逐条多行 `br` 折，
+`max-width` 限宽不超双图区，`pointer-events:none` 不挡下层）② `#mtmetsum` hover 委托（`mouseenter` 显 `#mtmetsumdetail` 逐轮明
+细 / `mouseleave` 隐，`#mtmetsum` span `mouseenter` 直挂，`#mtmetsumdetail` `pointer-events:none` 不挡下层，hover 汇总本体触，
+离即隐）③ 逐轮明细读 `localStorage._mtRunHist`/`_mtRunDelta` 逐条拼（`h` 耗时近 10 + `b` 补入近 10，`n=max(h.length, b.length)`，
+`for _k=0..n` 第 `n-1-_k` 次（新→旧，末位最新在第 0 次——`_k=0` 第 `n-1` 次是最新轮，`_k=n-1` 第 `0` 次最早轮，倒序显最新在上）
++ 均值 `h.reduce/len toFixed(1)` + 合计 `b.reduce`，`d.innerHTML=_lines.replace(/
+/g,'<br>')` 多行 `br` 折）④ 倒序显最新在上
+（`_k=0` 第 `n-1-_k` 次 = 最新轮 `n-1`，`_k=n-1` 第 `0` 次最早轮——逐轮明细最新在上，看逐轮趋势从上往下越旧，与双图区末柱最新
+对称）⑤ 空历史（`n=0` `#mtmetsum` 无数据）→ `#mtmetsumdetail` 显「无跑维护双指标历史」（不显逐条，`#mtmetsum` 本身 `display:none`
+无数据不显，hover 不触——`#mtmetsum` `display:none` 时 `mouseenter` 不触，`#mtmetsumdetail` 不显，空历史入口只在 `#mtmetsum` 显时
+才 hover 触）⑥ 与 R183 汇总均值 / 合计 + R188 hover 逐轮明细**双路**（`#mtmetsum` 常驻显均值 / 合计（`mtMetSumDraw` 汇总一行），
+hover 显逐轮明细（`#mtmetsumdetail` 多行逐条），看均值扫一眼 + hover 看逐条，双指标趋势双粒度）⑦ 验收**函数级**（写
+`_mtRunHist`/`_mtRunDelta` 4 条 + `#mtmetsum` `dispatchEvent` `mouseenter` 验 `#mtmetsumdetail` 显「逐轮明细」+ 逐条第 i 次 + 均值
+合计 + `mouseleave` 隐，不真跑 `mtRun` 免 tick 污染 `runs`；`#mtmetsumdetail` 逐条 headless 验 `textContent` 含「逐轮明细」+ 第 i 次
++ 均值合计，非真渲染多行）。
+
