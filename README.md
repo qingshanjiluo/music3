@@ -4569,3 +4569,32 @@ node 0、console 0、截图 r170_dualtrail.png。
 状态）⑥ 验收**函数级**（`mtAutoRef` 开 + `mtLiveBadge` 设详情验 `data-dtl` 含「自动刷 5s 中」，`mtAutoRef` 关 + 再设详情验
 不含，双轨开关验；自动刷 5s 间隔真实 `setInterval` 不触，只验 `_mtAutoRefTimer` 句柄非空/空的开关联动）。
 
+---
+
+## 第185轮（前端 R171 · goal round148）：`#mtlivebadge` 双指标实时徽标点击跳双图区（点击 → 展开 `#mtmetfoldwrap`（若折叠）+ `scrollIntoView` 滚到双图区）
+
+**连贯性（跑中扫一眼后直接看双图趋势）**：R166 `#mtlivebadge` 跑中每轮显当前轮双指标，跑中扫一眼当前轮后**直接看双图趋势**
+（`#mthistspark` 耗时折线 / `#mtdeltabar` 补入柱状）要手动滚 / 展开折叠区（R163 `#mtmetfold` 折叠时双图区隐，点 `#mtmetfold`
+才展）。`#mtlivebadge` 加 **`onclick`**（`mtLiveBadgeJump`：`#mtmetfoldwrap` 折叠时展开 + `_mtMetFold=0` + `#mtmetfold` 钮复位
+`▾ 折趋势` + `#mthistspark` `scrollIntoView` 滚到双图区）——跑中扫一眼当前轮后点击徽标直接跳双图趋势，与 R163 折叠开关同
+「趋势条可管」语言（徽标 → 双图跳转，免手点折叠钮再滚）。
+
+**E2E**：`折叠态（#mtmetfoldwrap display:none）→ 点 #mtlivebadge → 展开（block）+ _mtMetFold=0 + 钮「▾ 折趋势」（双图区可访问）`
+（绿，`#mthistspark` scrollIntoView headless 不验滚动只验双图区展开）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、
+console 0、截图 r171_jump.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 638→640`，断点 `_整理后分类\华语经典\五月天\听不到.mp3`。
+
+**坑**：① `mtLiveBadgeJump`（`#mtlivebadge` onclick，载入 IIFE 绑 `addEventListener('click')`，不 `onclick=` 内联——徽标
+`textContent` 每轮 `mtLiveBadge` 刷新，内联 `onclick` 会被 `el.textContent=` 覆盖丢事件，`addEventListener` 挂元素不随
+`textContent` 变）② 跳双图：`#mtmetfoldwrap` 折叠（`display:none`）→ `display='block'` + `localStorage._mtMetFold='0'` +
+`#mtmetfold` 钮 `textContent='▾ 折趋势'`（展开复位折叠态，与 R163 `mtMetFold` 同状态同步——徽标跳双图顺带展开折叠区，双图区
+可访问后 `scrollIntoView` 才滚得到，不展则滚到隐区无效）③ `#mthistspark` `scrollIntoView({behavior:'smooth', block:'center'})`
+（滚到耗时折线双图区居中，`#mtdeltabar` 补入柱状在其下同滚进，双图一起看；`smooth` 平滑滚，跑中滚动不跳）④ **点击 = 跳转
+非复制**（`#mtlivedetailcopy` 复制是 hover 浮层内钮，`#mtlivebadge` 本体点击是跳双图，两交互分工：本体点 = 跳双图趋势，hover
+浮层内 `⧉` 钮 = 复制详情，不混）⑤ `scrollIntoView` 在 `#mthistspark` 元素（耗时折线，双图区上），`#mtdeltabar` 补入柱状在
+`#mthistspark` 后同 `#mtmetfoldwrap` 包内，滚 `#mthistspark` 双图区一起进视口 ⑥ 已展开时点（`#mtmetfoldwrap` 非 `none`）只
+`scrollIntoView` 不重展（`display!=='none'` 跳过展开，只滚——不反复写 `_mtMetFold`，已展开态保持）⑦ 验收**函数级**（折叠态
+`#mtmetfoldwrap` `display:none` + 点 `#mtlivebadge` 验展开 `block` + `_mtMetFold=0` + 钮复位，`scrollIntoView` headless 不验
+实际滚动只验双图区展开可访问，不真跑 `mtRun` 免 tick 污染 `runs`）。
+

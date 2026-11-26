@@ -3809,6 +3809,13 @@ function mtLiveBadge(i, N, back, dur, lyr, cov, totalDur, totalN){
   }
 }
 function mtLiveBadgeHide(){ const el=$('#mtlivebadge'); if(el){ el.style.display='none'; el.textContent=''; } const d=$('#mtlivedetail'); if(d){ d.style.display='none'; d.textContent=''; } }
+/* 徽标点击跳双图区(R171): #mtlivebadge onclick -> 展开 #mtmetfoldwrap(若 R163 折叠)+ scrollIntoView 滚到双图区(#mthistspark), 跑中扫一眼当前轮后直接看双图趋势(耗时折线/补入柱状), 徽标->双图跳转与 R163 折叠开关同「趋势条可管」语言 */
+function mtLiveBadgeJump(){
+  const wrap=$('#mtmetfoldwrap');
+  if(wrap && wrap.style.display==='none'){ wrap.style.display='block'; try{ localStorage.setItem('_mtMetFold','0'); }catch(e){} const bf=$('#mtmetfold'); if(bf){ bf.textContent='▾ 折趋势'; } }
+  const tgt=$('#mthistspark'); if(tgt){ tgt.scrollIntoView({behavior:'smooth', block:'center'}); }
+}
+(function(){ const j=$('#mtlivebadge'); if(j){ j.addEventListener('click', mtLiveBadgeJump); } })();
 /* 跑中徽标 hover 展开详情(R167): #mtlivebadge 悬停 -> #mtlivedetail 显 data-dtl(补入拆歌词/封面+累计耗时+总进度), 移开隐; 跑中看细, 与 R166 一行徽标分工(一行扫一眼/hover 看细) */
 (function(){
   const b=$('#mtlivebadge'), d=$('#mtlivedetail');
