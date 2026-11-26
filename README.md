@@ -3891,3 +3891,27 @@ delta=5+2=7 + 实测 9s vs 估剩 9s）+ hasReview`（绿）；端点 **30/0**�
 `_mtRunHist` 画（跨会话，重开页面看上次跑的耗时趋势），`mtRunHistDraw` 跑完也调（新跑一次刷新折线）⑥ 历史记**总耗时**
 （一次连跑 N 轮 `t0` 起），不记每轮——顶栏粒度粗（看维护整体越来越快/慢），每轮耗时看 R126 `dur_trend` 卡。
 
+---
+
+## 第159轮（前端 R145 · goal round122）：跑维护历史折线 hover 数值跟随（`#mthistsvg` 按 x 定位显该次耗时，与 R134 同语言）
+
+**连贯性（顶栏小折线也能扫单次耗时）**：R144 顶栏 `#mthistspark` 小折线**不挂 hover**（「顶栏简版免挤」），看
+近 10 次跑耗时趋势只有均值，**单次耗时**没数。`#mthistbox` 挂 **hover 点 + 标签**（`mousemove` 按 x 定位最近点，
+`#mthisthover` 圆点 + `#mthisthovlbl` 该次 `Xs`），与 R134 维护卡 sparkline hover 数值跟随同「hover 看值」直觉——
+顶栏小折线也能扫单次耗时（越靠后=越新的跑，悬停看那次总耗时）。
+
+**E2E**：`#mthistbox 有 data-hh + hover 中部（x=55/110 → idx=5, val=1.1s）→ #mthisthover 显 + #mthisthovlbl=「1.1s」`
+（绿）；端点 **30/0**、JS undefined NONE、CSS 320/320、node 0、console 0、截图 r145_histhov.png。
+
+**完善性（游标续推）**：全库 2 批 batch=20 `runs 586→588`，断点 `_归档_封存\SD卡版\摇滚民谣\陈绮贞\太聪明.mp3`。
+
+**坑**：① `#mthistbox`（R144 `#mthistsvg` 容器改内层 `.mthistbox` div）挂 `data-hh`（`encodeURIComponent(JSON 历史)`，
+折线重画随 `mtRunHistDraw` 重铺）+ `#mthisthover`（8px 圆点 accent 白描边，`display:none`）+ `#mthisthovlbl`（该次耗时
+`Xs`，accent，`display:none`）② hover 委托挂 `document` **捕获**（`mousemove`/`mouseout`，`e.target.closest('#mthistspark
+.mthistbox')` 命中，`data-hh` 解 `h`，按 `(clientX-left)/width` 定 `idx=round(frac*(n-1))`，`#mthisthover`/`lbl` 显 +
+`left=frac*100%`/`top=y`/`text=h[idx]s`；`mouseout` 隐）③ 与 R134 维护卡 hover 同 `mousemove` 捕获 + `closest` + x 定位
+算法，但**容器独立**（`#mthistbox` vs `.mtspark`，不串）④ `data-hh` 存历史（不重读 `localStorage`，`mtRunHistDraw` 画折线
+同刻写，hover 解 `data-hh` 快，避免每次 mousemove 读 localStorage）⑤ 验收坑：`document.dispatchEvent(mousemove)` 时
+`e.target=document`（`document.closest` 不是 `#mthistbox`，委托命中不了）——改 `box.dispatchEvent`（`e.target=box`，
+`closest('.mthistbox')` 命中委托）；真浏览器 hover `e.target` 是 box 内 svg/span，冒泡到 `document` 委托正常命中。
+

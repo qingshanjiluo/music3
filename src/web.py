@@ -3535,8 +3535,28 @@ function mtRunHistDraw(){
   const area=pts+' '+w+','+hgt+' 0,'+hgt;
   const avg=Math.round((h.reduce((a,c)=>a+c,0)/h.length)*10)/10;
   lbl.textContent='近 '+h.length+' 次跑维护耗时 · 均值 '+avg+'s';
-  svg.innerHTML='<svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><defs><linearGradient id="mthistg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity="0"></stop><stop offset="1" stop-color="var(--acc)" stop-opacity="0.18"></stop></linearGradient></defs><polygon points="'+area+'" fill="url(#mthistg)"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  svg.innerHTML='<div class="mthistbox" data-hh="'+encodeURIComponent(JSON.stringify(h))+'" style="position:relative;width:110px;height:22px"><svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" style="width:110px;height:22px;display:block"><defs><linearGradient id="mthistg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity="0"></stop><stop offset="1" stop-color="var(--acc)" stop-opacity="0.18"></stop></linearGradient></defs><polygon points="'+area+'" fill="url(#mthistg)"/><polyline points="'+pts+'" fill="none" stroke="var(--acc)" stroke-width="1.5" stroke-linecap="round"/></svg><span id="mthisthover" style="position:absolute;left:-99px;top:0;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--acc);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.3);display:none;pointer-events:none"></span><span id="mthisthovlbl" style="position:absolute;left:-99px;top:-14px;font-size:10px;font-weight:600;color:var(--acc);white-space:nowrap;display:none;pointer-events:none"></span></div>';
 }
+/* 跑维护历史折线 hover 数值跟随: document 捕获 mousemove/mouseout, 命中 #mthistbox 按 x 定位最近点, 显该次耗时(与 R134 维护卡 sparkline hover 同「hover 看值」直觉, 顶栏小折线也能扫单次耗时) */
+document.addEventListener('mousemove', function(e){
+  const box=e.target.closest && e.target.closest('#mthistspark .mthistbox');
+  if(!box){ const d1=document.getElementById('mthisthover'), l1=document.getElementById('mthisthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; return; }
+  const raw=box.getAttribute('data-hh'); if(!raw) return;
+  let h=[]; try{ h=JSON.parse(decodeURIComponent(raw)); }catch(_){ return; }
+  const r=box.getBoundingClientRect(), pad=2, hgt=22;
+  const mx=Math.max.apply(null,h), mn=Math.min.apply(null,h), rng=Math.max(1e-3, mx-mn);
+  const frac=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+  const idx=Math.round(frac*(h.length-1));
+  const val=h[idx];
+  const y=pad+(1-(val-mn)/rng)*(hgt-2*pad);
+  const dot=document.getElementById('mthisthover'), lbl=document.getElementById('mthisthovlbl');
+  if(dot){ dot.style.display='block'; dot.style.left=(frac*100)+'%'; dot.style.top=y+'px'; }
+  if(lbl){ lbl.style.display='block'; lbl.style.left=(frac*100)+'%'; lbl.style.top=(y-10)+'px'; lbl.textContent=val+'s'; }
+}, true);
+document.addEventListener('mouseout', function(e){
+  const box=e.target.closest && e.target.closest('#mthistspark .mthistbox');
+  if(box){ const d1=document.getElementById('mthisthover'), l1=document.getElementById('mthisthovlbl'); if(d1) d1.style.display='none'; if(l1) l1.style.display='none'; }
+}, true);
 /* 载入: 按 _mtRunHist 画跑维护历史 sparkline(跨会话, 重开还在) */
 (function(){ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', function(){ mtRunHistDraw(); }); } else { mtRunHistDraw(); } })();
 $('#mtrun').onclick = mtRun;
