@@ -556,6 +556,16 @@ body._nosplabel .mtspark-lastval{display:none}
 .stitle{flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stitle .sc{margin-left:6px}
 .sdur{font-size:11px;color:var(--dim);width:40px;text-align:right}
+/* 专辑/歌单卡片（封面方卡 + 右侧信息） */
+.acard{display:flex;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;align-items:flex-start}
+.acard:hover{border-color:rgba(196,56,31,.45);box-shadow:0 2px 8px rgba(196,56,31,.08)}
+.acov{flex:0 0 auto;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--line)}
+.acov img{width:100%;height:100%;object-fit:cover}
+.acovph{display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--dim);background:linear-gradient(135deg,#efece5,#e3ded2)}
+.acardbody{flex:1;min-width:0}
+.acardtitle{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acardsub{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.acardops{display:flex;align-items:center;gap:6px;margin-top:6px}
 /* 搜索结果分组标签 */
 .gtag{
   display:inline-block;font-size:10px;line-height:1;padding:3px 5px;margin-right:6px;
@@ -900,6 +910,8 @@ body._nosplabel .mtspark-lastval{display:none}
       <span class="on" data-sm="all">全部</span>
       <span data-sm="song">歌曲</span>
       <span data-sm="artist">歌手</span>
+      <span data-sm="album">专辑</span>
+      <span data-sm="playlist">歌单</span>
       <span data-sm="mv">MV</span>
     </div>
     <input type="text" id="q" placeholder="歌名 歌手，如：晴天 周杰伦" autofocus>
@@ -1978,6 +1990,8 @@ async function doSearch(){
   try{
     if(searchMode==='all')         return await doSearchAll(q);
     if(searchMode==='artist')      return await doSearchArtist(q);
+    if(searchMode==='album')       return await doSearchAlbum(q);
+    if(searchMode==='playlist')    return await doSearchPlaylist(q);
     else if(searchMode==='mv')     return await doSearchMV(q);
     const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
     const d=await (await fetch(`/api/search?q=${encodeURIComponent(q)}&sources=${src}&limit=15`)).json();
@@ -2023,6 +2037,56 @@ async function doSearchArtist(q){
   const albums=new Set(last.map(t=>t.album||'').filter(Boolean));
   setMsg($('#msg'),`歌手「${q}」 ${last.length} 首 · ${names.slice(0,3).join(' / ')}${names.length>3?' 等'+names.length+'位':''} · ${albums.size} 张专辑`);
 }
+/* 专辑模式：/api/albums，按专辑卡片（封面+专辑名+歌手+首数+源标签） */
+async function doSearchAlbum(q){
+  setMsg($('#msg'),'搜专辑「'+q+'」…');
+  const d=await (await fetch(`/api/albums?q=${encodeURIComponent(q)}&limit=20`)).json();
+  if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+  _toggleArtistCards(true);
+  const c=$('#scards');
+  const items=d.items||[];
+  if(!items.length){
+    c.innerHTML=`<div class="sgrp"><div class="sgrphead"><span class="salbum">没有匹配专辑</span></div><div class="slist"><div class="scrow"><div class="stitle">${emptyRows('换个专辑名试试','如：叶惠美 / 七里香 / 跨时代')}</div></div></div></div>`;
+    setMsg($('#msg'),'专辑「'+q+'」无结果');
+    return;
+  }
+  c.innerHTML=items.map(a=>{
+    const cov=a.cover?`<div class="acov"><img src="${esc(a.cover)}" loading="lazy" alt=""></div>`:`<div class="acov acovph">♪</div>`;
+    const src=`<span class="src ${srcCls(a.source)}">${a.source}</span>`;
+    const n=a.track_count>1?(a.track_count+' 首'):'';
+    return `<div class="acard">${cov}<div class="acardbody">
+      <div class="acardtitle">${esc(a.album)}</div>
+      <div class="acardsub">${esc(a.artist||'-')}${n?' · '+n:''}</div>
+      <div class="acardops">${src}<a class="ghost sm" href="${a.page_url||'#'}" target="_blank" rel="noopener" title="打开原页">⛶</a></div>
+    </div></div>`;
+  }).join('');
+  setMsg($('#msg'),'专辑「'+q+'」'+items.length+' 张（'+[...new Set(items.map(a=>a.source))].join('/')+' 源）');
+}
+/* 歌单模式：/api/playlists，按歌单卡片（封面+歌单名+创建者+曲目数+播放量） */
+async function doSearchPlaylist(q){
+  setMsg($('#msg'),'搜歌单「'+q+'」…');
+  const d=await (await fetch(`/api/playlists?q=${encodeURIComponent(q)}&limit=20`)).json();
+  if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
+  _toggleArtistCards(true);
+  const c=$('#scards');
+  const items=d.items||[];
+  if(!items.length){
+    c.innerHTML=`<div class="sgrp"><div class="sgrphead"><span class="salbum">没有匹配歌单</span></div><div class="slist"><div class="scrow"><div class="stitle">${emptyRows('换个歌单名试试','歌单搜索走网易云（type=1000），QQ 歌单端点需签名暂不可达')}</div></div></div></div>`;
+    setMsg($('#msg'),'歌单「'+q+'」无结果');
+    return;
+  }
+  c.innerHTML=items.map(p=>{
+    const cov=p.cover?`<div class="acov"><img src="${esc(p.cover)}" loading="lazy" alt=""></div>`:`<div class="acov acovph">♪</div>`;
+    const pc=p.play_count?fmtNum(p.play_count)+' 次播放':'';
+    return `<div class="acard">${cov}<div class="acardbody">
+      <div class="acardtitle">${esc(p.name)}</div>
+      <div class="acardsub">${esc(p.creator||'未知')} · ${p.track_count} 首${pc?' · '+pc:''}</div>
+      <div class="acardops"><span class="src src-q">netease</span><a class="ghost sm" href="${esc(p.page_url||'#')}" target="_blank" rel="noopener" title="打开歌单">⛶</a></div>
+    </div></div>`;
+  }).join('');
+  setMsg($('#msg'),'歌单「'+q+'」'+items.length+' 个（网易云）');
+}
+function fmtNum(n){return n>=10000?(Math.round(n/10000))+'万':String(n);}
 /* 歌手卡片渲染：按专辑分组（无专辑名的归「单曲/未收录」），卡片内每首一行（试听/下载/收藏） */
 function renderArtistCards(q, rows){
   /* 隐藏表格，改用卡片容器（#scards 静态挂在 #p-s 内） */
@@ -2462,7 +2526,9 @@ let _watchTimer = 0;
 const SM_TIP = {
   all:'一次同时搜：歌曲（QQ+网易+B站）+ 歌手曲目 + B站 MV，分组展示',
   song:'歌名模式：自动打分去重，按匹配度排序',
-  artist:'歌手模式：纯歌手名搜全部曲目，按歌手命中的排前',
+  artist:'歌手模式：纯歌手名搜全部曲目，按专辑分组卡片展示',
+  album:'专辑模式：QQ+网易 歌曲搜索按专辑名命中聚合，专辑卡片展示',
+  playlist:'歌单模式：网易云歌单搜索（type=1000），歌单卡片展示',
   mv:'MV 模式：搜 B站视频当 MV 源，下载存为 mp4',
 };
 function applySM(){
@@ -2471,6 +2537,8 @@ function applySM(){
   $('#q').placeholder = searchMode==='all' ? '一个词全搜：晴天 周杰伦'
     : searchMode==='song' ? '歌名 歌手，如：晴天 周杰伦'
     : searchMode==='artist' ? '歌手名，如：周杰伦 / 洛天依'
+    : searchMode==='album' ? '专辑名，如：叶惠美 / 七里香'
+    : searchMode==='playlist' ? '歌单名/关键词，如：周杰伦 精选'
     : '歌名+MV，如：海阔天空 Beyond MV';
   $('#smodetip').textContent = SM_TIP[searchMode] || '';
   localStorage.setItem('m3_sm', searchMode);
@@ -6669,6 +6737,62 @@ class Handler(BaseHTTPRequestHandler):
                 for r in rows:
                     r.pop("_hit", None)
                 return self._send(200, {"name": name, "items": rows})
+
+            # ---- 专辑搜索（QQ+网易 歌曲搜索按 album 命中聚合；网易另有 cloudsearch 专辑聚合）----
+            if u.path == "/api/albums":
+                from .models import norm
+                q = g("q", "").strip()
+                if not q:
+                    return self._send(400, {"error": "missing q"})
+                limit = int(g("limit", "12"))
+                srcs = tuple(x for x in g("sources", "qq,netease").split(",") if x)
+                groups = {}
+                def _agg(album_name, artist, cover, source, track_count, songs):
+                    key = (norm(album_name), source)
+                    if not album_name or norm(q) not in norm(album_name):
+                        return
+                    cur = groups.get(key)
+                    if cur is None:
+                        groups[key] = {"album": album_name, "artist": artist, "cover": cover,
+                                       "source": source, "track_count": 0, "songs": []}
+                        cur = groups[key]
+                    if artist and artist != "-" and not cur["artist"]:
+                        cur["artist"] = artist
+                    cur["track_count"] = max(cur["track_count"], track_count)
+                    for s in songs:
+                        if len(cur["songs"]) < 5 and s not in [x for x in cur["songs"]]:
+                            cur["songs"].append(s)
+                if "qq" in srcs:
+                    from . import src_qq
+                    try:
+                        for t in src_qq.search(q, limit=min(40, max(limit * 4, 20))):
+                            if t.album:
+                                _agg(t.album, t.artists, t.cover_url, "qq", 1,
+                                     [{"id": t.track_id, "title": t.title, "artists": t.artists}])
+                    except Exception:
+                        pass
+                if "netease" in srcs:
+                    from . import src_netease
+                    try:
+                        for a in src_netease.search_albums(q, limit=limit):
+                            _agg(a["album"], a["artist"], a["cover"], "netease", a["track_count"], a["songs"])
+                    except Exception:
+                        pass
+                items = list(groups.values())
+                items.sort(key=lambda x: (-x["track_count"], x["album"]))
+                for it in items:
+                    it.pop("songs")  # 试听用 song id 列表单独返回
+                return self._send(200, {"name": q, "items": items[:limit]})
+
+            # ---- 歌单搜索（网易 cloudsearch type=1000）----
+            if u.path == "/api/playlists":
+                from . import src_netease
+                q = g("q", "").strip()
+                if not q:
+                    return self._send(400, {"error": "missing q"})
+                limit = int(g("limit", "12"))
+                items = src_netease.search_playlists(q, limit=limit)
+                return self._send(200, {"name": q, "items": items})
 
             # ---- MV 视频 ----
             if u.path == "/api/mv":

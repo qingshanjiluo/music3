@@ -7541,3 +7541,16 @@ R257 `#mtallfoldstat` 折叠记忆切 IIFE 展开态段切展开态 + 折叠态�
 
 **E2E**：`全复位 → 歌手模式搜「周杰伦」→ 出卡片（19 专辑组 · 23 行 · 表格隐）→ 切歌曲模式搜「晴天 周杰伦」→ 表格恢复 28 行 · 卡片隐`（绿）；端点 11/3（3 个 4xx 为既有缺参行为 `/api/lib` 400、`/api/cover?rel=` 404、`/api/batch` GET 404，非本轮回归）、CSS 大括号 333/333 配平、console 0、截图 docs/shots/artist_cards.png。
 
+---
+
+## 专辑/歌单搜索 · 卡片展示
+
+**完善性（功能新增）**：搜索模式（`#smode`）新增「专辑」「歌单」两档，卡片展示：
+- **专辑**：`/api/albums?q=` —— QQ + 网易双源：QQ 走 `src_qq.search` 歌曲搜索按 `Track.album` 命中 q 聚合，网易走 `src_netease.search_albums`（cloudsearch 无独立专辑端点，歌曲搜索 type=1 多拉 60 条按 `al.name` 命中过滤聚合）；卡片 = 封面（`.acov`）+ 专辑名 + 歌手 + 首数 + 源标签 + 原页链接。
+- **歌单**：`/api/playlists?q=` —— 网易云 cloudsearch `type=1000`（`src_netease.search_playlists`），卡片 = 封面 + 歌单名 + 创建者 + 曲目数 + 播放量 + 歌单页链接；QQ 歌单独立端点需签名（`music_search.fcg`/`music.smartbox.fcg` 实测 404/500001）暂不可达，歌单走网易单源。
+- 复用歌手卡片的 `#scards` 容器与 `_toggleArtistCards`（专辑/歌单模式显卡片隐表格，切回歌曲/歌手/全部模式自动恢复表格），卡片样式 `.acard`/`.acov`/`.acardbody` 浅色 token（`--panel`/`--line`/`#c4381f` accent hover）。
+
+**坑**：① 网易 cloudsearch 专辑无独立 `type`（type=2/3/4/5/6/1001/10002 全空），专辑只能走「歌曲搜索按 `al.name` 命中过滤」等价路径——搜「叶惠美」返回该专辑下歌曲，按专辑名聚合出 18 首（netease）+ QQ 侧 1 首（周杰伦原唱版权限制未命中），「周杰伦《叶惠美》吉他翻唱版」也被聚合进来（含命中词，符合搜索语义）② QQ 专辑/歌单搜索端点（`musics.fcg` 各 `search_type` + `music_search.fcg` + `music.smartbox.fcg`）实测 500001/404，需签名参数（`in_timestamp`/`guid` 全量），暂不打通，记路径：后续可走 `music.vkeys.cn` 中转或 y.qq.com 网页版 smartbox 抓包补签名 ③ 网易 `type=1000` 歌单 `creator` 字段是 JSON 字符串（`{"nickname":"...",...}`），需 `json.loads` 反序列化。
+
+**E2E**：`专辑模式搜「叶惠美」→ 7 张专辑卡片（叶惠美 netease 18 首 / 叶惠美 qq / 叶惠美也会美 / 叶惠美的诗 …）· 表格隐；歌单模式搜「周杰伦 精选」→ 20 个歌单卡片（周杰伦-Jay『网易云精选』145 首 3518 万次播放 …）；歌手模式不回归（19 专辑组 · 23 行）；切歌曲模式回表格 28 行 · 卡片隐`（全绿）；端点 **13/0**、CSS 大括号 342/342 配平、console 0、截图 docs/shots/album_cards.png + playlist_cards.png + artist_cards2.png。
+

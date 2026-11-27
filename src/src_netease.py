@@ -98,6 +98,75 @@ def search(keyword, limit=10, timeout=15):
     return out
 
 
+def search_playlists(keyword, limit=10, timeout=15):
+    """歌单搜索（cloudsearch type=1000）。返回 dict 列表：id/name/creator/track_count/cover/play_count/page_url。"""
+    try:
+        r = _S.post(
+            _SEARCH,
+            data={"s": keyword, "type": 1000, "limit": int(limit), "offset": 0},
+            timeout=timeout,
+        )
+        j = r.json()
+    except Exception:
+        return []
+    out = []
+    for p in ((j.get("result") or {}).get("playlists")) or []:
+        creator = p.get("creator") or p.get("user") or {}
+        if isinstance(creator, str):
+            try:
+                creator = json.loads(creator)
+            except Exception:
+                creator = {"nickname": creator}
+        out.append({
+            "id": str(p.get("id") or ""),
+            "name": str(p.get("name") or ""),
+            "creator": str(creator.get("nickname") or "") if isinstance(creator, dict) else "",
+            "track_count": int(p.get("trackCount") or 0),
+            "cover": str(p.get("coverImgUrl") or ""),
+            "play_count": int(p.get("playCount") or 0),
+            "page_url": ("https://music.163.com/#/playlist?id=%s" % p.get("id")) if p.get("id") else "",
+        })
+    return out
+
+
+def search_albums(keyword, limit=12, timeout=20):
+    """专辑搜索：cloudsearch 无独立专辑端点，用歌曲搜索（type=1，多拉）按 `al.name` 命中 keyword 过滤聚合。
+
+    返回 dict 列表：album/artist/cover/track_count/songs（前 5 首，试听/下载用）。
+    """
+    from .models import norm
+    kw = norm(keyword)
+    if not kw:
+        return []
+    try:
+        r = _S.post(
+            _SEARCH,
+            data={"s": keyword, "type": 1, "limit": min(60, max(limit * 5, 30)), "offset": 0},
+            timeout=timeout,
+        )
+        j = r.json()
+    except Exception:
+        return []
+    groups = {}
+    for s in ((j.get("result") or {}).get("songs")) or []:
+        al = s.get("al") or s.get("album") or {}
+        aname = str(al.get("name") or "")
+        if not aname or kw not in norm(aname):
+            continue
+        ar = s.get("ar") or s.get("artists") or []
+        artist = ", ".join(a.get("name", "") for a in ar if isinstance(a, dict))
+        g = groups.setdefault(aname, {
+            "album": aname, "artist": artist, "cover": str(al.get("picUrl") or ""),
+            "track_count": 0, "songs": [],
+        })
+        g["track_count"] += 1
+        if len(g["songs"]) < 5 and s.get("id"):
+            g["songs"].append({"id": str(s.get("id")), "title": str(s.get("name") or ""), "artists": artist})
+    out = list(groups.values())
+    out.sort(key=lambda g: -g["track_count"])
+    return out[:limit]
+
+
 def probe_duration(url, timeout=20, max_bytes=6 * 1024 * 1024):
     """下载到临时文件后用 ffprobe 精确取时长。失败返回 0。
 
