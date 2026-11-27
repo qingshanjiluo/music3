@@ -566,6 +566,14 @@ body._nosplabel .mtspark-lastval{display:none}
 .acardtitle{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acardsub{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .acardops{display:flex;align-items:center;gap:6px;margin-top:6px}
+/* 通用搜索筛选行（分数/来源/排序） */
+#sfilter{gap:8px}
+#sscore,#ssort{font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--fg)}
+.schips{display:flex;gap:5px}
+.schip{font-size:11.5px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--dim);cursor:pointer}
+.schip.on{background:rgba(196,56,31,.1);border-color:rgba(196,56,31,.45);color:var(--fg);font-weight:600}
+.schip:hover{border-color:var(--acc)}
+#scount{margin-left:auto}
 /* 搜索结果分组标签 */
 .gtag{
   display:inline-block;font-size:10px;line-height:1;padding:3px 5px;margin-right:6px;
@@ -927,6 +935,27 @@ body._nosplabel .mtspark-lastval{display:none}
     <button class="ghost sm" id="tofav" title="把所选加入收藏歌单">加入收藏</button>
     <button class="ghost sm" id="bysong" title="把搜索词加入批量页">加入批量</button>
     <span class="n" id="smodetip">歌名模式</span>
+  </div>
+  <div class="bar" id="sfilter">
+    <span class="n" style="width:34px;flex:0 0 auto">筛选</span>
+    <select id="sscore" title="最低匹配分（低于的隐藏）" style="flex:0 0 auto">
+      <option value="0" selected>全部</option>
+      <option value="0.5">≥ 0.5</option>
+      <option value="0.7">≥ 0.7（可下）</option>
+      <option value="0.8">≥ 0.8（直接下）</option>
+    </select>
+    <div class="schips" id="ssrc" role="group" aria-label="来源筛选">
+      <button class="schip on" data-src="qq">QQ音乐</button>
+      <button class="schip on" data-src="netease">网易云</button>
+      <button class="schip on" data-src="bilibili">B站MV</button>
+    </div>
+    <select id="ssort" title="排序" style="flex:0 0 auto">
+      <option value="score" selected>按匹配分</option>
+      <option value="dur">按时长</option>
+      <option value="title">按标题</option>
+    </select>
+    <button class="ghost sm" id="sreset" title="复位筛选">复位</button>
+    <span class="n" id="scount"></span>
   </div>
   <div class="bar">
     <input type="text" id="linkin" placeholder="粘贴歌单页链接（y.qq.com / music.163.com / bilibili.com，可多行；BV 链接也行）" style="flex:1">
@@ -1996,8 +2025,8 @@ async function doSearch(){
     const src=$('#bili').checked?'qq,netease,bilibili':'qq,netease';
     const d=await (await fetch(`/api/search?q=${encodeURIComponent(q)}&sources=${src}&limit=15`)).json();
     if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
-    last=(d.items||[]).map(t=>Object.assign({type:'song', duration:t.duration_s}, t));
-    renderRows(last, false);
+    _sfull=(d.items||[]).map(t=>Object.assign({type:'song', duration:t.duration_s}, t));
+    applySFilter();
     setMsg($('#msg'),`共 ${last.length} 条 · 0.8以上可直接下`);
   }catch(e){setMsg($('#msg'),'失败: '+e,'bad');}
   finally{$('#go').disabled=false;}
@@ -2014,20 +2043,21 @@ async function doSearchAll(q){
   const song  = (rSong.status==='fulfilled' && rSong.value.items) || [];
   const art   = (rArtist.status==='fulfilled' && rArtist.value.items) || [];
   const mv    = (rMV.status==='fulfilled' && rMV.value.items) || [];
-  const seen = new Set(); last = [];
+  const seen = new Set(); _sfull = [];
   const push=(type, arr, map)=>{ (arr||[]).forEach(t=>{
       const k = type+'|'+(t.title||'')+'|'+(t.artists||t.bvid||'');
-      if(seen.has(k)) return; seen.add(k); last.push(Object.assign({type}, map(t)));
+      if(seen.has(k)) return; seen.add(k); _sfull.push(Object.assign({type}, map(t)));
   });};
   push('song', song, t=>({title:t.title, artists:t.artists, source:t.source, duration:t.duration_s, score:t.score}));
   // 歌手曲去重（与 song 撞车的不再列）
   push('artist', art, t=>({title:t.title, artists:t.artists, source:t.source, duration:t.duration, score:t.score}));
   push('mv', mv, t=>({title:t.title, artists:t.artists, source:'bilibili', duration:t.duration, score:null, bvid:t.bvid, page_url:t.page_url}));
-  renderRows(last, true);
+  applySFilter();
   setMsg($('#msg'), `歌曲 ${song.length} · 歌手曲 ${art.length} · MV ${mv.length} · 共 ${last.length} 条（已跨组去重）`);
 }
 /* 歌手模式：/api/artists，纯歌手名搜索 —— 卡片展示，按专辑分组 */
 async function doSearchArtist(q){
+  _resetSFilter();
   setMsg($('#msg'),'按歌手搜「'+q+'」…');
   const d=await (await fetch(`/api/artists?name=${encodeURIComponent(q)}&limit=30`)).json();
   if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
@@ -2039,6 +2069,7 @@ async function doSearchArtist(q){
 }
 /* 专辑模式：/api/albums，按专辑卡片（封面+专辑名+歌手+首数+源标签） */
 async function doSearchAlbum(q){
+  _resetSFilter();
   setMsg($('#msg'),'搜专辑「'+q+'」…');
   const d=await (await fetch(`/api/albums?q=${encodeURIComponent(q)}&limit=20`)).json();
   if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
@@ -2064,6 +2095,7 @@ async function doSearchAlbum(q){
 }
 /* 歌单模式：/api/playlists，按歌单卡片（封面+歌单名+创建者+曲目数+播放量） */
 async function doSearchPlaylist(q){
+  _resetSFilter();
   setMsg($('#msg'),'搜歌单「'+q+'」…');
   const d=await (await fetch(`/api/playlists?q=${encodeURIComponent(q)}&limit=20`)).json();
   if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
@@ -2167,6 +2199,48 @@ function markPick(c){
   if(tr) tr.classList.toggle('picked', c.checked);
   syncSelCount();
 }
+/* ---------- 通用搜索筛选：分数阈值 + 来源 chips + 排序（作用全量 last，重渲表格） ---------- */
+let _sfull=[];   /* 最近一次搜索的全量结果 */
+let _sfilter={score:0, src:new Set(['qq','netease','bilibili','qq-musicdl','kuwo','qianqian','migu']), sort:'score'};
+function _svisible(){
+  const arr=_sfull.filter(t=>{
+    if(t.score!=null && _sfilter.score>0 && t.score<_sfilter.score) return false;
+    const s=t.source||'';
+    const key=s==='qq'?'qq':(s==='netease'?'netease':(s==='bilibili'?'bilibili':s));
+    if(!_sfilter.src.has(key) && !_sfilter.src.has(s)) return false;
+    return true;
+  });
+  const so=_sfilter.sort;
+  arr.sort((a,b)=> so==='score' ? ((b.score||0)-(a.score||0))
+    : so==='dur' ? ((b.duration||0)-(a.duration||0))
+    : String(a.title||'').localeCompare(String(b.title||''),'zh'));
+  return arr;
+}
+function applySFilter(){
+  const vis=_svisible();
+  last=vis;
+  /* 卡片模式（歌手/专辑/歌单）不重渲表格，只显数量 */
+  if($('#scards') && !$('#scards').hidden && document.querySelector('#p-s .tablewrap table').style.display==='none'){
+    $('#scount').textContent = vis.length+' / '+_sfull.length+' 条';
+    return;
+  }
+  renderRows(vis, last.every(t=>t.type));
+  $('#scount').textContent = vis.length+' / '+_sfull.length+' 条'+(_sfilter.score>0?' · ≥'+_sfilter.score:'');
+}
+$$('#ssrc .schip').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.src;
+  if(_sfilter.src.has(k)){ _sfilter.src.delete(k); b.classList.remove('on'); }
+  else { _sfilter.src.add(k); b.classList.add('on'); }
+  applySFilter();
+});
+$('#sscore').onchange=()=>{ _sfilter.score=parseFloat($('#sscore').value)||0; applySFilter(); };
+$('#ssort').onchange=()=>{ _sfilter.sort=$('#ssort').value; applySFilter(); };
+$('#sreset').onclick=()=>{
+  _sfilter={score:0, src:new Set(['qq','netease','bilibili']), sort:'score'};
+  $('#sscore').value='0'; $('#ssort').value='score';
+  $$('#ssrc .schip').forEach(b=>{ const on=b.dataset.src==='qq'||b.dataset.src==='netease'||b.dataset.src==='bilibili'; b.classList.toggle('on',on); });
+  applySFilter();
+};
 function pickedIdx(){
   return $$('#tb .rsel').filter(c=>c.checked).map(c=>+c.dataset.i).sort((a,b)=>a-b);
 }
@@ -2471,9 +2545,17 @@ async function doSearchMV(q){
   setMsg($('#msg'),'搜 B站 MV 候选…');
   const d=await (await fetch(`/api/mv?act=search&q=${encodeURIComponent(q)}&limit=8`)).json();
   if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
-  last=(d.items||[]).map(t=>Object.assign({type:'mv'}, t));
-  renderRows(last, false);
+  _sfull=(d.items||[]).map(t=>Object.assign({type:'mv'}, t));
+  applySFilter();
   setMsg($('#msg'),`B站 MV 候选 ${last.length} 条 · 点「下载MV」存为视频文件`);
+}
+/* 卡片模式（歌手/专辑/歌单）复位筛选控件，防跨模式残留 */
+function _resetSFilter(){
+  _sfilter={score:0, src:new Set(['qq','netease','bilibili']), sort:'score'};
+  if($('#sscore')) $('#sscore').value='0';
+  if($('#ssort')) $('#ssort').value='score';
+  $$('#ssrc .schip').forEach(b=>{ const on=b.dataset.src==='qq'||b.dataset.src==='netease'||b.dataset.src==='bilibili'; b.classList.toggle('on',on); });
+  if($('#scount')) $('#scount').textContent='';
 }
 async function dlMV(i){
   const t=last[i]; if(!t)return;

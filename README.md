@@ -7554,3 +7554,18 @@ R257 `#mtallfoldstat` 折叠记忆切 IIFE 展开态段切展开态 + 折叠态�
 
 **E2E**：`专辑模式搜「叶惠美」→ 7 张专辑卡片（叶惠美 netease 18 首 / 叶惠美 qq / 叶惠美也会美 / 叶惠美的诗 …）· 表格隐；歌单模式搜「周杰伦 精选」→ 20 个歌单卡片（周杰伦-Jay『网易云精选』145 首 3518 万次播放 …）；歌手模式不回归（19 专辑组 · 23 行）；切歌曲模式回表格 28 行 · 卡片隐`（全绿）；端点 **13/0**、CSS 大括号 342/342 配平、console 0、截图 docs/shots/album_cards.png + playlist_cards.png + artist_cards2.png。
 
+---
+
+## 通用搜索 · 筛选按钮完善
+
+**完善性（功能新增）**：搜索工具栏（`#p-s` 第二行）加筛选区 `#sfilter`，三项即时过滤（对最近一次搜索的全量 `_sfull` 重渲表格，不动端点/不发请求）：
+- **分数阈值** `#sscore`：全部 / ≥0.5 / ≥0.7（可下）/ ≥0.8（直接下），低于阈值的行隐藏。
+- **来源 chips** `#ssrc`：QQ音乐 / 网易云 / B站MV 三钮开关（点按切 `.on`），多源同时开=全量；全关时表格空（保留「全量 32」计数提示）。
+- **排序** `#ssort`：按匹配分（默认）/ 按时长 / 按标题（`zh` locale）；**复位** `#sreset` 一键回全量；`#scount` 尾显「可见/全量 · 阈值」。
+
+全部模式（`doSearchAll`）与歌曲/MV 模式均存 `_sfull` 全量后走 `applySFilter`；歌手/专辑/歌单卡片模式入口调 `_resetSFilter()` 复位控件（防跨模式残留），卡片模式 `#scount` 只显数量不重渲表格。
+
+**坑**：① `_sfull` 是 IIFE 内 `let` 声明，不挂 `window`（E2E 直读 `window._sfull` 为 null 属正常，筛选逻辑在 IIFE 内自洽，验收走 DOM 行数变化不读变量）② `applySFilter` 卡片模式判断用 `$('#scards').hidden` + 表格 `display` 双条件（表格隐藏时不重渲 `#tb`，免卡片模式下筛选误触表格渲染）③ 来源 key 归一：`qq`/`netease`/`bilibili` 三档，musicdl 小众源（kuwo/qianqian/migu）按原 source 名放行（chips 只控三源）。
+
+**E2E**：`全部模式搜「晴天 周杰伦」→ 全量 32 条 → ≥0.5 17 条 → ≥0.8 10 条 → B站only 17 条（曲+MV 组）→ 排序时长首 22m16s/5m19s/5m17s → 复位回 32 → 切歌手模式筛选控件自动复位（score=0/sort=score）+ 歌手卡片 19 组不回归`（全绿）；端点 **13/0**、CSS 大括号 349/349 配平、console 0、截图 docs/shots/sfilter.png。
+
