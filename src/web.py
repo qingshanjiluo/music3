@@ -544,6 +544,18 @@ body._nosplabel .mtspark-lastval{display:none}
   opacity:.45;pointer-events:none;display:block;
 }
 .player{overflow:hidden}
+/* 歌手卡片（按专辑分组） */
+.scards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--gap);margin-top:10px}
+.sgrp{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sgrphead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);background:rgba(196,56,31,.05)}
+.salbum{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slist{display:flex;flex-direction:column}
+.scrow{display:flex;align-items:center;gap:7px;padding:7px 12px;border-bottom:1px solid rgba(226,221,211,.5)}
+.scrow:last-child{border-bottom:none}
+.scrow:hover{background:#efece5}
+.stitle{flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stitle .sc{margin-left:6px}
+.sdur{font-size:11px;color:var(--dim);width:40px;text-align:right}
 /* 搜索结果分组标签 */
 .gtag{
   display:inline-block;font-size:10px;line-height:1;padding:3px 5px;margin-right:6px;
@@ -916,6 +928,7 @@ body._nosplabel .mtspark-lastval{display:none}
     <th style="width:66px">来源</th><th>标题</th><th style="width:116px">操作</th>
   </tr></thead><tbody id="tb"></tbody></table>
   </div>
+  <div class="scards" id="scards" hidden></div>
 </div>
 
 <!-- 大图灯箱 -->
@@ -1956,6 +1969,10 @@ function emptyRows(title, sub){
 }
 $('#tb').innerHTML = `<tr><td colspan="7">${emptyRows('搜一首歌开始','支持 QQ音乐 / 网易云 / B站三源 · 勾「含B站」扩到视频源')}</td></tr>`;
 async function doSearch(){
+  /* 按当前高亮 span 同步 searchMode（防 localStorage m3_sm 残留旧值绕过 UI 状态） */
+  const on=$('#smode').querySelector('span.on');
+  if(on && on.dataset.sm) searchMode=on.dataset.sm;
+  localStorage.setItem('m3_sm', searchMode);
   const q=$('#q').value.trim(); if(!q)return;
   $('#go').disabled=true; setMsg($('#msg'),'搜索中…'); skTable(6);
   try{
@@ -1995,19 +2012,67 @@ async function doSearchAll(q){
   renderRows(last, true);
   setMsg($('#msg'), `歌曲 ${song.length} · 歌手曲 ${art.length} · MV ${mv.length} · 共 ${last.length} 条（已跨组去重）`);
 }
-/* 歌手模式：/api/artists，纯歌手名搜索 */
+/* 歌手模式：/api/artists，纯歌手名搜索 —— 卡片展示，按专辑分组 */
 async function doSearchArtist(q){
   setMsg($('#msg'),'按歌手搜「'+q+'」…');
   const d=await (await fetch(`/api/artists?name=${encodeURIComponent(q)}&limit=30`)).json();
   if(d.error){setMsg($('#msg'),'错误: '+d.error,'bad');return;}
   last=(d.items||[]).map(t=>Object.assign({type:'artist'}, t));
-  renderRows(last, false);
-  const names=[...new Set(last.map(t=>t.artists).filter(Boolean))];
-  setMsg($('#msg'),`歌手「${q}」 ${last.length} 首 · 歌手: ${names.slice(0,3).join(' / ')}${names.length>3?' 等'+names.length+'位':''}`);
+  renderArtistCards(q, last);
+  const names=[...new Set(last.map(t=>t.artists).filter(Boolean))]; // 歌手卡片
+  const albums=new Set(last.map(t=>t.album||'').filter(Boolean));
+  setMsg($('#msg'),`歌手「${q}」 ${last.length} 首 · ${names.slice(0,3).join(' / ')}${names.length>3?' 等'+names.length+'位':''} · ${albums.size} 张专辑`);
+}
+/* 歌手卡片渲染：按专辑分组（无专辑名的归「单曲/未收录」），卡片内每首一行（试听/下载/收藏） */
+function renderArtistCards(q, rows){
+  /* 隐藏表格，改用卡片容器（#scards 静态挂在 #p-s 内） */
+  const tw=$('#p-s .tablewrap');
+  const cards=$('#scards');
+  const tbl=tw?tw.querySelector('table'):null;
+  if(!rows || !rows.length){
+    if(cards) cards.hidden=true; if(tbl) tbl.style.display='';
+    $('#tb').innerHTML = `<tr><td colspan="7">${emptyRows('没有匹配结果','换个歌手名，或切「全部」模式扩到三源 / 点下方示例词试搜')}</td></tr>`;
+    return;
+  }
+  if(tbl) tbl.style.display='none';
+  /* 按 album 分组（保持原排序：歌手命中在前） */
+  const groups=new Map();
+  rows.forEach((t,i)=>{
+    const g=t.album||'单曲 / 未收录';
+    if(!groups.has(g)) groups.set(g,[]);
+    groups.get(g).push({t,i});
+  });
+  let html='';
+  groups.forEach((items,g)=>{
+    html+=`<div class="sgrp"><div class="sgrphead"><span class="salbum">${esc(g)}</span><span class="n">${items.length} 首</span></div><div class="slist">`;
+    items.forEach(({t,i})=>{
+      const sc=(t.score===null||t.score===undefined)?'':`<span class="sc ${scCls(t.score)}">${Number(t.score).toFixed(2)}</span>`;
+      html+=`<div class="scrow" id="srow${i}">
+        <button class="ghost sm splay" onclick="previewOne(${i})" title="在线试听" aria-label="在线试听">▶</button>
+        <div class="stitle">${esc(t.title)}${sc}</div>
+        <span class="src ${srcCls(t.source)}">${t.source}</span>
+        <span class="n sdur">${fmtDur(t.duration)}</span>
+        <button class="ghost sm" onclick="favAdd(${i})" title="加入收藏" aria-label="加入收藏">★</button>
+        <button class="ghost sm" onclick="dlOne(${i})" title="下载" aria-label="下载">⬇</button>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  if(cards){cards.innerHTML=html; cards.hidden=false;}
+}
+/* 切回非歌手模式时隐藏卡片、显表格；歌手模式显卡片、隐表格 */
+function _toggleArtistCards(on){
+  const cards=$('#scards');
+  if(cards) cards.hidden=!on;
+  const tbl=document.querySelector('#p-s .tablewrap table');
+  if(tbl) tbl.style.display=on?'none':'';
+  /* 卡片容器在表格内，隐表格时卡片也随隐，需卡片独立控制：歌手模式时把卡片提到 tablewrap 下显 */
+  if(on){ const c=$('#scards'); if(c) c.hidden=false; }
 }
 /* 统一表格渲染（带分组标签与按类型下载）；fmtDur 复用统计页已定义的 */
 const TYPE_TAG = {song:'曲', artist:'歌手', mv:'MV'};
 function renderRows(rows, grouped){
+  _toggleArtistCards(false);
   if(!rows || !rows.length){
     $('#tb').innerHTML = `<tr><td colspan="7">${emptyRows('没有匹配结果','换个关键词，或勾「含B站」扩到三源 / 点下方示例词试搜')}</td></tr>`;
     return;
@@ -2401,7 +2466,7 @@ const SM_TIP = {
   mv:'MV 模式：搜 B站视频当 MV 源，下载存为 mp4',
 };
 function applySM(){
-  $$('#smode span').forEach(x=>{ const on = x.dataset.sm===searchMode;
+  $('#smode').querySelectorAll('span').forEach(x=>{ const on = x.dataset.sm===searchMode;
     x.classList.toggle('on', on); x.setAttribute('role','radio'); x.setAttribute('aria-checked', on); });
   $('#q').placeholder = searchMode==='all' ? '一个词全搜：晴天 周杰伦'
     : searchMode==='song' ? '歌名 歌手，如：晴天 周杰伦'
@@ -2410,7 +2475,7 @@ function applySM(){
   $('#smodetip').textContent = SM_TIP[searchMode] || '';
   localStorage.setItem('m3_sm', searchMode);
 }
-$$('#smode span').forEach(x=>x.onclick=()=>{ searchMode=x.dataset.sm; applySM(); });
+$('#smode').querySelectorAll('span').forEach(x=>x.onclick=()=>{ searchMode=x.dataset.sm; applySM(); });
 applySM();
 
 /* ---------- 曲库 ---------- */
@@ -2443,12 +2508,13 @@ let viewMode = localStorage.getItem('m3_view') || 'grid';
 function applyViewMode(m){
   viewMode = m;
   localStorage.setItem('m3_view', m);
-  $$('.vtog span').forEach(s=>s.classList.toggle('on', s.dataset.v===m));
+  /* 只切曲库视图（data-v），不碰 #smode（data-sm）与其他 vtog */
+  $$('.vtog span[data-v]').forEach(s=>s.classList.toggle('on', s.dataset.v===m));
   const g = $('#grid');
   g.className = (m==='list') ? 'listview' : 'grid';
   if(_renderJob) drawMoreBatch();
 }
-$$('.vtog span').forEach(s=>s.onclick=()=>applyViewMode(s.dataset.v));
+$$('.vtog span[data-v]').forEach(s=>s.onclick=()=>applyViewMode(s.dataset.v));
 
 function renderGridBatch(items, sub){
   const grid = $('#grid');
@@ -6593,6 +6659,7 @@ class Handler(BaseHTTPRequestHandler):
                     hit = 1 if (nn and nn in norm(t.artists)) else 0
                     rows.append({
                         "title": t.title, "artists": t.artists,
+                        "album": t.album or "",
                         "source": t.source, "duration": round(float(t.duration_s or 0), 1),
                         "score": round(float(t.score or 0), 3),
                         "page_url": t.page_url or "",
